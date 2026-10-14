@@ -1,0 +1,36 @@
+# yaml-language-server: $schema=https://schema.blue-build.org/module-list-v1.json
+# Shared modules used by BOTH the NVIDIA and non-NVIDIA images.
+# Edit this file to change apps on all your laptops at once.
+modules:
+  - type: files
+    files:
+      - source: system
+        destination: / # copies files/system/* into the image root
+
+  # Native RPM packages
+  - type: dnf
+    repos:
+      files:
+        - antigravity.repo # from files/dnf/antigravity.repo
+    install:
+      packages:
+        - antigravity
+        - gnome-tweaks
+
+  # Flatpaks (installed on first boot, kept up to date)
+  - type: default-flatpaks
+    configurations:
+      - notify: true
+        scope: system
+        repo:
+          url: https://dl.flathub.org/repo/flathub.flatpakrepo
+          name: flathub
+          title: Flathub
+        install:
+          - com.valvesoftware.Steam
+          - app.zen_browser.zen
+          - dev.vencord.Vesktop
+          - com.mattjakeman.ExtensionManager
+          - com.github.tchx84.Flatseal
+
+  - type: signing # sets up container signing so you can rebase to the signed image
