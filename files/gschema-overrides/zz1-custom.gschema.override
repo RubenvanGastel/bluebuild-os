@@ -1,0 +1,7 @@
+# Default GNOME settings for all users (users can still change them)
+
+[org.gnome.desktop.interface]
+icon-theme='MoreWaita'
+
+[org.gnome.shell]
+enabled-extensions=['hotedge@jonathan.jdoda.ca']

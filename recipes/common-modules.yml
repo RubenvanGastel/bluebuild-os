@@ -17,6 +17,21 @@ modules:
         - antigravity
         - gnome-tweaks
 
+  # MoreWaita icon theme (files/scripts/install-morewaita.sh)
+  - type: script
+    scripts:
+      - install-morewaita.sh
+
+  # GNOME extensions from extensions.gnome.org (by ID)
+  - type: gnome-extensions
+    install:
+      - 4222 # Hot Edge
+
+  # Default settings: MoreWaita icons + Hot Edge enabled
+  - type: gschema-overrides
+    include:
+      - zz1-custom.gschema.override
+
   # Flatpaks (installed on first boot, kept up to date)
   - type: default-flatpaks
     configurations:
