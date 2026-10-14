@@ -12,11 +12,13 @@ modules:
     repos:
       files:
         - antigravity.repo # from files/dnf/antigravity.repo
+        - claude-code.repo
       copr:
         - rivenirvana/morewaita-icon-theme # official MoreWaita COPR
     install:
       packages:
         - antigravity
+        - claude-code
         - gnome-tweaks
         - morewaita-icon-theme
 
