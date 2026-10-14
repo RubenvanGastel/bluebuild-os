@@ -12,15 +12,13 @@ modules:
     repos:
       files:
         - antigravity.repo # from files/dnf/antigravity.repo
+      copr:
+        - rivenirvana/morewaita-icon-theme # official MoreWaita COPR
     install:
       packages:
         - antigravity
         - gnome-tweaks
-
-  # MoreWaita icon theme (files/scripts/install-morewaita.sh)
-  - type: script
-    scripts:
-      - install-morewaita.sh
+        - morewaita-icon-theme
 
   # GNOME extensions from extensions.gnome.org (by ID)
   - type: gnome-extensions
