@@ -21,6 +21,12 @@ modules:
         - claude-code
         - gnome-tweaks
         - morewaita-icon-theme
+        - plymouth-plugin-script # needed by the Miku boot theme
+
+  # Miku Plymouth boot animation (from files/scripts/)
+  - type: script
+    scripts:
+      - install-miku-plymouth.sh
 
   # GNOME extensions from extensions.gnome.org (by ID)
   - type: gnome-extensions
@@ -49,3 +55,6 @@ modules:
           - com.github.tchx84.Flatseal
 
   - type: signing # sets up container signing so you can rebase to the signed image
+
+  # Rebuild initramfs so the Plymouth theme is included at boot (keep this last)
+  - type: initramfs
