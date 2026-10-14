@@ -2,11 +2,6 @@
 # Shared modules used by BOTH the NVIDIA and non-NVIDIA images.
 # Edit this file to change apps on all your laptops at once.
 modules:
-  - type: files
-    files:
-      - source: system
-        destination: / # copies files/system/* into the image root
-
   # Native RPM packages
   - type: dnf
     repos:
@@ -26,6 +21,14 @@ modules:
         - niri
         - xwayland-satellite
         - quickshell
+        - fuzzel # app launcher in niri (Mod+D)
+
+  # After dnf, so our files (e.g. the fuzzel theme) win over files that packages ship.
+  # Includes the Gravity shell (/usr/share/gravity-shell) and niri config (/etc/niri).
+  - type: files
+    files:
+      - source: system
+        destination: / # copies files/system/* into the image root
 
   # Miku Plymouth boot animation (from files/scripts/)
   - type: script

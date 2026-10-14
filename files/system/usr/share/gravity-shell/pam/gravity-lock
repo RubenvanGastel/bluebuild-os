@@ -1,0 +1,7 @@
+#%PAM-1.0
+# Password check for the Gravity lock screen. Kept minimal on purpose: pam_unix with
+# faillock, the same as Fedora's system-auth password path.
+auth    required                    pam_faillock.so     preauth
+auth    [success=1 default=bad]     pam_unix.so
+auth    [default=die]               pam_faillock.so     authfail
+auth    required                    pam_faillock.so     authsucc

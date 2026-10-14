@@ -1,0 +1,23 @@
+#!/bin/sh
+# Starts or talks to the Gravity Quickshell desktop.
+#   gravity-shell          start the shell (niri runs this at startup)
+#   gravity-shell lock     lock the screen
+#   gravity-shell ...      any other qs arguments, e.g. `gravity-shell ipc show`
+#
+# A copy in ~/.config/quickshell/gravity takes precedence over the system one, so you can
+# tweak it without rebuilding the image:
+#   cp -r /usr/share/gravity-shell ~/.config/quickshell/gravity
+set -eu
+
+user_dir="${XDG_CONFIG_HOME:-$HOME/.config}/quickshell/gravity"
+if [ -f "$user_dir/shell.qml" ]; then
+    dir="$user_dir"
+else
+    dir=/usr/share/gravity-shell
+fi
+
+case "${1:-}" in
+    "") exec qs -p "$dir" ;;
+    lock) exec qs -p "$dir" ipc call lock lock ;;
+    *) exec qs -p "$dir" "$@" ;;
+esac
