@@ -1,0 +1,2 @@
+# Image defaults (cursor shaders); put your own settings below
+config-file = /etc/ghostty/config

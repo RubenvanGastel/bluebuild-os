@@ -8,6 +8,7 @@ modules:
       copr:
         - rivenirvana/morewaita-icon-theme # official MoreWaita COPR
         - errornointernet/quickshell
+        - scottames/ghostty
     install:
       packages:
         - morewaita-icon-theme
@@ -19,6 +20,7 @@ modules:
         - eza # modern ls with icons (aliased in /etc/profile.d/eza.sh and /etc/fish/conf.d/eza.fish)
         - fastfetch # system info in the terminal
         - fish # shell with autosuggestions and syntax highlighting built in
+        - ghostty # terminal (cursor shaders set in /etc/ghostty/config)
     remove:
       packages:
         # System monitors from the base image; replaced by the Resources flatpak
@@ -31,7 +33,7 @@ modules:
         - yelp # GNOME Help
 
   # niri pulls these in as recommended packages, but Gravity (Quickshell) is the
-  # bar and lock screen and Mod+T opens Ptyxis. Separate step so it runs after the install above.
+  # bar and lock screen and Mod+T opens Ghostty. Separate step so it runs after the install above.
   - type: dnf
     remove:
       packages:
@@ -47,7 +49,8 @@ modules:
         - NerdFontsSymbolsOnly
 
   # After dnf, so our files (e.g. the fuzzel theme) win over files that packages ship.
-  # Includes the Gravity shell (/usr/share/gravity-shell) and niri config (/etc/niri).
+  # Includes the Gravity shell (/usr/share/gravity-shell), niri config (/etc/niri)
+  # and Ghostty defaults (/etc/ghostty, cursor shaders in /usr/share/ghostty-cursor-shaders).
   - type: files
     files:
       - source: system

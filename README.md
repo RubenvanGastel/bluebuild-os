@@ -26,7 +26,7 @@ Both images use the same module list, [`recipes/common-modules.yml`](recipes/com
 | Browser & chat | | Zen Browser, Vesktop |
 | Gaming | | Steam |
 | System | GNOME Tweaks | Resources, Flatseal, Gear Lever, DistroShelf |
-| Terminal | eza, fastfetch, fish | |
+| Terminal | Ghostty, eza, fastfetch, fish | |
 
 Dev tools are installed per user, so they update themselves without an image rebuild:
 
@@ -39,6 +39,7 @@ Resources replaces the System Monitor, htop and nvtop that come with the base im
 ### Defaults
 
 - The Compose key is **Right Alt**. For example, press Right Alt, then `'` and `e` to type é.
+- **Ghostty** uses the [cursor warp and ripple shaders](https://github.com/sahaj-b/ghostty-cursor-shaders). New users get a `~/.config/ghostty/config` that includes `/etc/ghostty/config`; existing users can copy it from `/etc/skel/.config/ghostty/config`.
 - `ls`, `ll`, `la` and `lt` run **eza** with icons, using Nerd Font symbols.
 - Each user can change any of these. The defaults live in [`files/gschema-overrides/`](files/gschema-overrides/).
 
