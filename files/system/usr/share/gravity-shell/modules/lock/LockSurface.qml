@@ -45,9 +45,11 @@ WlSessionLockSurface {
         id: wallpaper
 
         anchors.fill: parent
-        source: "file://" + Config.wallpaperPath
+        // The screen is assigned just after the surface is created; wait for it so the
+        // image isn't decoded twice.
+        source: surface.screen ? "file://" + Config.wallpaperPath : ""
         fillMode: Image.PreserveAspectCrop
-        sourceSize: Qt.size(surface.screen.width * surface.screen.devicePixelRatio, surface.screen.height * surface.screen.devicePixelRatio)
+        sourceSize: surface.screen ? Qt.size(surface.screen.width * surface.screen.devicePixelRatio, surface.screen.height * surface.screen.devicePixelRatio) : Qt.size(0, 0)
         // Synchronous so the very first frame already has the picture.
         asynchronous: false
         visible: false

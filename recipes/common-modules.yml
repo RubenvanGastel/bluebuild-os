@@ -18,6 +18,8 @@ modules:
         - quickshell
         - matugen # wallpaper colours for the Gravity shell (Config "colors": "wallpaper")
         - qt6-qtimageformats # lets Quickshell show .webp/.tiff wallpapers
+        - brightnessctl # brightness keys in niri
+        - playerctl # media keys in niri
         - fuzzel # app launcher in niri (Mod+D)
         - eza # modern ls with icons (aliased in /etc/profile.d/eza.sh and /etc/fish/conf.d/eza.fish)
         - fastfetch # system info in the terminal

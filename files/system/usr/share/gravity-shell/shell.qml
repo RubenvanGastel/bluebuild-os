@@ -8,6 +8,7 @@ import QtQuick
 import Quickshell
 import qs.modules.background
 import qs.modules.bar
+import qs.modules.controls
 import qs.modules.lock
 import qs.modules.notifications
 import qs.modules.wallpaper
@@ -15,6 +16,7 @@ import qs.modules.wallpaper
 ShellRoot {
     Wallpaper {}
     Bar {}
+    Controls {}
     Lock {}
     Notifications {}
     Picker {}

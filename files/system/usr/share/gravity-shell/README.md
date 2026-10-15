@@ -3,7 +3,7 @@
 A Quickshell desktop for niri inspired by Gravity Rush: a levitating bar, notifications that
 fall away and a lock screen, all coloured by the Hekseville palette or by your wallpaper.
 
-- **Wallpaper**: your own image, on every screen. `Super+Shift+W` (or `gravity-shell wallpaper`)
+- **Wallpaper**: your own image, on every screen. `Super+Y` (or `gravity-shell wallpaper`)
   opens the picker: the wallpaper zooms out into a preview and three wallpapers rise from the
   bottom and float in the gravity field. Left/Right (or the mouse wheel) scrolls them, Enter
   applies, Esc closes. It lists only your wallpaper folder: `Wallpapers` inside your Pictures
@@ -50,5 +50,8 @@ gravity-shell ipc call theme scheme vibrant
 
 `cp -r /usr/share/gravity-shell ~/.config/quickshell/gravity`, then edit. `gravity-shell`
 prefers that copy, and Quickshell reloads it live as you save.
+
+Keybinds use the IPC targets `volume` (increase, decrease, muteOutput, muteInput),
+`powerProfile` (cycle), `wallpaper` (toggle, set), `theme` and `lock`.
 
 Useful commands: `gravity-shell lock`, `gravity-shell wallpaper [image]`, `gravity-shell ipc show`, `gravity-shell log`.
