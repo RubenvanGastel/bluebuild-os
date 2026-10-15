@@ -2,6 +2,12 @@
 # Fedora's /etc/zshrc already sources /etc/profile.d, so the eza aliases work here too.
 # Per-user tweaks go in ~/.zshrc, which is read after this file.
 
+# Powerlevel10k instant prompt: shows the prompt right away while the rest loads.
+# Must stay at the top; anything that asks for input goes above this block.
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+    source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
 # History: big, shared between open terminals, no duplicates
 HISTFILE=~/.zsh_history
 HISTSIZE=50000
@@ -33,13 +39,14 @@ bindkey '^[[3~' delete-char
 bindkey '^[[1;5C' forward-word
 bindkey '^[[1;5D' backward-word
 
-# Prompt: user@host ~/dir branch ❯  (arrow turns red after a failed command)
-autoload -Uz vcs_info
-precmd_functions+=(vcs_info)
-zstyle ':vcs_info:*' enable git
-zstyle ':vcs_info:git:*' formats ' %F{magenta}%b%f'
-setopt prompt_subst
-PROMPT='%F{cyan}%n@%m%f %F{blue}%~%f${vcs_info_msg_0_} %(?.%F{green}.%F{red})❯%f '
+# Prompt: Powerlevel10k with the shared config in /etc/zsh/p10k.zsh.
+# `p10k configure` writes ~/.p10k.zsh, which is used instead when it exists.
+source /usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme
+if [[ -r ~/.p10k.zsh ]]; then
+    source ~/.p10k.zsh
+else
+    source /etc/zsh/p10k.zsh
+fi
 
 # Plugins (syntax highlighting must be sourced last)
 [ -r /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh ] &&

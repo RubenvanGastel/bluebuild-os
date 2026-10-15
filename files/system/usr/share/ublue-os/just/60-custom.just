@@ -41,3 +41,12 @@ install-antigravity:
     Keywords=vscode;
     EOF
     echo "Done. Open Antigravity IDE from the app grid, or run: antigravity-ide"
+
+# Make zsh your login shell (new users get it by default; run once for existing users)
+set-shell-zsh:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    # skel is only copied for new users; without ~/.zshrc zsh shows its setup wizard
+    [ -e "$HOME/.zshrc" ] || cp /etc/skel/.zshrc "$HOME/.zshrc"
+    sudo usermod --shell /usr/bin/zsh "$USER"
+    echo "Done. Log out and back in, then open a new terminal."
