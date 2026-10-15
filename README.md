@@ -23,11 +23,15 @@ Both images use the same module list, [`recipes/common-modules.yml`](recipes/com
 
 | | RPM (part of the image) | Flatpak (installed on first boot) |
 | --- | --- | --- |
-| Dev | Antigravity, Claude Code | |
 | Browser & chat | | Zen Browser, Vesktop |
 | Gaming | | Steam |
-| System | GNOME Tweaks | Resources, Extension Manager, Flatseal |
-| Terminal | eza, fastfetch | |
+| System | GNOME Tweaks | Resources, Flatseal, Gear Lever, DistroShelf |
+| Terminal | eza, fastfetch, zsh (+ autosuggestions, syntax highlighting) | |
+
+Dev tools are installed per user, so they update themselves without an image rebuild:
+
+- `ujust install-claude-code`: Claude Code in `~/.local/bin` (auto-updates)
+- `ujust install-antigravity`: Antigravity IDE in `~/.local/opt` (run again to update)
 
 Resources replaces the System Monitor, htop and nvtop that come with the base image.
 

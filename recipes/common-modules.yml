@@ -5,16 +5,11 @@ modules:
   # Native RPM packages
   - type: dnf
     repos:
-      files:
-        - antigravity.repo # from files/dnf/antigravity.repo
-        - claude-code.repo
       copr:
         - rivenirvana/morewaita-icon-theme # official MoreWaita COPR
         - errornointernet/quickshell
     install:
       packages:
-        - antigravity
-        - claude-code
         - gnome-tweaks
         - morewaita-icon-theme
         - plymouth-plugin-script
@@ -81,6 +76,8 @@ modules:
           - dev.vencord.Vesktop
           - com.github.tchx84.Flatseal
           - net.nokyan.Resources # GNOME Circle system monitor (replaces System Monitor, htop, nvtop)
+          - it.mijorus.gearlever # manage AppImages (adds them to the app grid, updates them)
+          - com.ranfdev.DistroShelf # GUI for distrobox containers (distrobox ships in the base image)
 
   - type: signing # sets up container signing so you can rebase to the signed image
 
