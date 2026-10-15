@@ -1,14 +1,13 @@
 import QtQuick
-import QtQuick.Layouts
-import QtQuick.Shapes
 import Quickshell
 import Quickshell.Wayland
 import qs.services
 import qs.components
 
 // What the bar looks like: a solid Material 3 Expressive style strip with inverted corners
-// curving down into the screen at both ends, status in tonal pills, the clock in an accent
-// pill and the workspaces floating on the left. Used by the bar window, and by the
+// curving down into the screen at both ends: the workspaces floating on the left, the clock
+// and date in an accent pill in the middle, and at the right end volume and battery in a
+// tonal pill that opens the quick panel. Used by the bar window, and by the
 // wallpaper picker, which draws an identical live copy it can slide off the screen.
 Item {
     id: root
@@ -35,63 +34,94 @@ Item {
             }
         }
 
-        RowLayout {
-            anchors.fill: parent
+        Workspaces {
+            id: workspaces
+
+            anchors.left: parent.left
             anchors.leftMargin: 16
-            anchors.rightMargin: 6
-            spacing: 12
-
-            Workspaces {
-                output: root.output
-                Layout.alignment: Qt.AlignVCenter
-            }
-
-            Item {
-                Layout.fillWidth: true
-            }
-
-            Tray {
-                barWindow: root.barWindow
-                Layout.alignment: Qt.AlignVCenter
-            }
-
-            Pill {
-                color: Theme.dusk
-                Layout.alignment: Qt.AlignVCenter
-
-                RowLayout {
-                    spacing: 14
-
-                    Volume {
-                        Layout.alignment: Qt.AlignVCenter
-                    }
-
-                    Battery {
-                        Layout.alignment: Qt.AlignVCenter
-                    }
-                }
-            }
-
-            Pill {
-                color: Theme.gold
-                Layout.alignment: Qt.AlignVCenter
-
-                Clock {
-                    color: Theme.goldInk
-                }
-            }
+            anchors.verticalCenter: parent.verticalCenter
+            output: root.output
         }
 
-        // Focused window title, centred on the bar.
+        // Focused window title, between the workspaces and the clock.
         FloatText {
-            anchors.centerIn: parent
-            width: Math.min(implicitWidth, bar.width * 0.36)
+            anchors.left: workspaces.right
+            anchors.leftMargin: 16
+            anchors.verticalCenter: parent.verticalCenter
+            width: Math.max(0, Math.min(implicitWidth, clockPill.x - x - 16))
             height: parent.height
-            horizontalAlignment: Text.AlignHCenter
             color: Theme.text
             font.pixelSize: 14
             font.weight: Font.DemiBold
             text: ToplevelManager.activeToplevel?.title ?? ""
+        }
+
+        Pill {
+            id: clockPill
+
+            anchors.centerIn: parent
+            color: Theme.gold
+
+            Clock {
+                color: Theme.goldInk
+            }
+        }
+
+        Row {
+            anchors.right: parent.right
+            anchors.rightMargin: 6
+            anchors.verticalCenter: parent.verticalCenter
+            spacing: 12
+
+            Tray {
+                anchors.verticalCenter: parent.verticalCenter
+                barWindow: root.barWindow
+            }
+
+            // Volume and battery at the far right. Click for the quick panel; scroll
+            // for the volume.
+            Item {
+                id: status
+
+                readonly property bool active: Panels.quick === root.output
+
+                anchors.verticalCenter: parent.verticalCenter
+                implicitWidth: statusPill.implicitWidth
+                implicitHeight: statusPill.implicitHeight
+
+                Pill {
+                    id: statusPill
+
+                    anchors.fill: parent
+                    color: statusMouse.containsMouse && !status.active ? Qt.lighter(Theme.dusk, 1.2) : Theme.dusk
+                    border.width: status.active ? 2 : 0
+                    border.color: Theme.gold
+
+                    Row {
+                        spacing: 14
+
+                        Volume {
+                            id: volume
+
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+
+                        Battery {
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+                    }
+                }
+
+                MouseArea {
+                    id: statusMouse
+
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: Panels.toggleQuick(root.output)
+                    onWheel: wheel => volume.setVolume(volume.volume + (wheel.angleDelta.y > 0 ? 0.05 : -0.05))
+                }
+            }
         }
     }
 
@@ -130,47 +160,6 @@ Item {
             anchors.centerIn: parent
             width: childrenRect.width
             height: childrenRect.height
-        }
-    }
-
-    // Bar-coloured fill between the screen edge and a quarter circle, so the bar flows
-    // into the screen edge in a concave curve. Drawn for the left end; mirrored for the right.
-    component InvertedCorner: Shape {
-        id: cornerShape
-
-        property real size
-        property color fill
-        property bool mirrored: false
-
-        width: size
-        height: size
-        preferredRendererType: Shape.CurveRenderer
-
-        transform: Scale {
-            origin.x: cornerShape.width / 2
-            xScale: cornerShape.mirrored ? -1 : 1
-        }
-
-        ShapePath {
-            strokeColor: "transparent"
-            fillColor: cornerShape.fill
-            startX: 0
-            startY: 0
-            PathLine {
-                x: cornerShape.width
-                y: 0
-            }
-            PathArc {
-                x: 0
-                y: cornerShape.height
-                radiusX: cornerShape.width
-                radiusY: cornerShape.height
-                direction: PathArc.Counterclockwise
-            }
-            PathLine {
-                x: 0
-                y: 0
-            }
         }
     }
 }

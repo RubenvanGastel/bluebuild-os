@@ -15,6 +15,7 @@ import qs.modules.controls
 import qs.modules.lock
 import qs.modules.notifications
 import qs.modules.osd
+import qs.modules.quickpanel
 import qs.modules.wallpaper
 
 ShellRoot {
@@ -24,5 +25,6 @@ ShellRoot {
     Lock {}
     Notifications {}
     Osd {}
+    QuickPanel {}
     Picker {}
 }

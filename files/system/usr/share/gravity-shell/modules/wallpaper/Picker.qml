@@ -228,6 +228,14 @@ Scope {
                 when: root.open
             }
 
+            // Once the overlay is fully opaque the desktop wallpaper is hidden: pause it.
+            Binding {
+                target: Media
+                property: "coveredScreen"
+                value: win.screen?.name ?? ""
+                when: root.shown && win.fade >= 1
+            }
+
             FrameAnimation {
                 running: root.shown
                 onTriggered: {
@@ -706,14 +714,14 @@ Scope {
                             border.width: card.middle ? 3 : 0
                             border.color: Theme.gold
 
-                            // Videos play live on the three cards in view; the ones peeking
-                            // in at the edges show their poster.
+                            // Only the highlighted card plays its video; the others show
+                            // their poster.
                             FadeImage {
                                 anchors.fill: parent
                                 source: card.modelData
                                 sourceSize: Qt.size(480, 300)
                                 duration: Theme.fast
-                                live: card.ad < 1.5 && root.shown
+                                live: card.middle && root.shown
                                 playing: root.open
                             }
                         }

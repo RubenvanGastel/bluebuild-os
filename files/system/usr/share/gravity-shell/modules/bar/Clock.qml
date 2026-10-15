@@ -3,15 +3,13 @@ import Quickshell
 import qs.services
 import qs.components
 
-// Time; hovering swaps it for the date with a little float.
-Item {
+// Time with the date beside it.
+Row {
     id: root
 
-    property bool showDate: false
     property color color: Theme.cream
 
-    implicitWidth: Math.max(time.implicitWidth, 60)
-    implicitHeight: 24
+    spacing: 8
 
     SystemClock {
         id: clock
@@ -19,19 +17,32 @@ Item {
     }
 
     FloatText {
-        id: time
-
-        anchors.fill: parent
-        horizontalAlignment: Text.AlignHCenter
+        anchors.verticalCenter: parent.verticalCenter
+        width: implicitWidth
+        height: 24
         color: root.color
         font.pixelSize: 14
         font.weight: Font.Bold
-        text: root.showDate ? Qt.formatDateTime(clock.date, "ddd d MMM") : Qt.formatDateTime(clock.date, Config.use24h ? "HH:mm" : "h:mm AP")
+        text: Qt.formatDateTime(clock.date, Config.use24h ? "HH:mm" : "h:mm AP")
     }
 
-    MouseArea {
-        anchors.fill: parent
-        hoverEnabled: true
-        onContainsMouseChanged: root.showDate = containsMouse
+    Rectangle {
+        anchors.verticalCenter: parent.verticalCenter
+        width: 4
+        height: 4
+        radius: 2
+        color: root.color
+        opacity: 0.5
+    }
+
+    FloatText {
+        anchors.verticalCenter: parent.verticalCenter
+        width: implicitWidth
+        height: 24
+        color: root.color
+        opacity: 0.8
+        font.pixelSize: 14
+        font.weight: Font.Medium
+        text: Qt.formatDateTime(clock.date, "ddd d MMM")
     }
 }

@@ -17,6 +17,12 @@ Singleton {
     // Goes up whenever a frame has been made, so posters can load it.
     property int frameTick: 0
 
+    // Screen the wallpaper picker covers completely right now ("" = none). The desktop
+    // wallpaper there pauses, since nobody can see it.
+    property string coveredScreen: ""
+    // True while the lock screen covers everything: desktop videos pause.
+    property bool locked: false
+
     function isVideo(path: string): bool {
         const m = /\.([^./]+)$/.exec(path);
         return !!m && videoExtensions.includes(m[1].toLowerCase());

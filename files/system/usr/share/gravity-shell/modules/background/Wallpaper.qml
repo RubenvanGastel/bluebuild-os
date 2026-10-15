@@ -31,6 +31,8 @@ Variants {
             // Wait for the config, so a custom wallpaper doesn't load after the default.
             source: Config.ready ? Config.wallpaperPath : ""
             sourceSize: Qt.size(win.modelData.width * win.modelData.devicePixelRatio, win.modelData.height * win.modelData.devicePixelRatio)
+            // A video pauses while the wallpaper picker or the lock screen hides it.
+            playing: !Media.locked && Media.coveredScreen !== win.modelData.name
         }
     }
 }

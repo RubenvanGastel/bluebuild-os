@@ -3,7 +3,7 @@ import QtQuick.Shapes
 import Quickshell.Services.Pipewire
 import qs.services
 
-// Speaker glyph + level. Scroll to change volume, click to mute.
+// Speaker glyph + level. The status pill around it scrolls the volume (setVolume).
 Item {
     id: root
 
@@ -101,13 +101,5 @@ Item {
             font.pixelSize: 13
             font.weight: Font.Bold
         }
-    }
-
-    MouseArea {
-        anchors.fill: parent
-        cursorShape: Qt.PointingHandCursor
-        onClicked: if (root.sink?.audio)
-            root.sink.audio.muted = !root.sink.audio.muted
-        onWheel: wheel => root.setVolume(root.volume + (wheel.angleDelta.y > 0 ? 0.05 : -0.05))
     }
 }

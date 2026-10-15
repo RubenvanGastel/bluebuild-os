@@ -43,12 +43,14 @@ Scope {
         exclusionMode: ExclusionMode.Ignore
         margins.top: Theme.barHeight
         implicitWidth: cardWidth + Theme.gap + 40
-        implicitHeight: Math.max(1, stack.implicitHeight + Theme.gap + 40)
+        implicitHeight: Math.max(1, stack.implicitHeight + below + Theme.gap + 40)
         exclusiveZone: 0
         WlrLayershell.layer: WlrLayer.Overlay
         WlrLayershell.namespace: "gravity-notifications"
 
         readonly property int cardWidth: 360
+        // Room for the quick panel when it is open on this screen: the cards go under it.
+        readonly property real below: Panels.quick !== "" && Panels.quick === screen?.name ? Panels.quickHeight + Theme.gap : 0
         mask: Region {
             item: stack
         }
@@ -57,8 +59,17 @@ Scope {
             id: stack
 
             x: parent.width - width - Theme.gap
-            y: Theme.gap
+            y: Theme.gap + win.below
             width: win.cardWidth
+
+            // Along with the panel growing out of the bar and back.
+            Behavior on y {
+                NumberAnimation {
+                    duration: 420
+                    easing.type: Easing.BezierSpline
+                    easing.bezierCurve: Theme.emphasized
+                }
+            }
             spacing: 10
 
             move: Transition {

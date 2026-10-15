@@ -26,9 +26,35 @@ Singleton {
             return;
         const value = Math.round(Math.max(max * 0.01, Math.min(max, current + max * percent / 100)));
         current = value;
+        apply(value);
+        changed();
+    }
+
+    // Sets the level (0..1) directly, e.g. from a slider; no OSD.
+    function setLevel(l: real): void {
+        if (!available)
+            return;
+        current = Math.round(Math.max(max * 0.01, Math.min(max, l * max)));
+        apply(current);
+    }
+
+    // Reads the level again (it may have been changed elsewhere).
+    function reload(): void {
+        if (available)
+            refresh.running = true;
+    }
+
+    // A drag asks for many levels quickly: while one is being set, only the latest
+    // waiting one is kept and set after it.
+    property int pending: -1
+
+    function apply(value: int): void {
+        if (set.running) {
+            pending = value;
+            return;
+        }
         set.value = value;
         set.running = true;
-        changed();
     }
 
     Process {
@@ -71,6 +97,11 @@ Singleton {
         onExited: code => {
             if (code !== 0)
                 console.warn("gravity: could not set the brightness");
+            if (root.pending >= 0) {
+                const v = root.pending;
+                root.pending = -1;
+                Qt.callLater(() => root.apply(v));
+            }
         }
     }
 

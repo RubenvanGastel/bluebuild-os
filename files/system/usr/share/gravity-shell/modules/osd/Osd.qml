@@ -32,7 +32,8 @@ Scope {
     }
 
     function show(kind: string, value: real, muted: bool): void {
-        if (!settled)
+        // Not while the quick panel is open: its sliders already show the level.
+        if (!settled || Panels.quick !== "")
             return;
         root.kind = kind;
         root.value = value;

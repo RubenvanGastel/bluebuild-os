@@ -27,6 +27,14 @@ Scope {
 
     signal failed
 
+    // The desktop is hidden while locked: pause a video wallpaper. It plays again as
+    // the unlock outro starts, before the real desktop shows.
+    Binding {
+        target: Media
+        property: "locked"
+        value: root.phase === "locked"
+    }
+
     function lock(): void {
         if (phase !== "idle")
             return;
