@@ -5,3 +5,6 @@ icon-theme='MoreWaita'
 
 [org.gnome.shell]
 enabled-extensions=['hotedge@jonathan.jdoda.ca']
+
+[org.gnome.desktop.input-sources]
+xkb-options=['compose:ralt']

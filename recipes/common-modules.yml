@@ -50,12 +50,13 @@ modules:
     scripts:
       - install-miku-plymouth.sh
 
-  # GNOME extensions from extensions.gnome.org (by ID)
+  # GNOME extensions from extensions.gnome.org (by name)
   - type: gnome-extensions
     install:
-      - 4222 # Hot Edge
+      - Hot Edge
 
-  # Default settings: MoreWaita icons + Hot Edge enabled
+  # Default settings: MoreWaita icons, Hot Edge enabled, Compose on Right Alt
+  # (system-wide extensions are installed disabled; enabling them here is required)
   - type: gschema-overrides
     include:
       - zz1-custom.gschema.override
@@ -73,7 +74,6 @@ modules:
           - com.valvesoftware.Steam
           - app.zen_browser.zen
           - dev.vencord.Vesktop
-          - com.mattjakeman.ExtensionManager
           - com.github.tchx84.Flatseal
           - net.nokyan.Resources # GNOME Circle system monitor (replaces System Monitor, htop, nvtop)
 

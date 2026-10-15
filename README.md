@@ -1,47 +1,87 @@
-# bluebuild-os
+# gnome-os
 
-My custom GNOME images, built with [BlueBuild](https://blue-build.org) on top of [Universal Blue](https://universal-blue.org).
+[![bluebuild](https://github.com/RubenvanGastel/bluebuild-os/actions/workflows/build.yml/badge.svg)](https://github.com/RubenvanGastel/bluebuild-os/actions/workflows/build.yml)
+
+My personal Fedora Atomic desktop: GNOME and niri, built with [BlueBuild](https://blue-build.org) on top of [Universal Blue](https://universal-blue.org). The images are rebuilt every day at 06:00 UTC.
 
 | Image | For | Base |
-|---|---|---|
-| `ghcr.io/rubenvangastel/gnome-os` | Intel / AMD laptops | `silverblue-main` |
-| `ghcr.io/rubenvangastel/gnome-os-nvidia` | NVIDIA laptops | `silverblue-nvidia` |
+| --- | --- | --- |
+| `ghcr.io/rubenvangastel/gnome-os` | Intel / AMD graphics | `silverblue-main` |
+| `ghcr.io/rubenvangastel/gnome-os-nvidia` | NVIDIA graphics | `silverblue-nvidia` |
 
-Both share [`recipes/common-modules.yml`](recipes/common-modules.yml).
+Both images use the same module list, [`recipes/common-modules.yml`](recipes/common-modules.yml). Editing that file changes both.
 
-**Included:** GNOME, Antigravity (RPM), Steam, Zen Browser, Vesktop, Extension Manager, Flatseal (Flatpaks).
-**Claude Code:** run `ujust install-claude-code` once per user.
+## What's inside
 
-## One-time setup
+### Desktops
 
-1. Push this folder to a new **public** GitHub repo.
-2. Generate signing keys (in the repo folder):
-   ```bash
-   nix shell nixpkgs#cosign -c cosign generate-key-pair
-   # press Enter twice for an empty password
-   # (non-Nix: podman run --rm -it -v "$PWD:/w:Z" -w /w ghcr.io/sigstore/cosign/cosign generate-key-pair)
-   ```
-3. Add `cosign.key` contents as a GitHub repo secret named `SIGNING_SECRET`
-   (Settings → Secrets and variables → Actions). **Never commit `cosign.key`.**
-4. Commit `cosign.pub`, push, and wait for the Actions build to finish.
-5. In GitHub → Packages, make both packages **public**.
+- **GNOME** with the [MoreWaita](https://github.com/somepaulo/MoreWaita) icon theme and the [Hot Edge](https://extensions.gnome.org/extension/4222/hot-edge/) extension turned on.
+- **niri**, a scrollable-tiling Wayland compositor, which you can choose at login. It runs the **Gravity shell**, a custom [Quickshell](https://quickshell.org) desktop inspired by Gravity Rush, with an animated wallpaper, a bar, notifications and a lock screen ([details](files/system/usr/share/gravity-shell/README.md)). `fuzzel` is the app launcher.
+- A **Miku Plymouth** boot animation.
 
-## Installing on a laptop
+### Apps
 
-Start from any Fedora Atomic install (e.g. Fedora Silverblue), then:
+| | RPM (part of the image) | Flatpak (installed on first boot) |
+| --- | --- | --- |
+| Dev | Antigravity, Claude Code | |
+| Browser & chat | | Zen Browser, Vesktop |
+| Gaming | | Steam |
+| System | GNOME Tweaks | Resources, Extension Manager, Flatseal |
+| Terminal | eza, fastfetch | |
+
+Resources replaces the System Monitor, htop and nvtop that come with the base image.
+
+### Defaults
+
+- The Compose key is **Right Alt**. For example, press Right Alt, then `'` and `e` to type é.
+- `ls`, `ll`, `la` and `lt` run **eza** with icons, using Nerd Font symbols.
+- Each user can change any of these. The defaults live in [`files/gschema-overrides/`](files/gschema-overrides/).
+
+## Installing
+
+Start from any Fedora Atomic install, for example Fedora Silverblue, and rebase twice:
 
 ```bash
-# NVIDIA laptop -> use gnome-os-nvidia ; others -> gnome-os
-IMAGE=gnome-os-nvidia
+IMAGE=gnome-os          # or gnome-os-nvidia
 
-# 1st rebase: unsigned (to get the signing policy)
+# 1. Unsigned first, to get the signing policy
 rpm-ostree rebase ostree-unverified-registry:ghcr.io/rubenvangastel/$IMAGE:latest
 systemctl reboot
 
-# 2nd rebase: signed
+# 2. Then switch to the signed image
 rpm-ostree rebase ostree-image-signed:docker://ghcr.io/rubenvangastel/$IMAGE:latest
 systemctl reboot
 ```
 
-On the NVIDIA image with Secure Boot on, enroll the Universal Blue key once:
-`ujust enroll-secure-boot-key` (password: `universalblue`).
+> [!NOTE]
+> **NVIDIA with Secure Boot:** enroll the Universal Blue key once with `ujust enroll-secure-boot-key`. The password is `universalblue`.
+
+## Repository layout
+
+```text
+recipes/
+  recipe.yml            Intel / AMD image
+  recipe-nvidia.yml     NVIDIA image
+  common-modules.yml    everything both images share
+files/
+  dnf/                  extra RPM repositories
+  gschema-overrides/    default GNOME settings
+  scripts/              build scripts (Plymouth theme)
+  system/               copied as-is into the image root (/)
+```
+
+<details>
+<summary><strong>Setting up a fork from scratch</strong></summary>
+
+1. Push the repository to a **public** GitHub repo.
+2. Generate a signing key pair. Press Enter twice for an empty password.
+   ```bash
+   nix shell nixpkgs#cosign -c cosign generate-key-pair
+   # without Nix:
+   # podman run --rm -it -v "$PWD:/w:Z" -w /w ghcr.io/sigstore/cosign/cosign generate-key-pair
+   ```
+3. Add the contents of `cosign.key` as a repository secret named `SIGNING_SECRET` (Settings → Secrets and variables → Actions). **Never commit `cosign.key`.**
+4. Commit `cosign.pub`, push, and wait for the Actions build to finish.
+5. In GitHub → Packages, make both packages **public**.
+
+</details>
