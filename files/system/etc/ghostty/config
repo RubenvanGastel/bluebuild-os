@@ -1,4 +1,4 @@
-# System-wide Ghostty defaults, included from ~/.config/ghostty/config
+# System-wide Ghostty defaults, included from ~/.config/ghostty/config.ghostty
 # (new users get that file from /etc/skel). Override anything in your own config.
 
 # Cursor shaders from https://github.com/sahaj-b/ghostty-cursor-shaders

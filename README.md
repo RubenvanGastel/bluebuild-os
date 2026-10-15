@@ -39,7 +39,7 @@ Resources replaces the System Monitor, htop and nvtop that come with the base im
 ### Defaults
 
 - The Compose key is **Right Alt**. For example, press Right Alt, then `'` and `e` to type é.
-- **Ghostty** uses the [cursor warp and ripple shaders](https://github.com/sahaj-b/ghostty-cursor-shaders). New users get a `~/.config/ghostty/config` that includes `/etc/ghostty/config`; existing users can copy it from `/etc/skel/.config/ghostty/config`.
+- **Ghostty** uses the [cursor warp and ripple shaders](https://github.com/sahaj-b/ghostty-cursor-shaders). New users get a `~/.config/ghostty/config.ghostty` that includes `/etc/ghostty/config`; existing users can copy it from `/etc/skel/.config/ghostty/config.ghostty`.
 - `ls`, `ll`, `la` and `lt` run **eza** with icons, using Nerd Font symbols.
 - Each user can change any of these. The defaults live in [`files/gschema-overrides/`](files/gschema-overrides/).
 
