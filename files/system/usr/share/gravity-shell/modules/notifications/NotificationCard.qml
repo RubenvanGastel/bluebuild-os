@@ -127,32 +127,23 @@ Item {
         id: hover
     }
 
+    // Solid surface like the bar; critical ones get an error-coloured ring.
     Rectangle {
         id: bg
 
         anchors.fill: parent
-        radius: 18
-        color: Theme.panel
-        border.width: 1
-        border.color: card.critical ? Theme.rose : Theme.panelBorder
+        radius: 24
+        color: Theme.surface
+        border.width: card.critical ? 2 : 0
+        border.color: Theme.rose
 
         layer.enabled: true
         layer.effect: MultiEffect {
             shadowEnabled: true
-            shadowColor: Qt.rgba(0.02, 0, 0.08, 0.7)
-            shadowBlur: 0.8
-            shadowVerticalOffset: 5
+            shadowColor: Qt.rgba(0, 0, 0, 0.45)
+            shadowBlur: 0.6
+            shadowVerticalOffset: 4
         }
-    }
-
-    // Gold accent along the left edge.
-    Rectangle {
-        x: 0
-        y: 14
-        width: 3
-        height: parent.height - 28
-        radius: 2
-        color: card.critical ? Theme.rose : Theme.gold
     }
 
     RowLayout {
@@ -161,8 +152,8 @@ Item {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.top: parent.top
-        anchors.margins: 14
-        anchors.leftMargin: 18
+        anchors.margins: 16
+        anchors.topMargin: 14
         spacing: 12
 
         Item {
@@ -182,7 +173,7 @@ Item {
 
             ClippingRectangle {
                 anchors.fill: parent
-                radius: 10
+                radius: 12
                 color: "transparent"
                 visible: image.status === Image.Ready
 
@@ -207,24 +198,39 @@ Item {
                 Text {
                     Layout.fillWidth: true
                     text: card.notification.appName
-                    color: Theme.textDim
+                    color: card.critical ? Theme.rose : Theme.textDim
                     font.family: Theme.font
-                    font.pixelSize: 11
-                    font.letterSpacing: 1
-                    font.capitalization: Font.AllUppercase
+                    font.pixelSize: 12
+                    font.weight: Font.Bold
                     elide: Text.ElideRight
                 }
 
-                // Close: flick it away.
-                Text {
-                    text: "✕"
-                    color: closeMouse.containsMouse ? Theme.cream : Theme.textDim
-                    font.pixelSize: 12
+                // Close: a round tonal button; flicks the card away.
+                Rectangle {
+                    Layout.preferredWidth: 24
+                    Layout.preferredHeight: 24
+                    radius: 12
+                    color: closeMouse.containsMouse ? Theme.tonal : Theme.dusk
+
+                    Behavior on color {
+                        ColorAnimation {
+                            duration: Theme.fast
+                        }
+                    }
+
+                    Text {
+                        anchors.centerIn: parent
+                        text: "✕"
+                        color: closeMouse.containsMouse ? Theme.tonalInk : Theme.textDim
+                        font.family: Theme.font
+                        font.pixelSize: 11
+                        font.weight: Font.Bold
+                    }
 
                     MouseArea {
                         id: closeMouse
                         anchors.fill: parent
-                        anchors.margins: -6
+                        anchors.margins: -4
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
                         onClicked: card.leave(true)
@@ -235,10 +241,10 @@ Item {
             Text {
                 Layout.fillWidth: true
                 text: card.notification.summary
-                color: Theme.cream
+                color: Theme.text
                 font.family: Theme.font
-                font.pixelSize: 14
-                font.weight: Font.DemiBold
+                font.pixelSize: 15
+                font.weight: Font.Bold
                 wrapMode: Text.Wrap
                 maximumLineCount: 2
                 elide: Text.ElideRight
@@ -249,9 +255,10 @@ Item {
                 visible: text !== ""
                 text: card.notification.body
                 textFormat: Text.StyledText
-                color: Theme.text
+                color: Theme.textDim
                 font.family: Theme.font
                 font.pixelSize: 13
+                font.weight: Font.Medium
                 wrapMode: Text.Wrap
                 maximumLineCount: 4
                 elide: Text.ElideRight
@@ -260,24 +267,25 @@ Item {
 
             Flow {
                 Layout.fillWidth: true
-                Layout.topMargin: 6
+                Layout.topMargin: 8
                 spacing: 8
                 visible: card.notification.actions.length > 0
 
                 Repeater {
                     model: card.notification.actions
 
+                    // The first action is the main one: accent pill; the rest are tonal.
                     Rectangle {
                         id: action
 
                         required property NotificationAction modelData
+                        required property int index
+                        readonly property bool primary: index === 0
 
-                        width: label.implicitWidth + 24
-                        height: 28
-                        radius: 14
-                        color: actionMouse.containsMouse ? Qt.rgba(Theme.gold.r, Theme.gold.g, Theme.gold.b, 0.25) : Qt.rgba(1, 1, 1, 0.06)
-                        border.width: 1
-                        border.color: Theme.panelBorder
+                        width: label.implicitWidth + 28
+                        height: 32
+                        radius: height / 2
+                        color: primary ? (actionMouse.containsMouse ? Qt.lighter(Theme.gold, 1.12) : Theme.gold) : (actionMouse.containsMouse ? Qt.lighter(Theme.tonal, 1.25) : Theme.tonal)
 
                         Behavior on color {
                             ColorAnimation {
@@ -289,9 +297,10 @@ Item {
                             id: label
                             anchors.centerIn: parent
                             text: action.modelData.text
-                            color: Theme.cream
+                            color: action.primary ? Theme.goldInk : Theme.tonalInk
                             font.family: Theme.font
-                            font.pixelSize: 12
+                            font.pixelSize: 13
+                            font.weight: Font.Bold
                         }
 
                         MouseArea {

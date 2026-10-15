@@ -1,8 +1,11 @@
 //@ pragma ShellId gravity
 //@ pragma Env QS_NO_RELOAD_POPUP=1
+// Video wallpapers: decode with VA-API (AMD/Intel). Without this Qt may try CUDA first
+// and fall back to decoding in software.
+//@ pragma Env QT_FFMPEG_DECODING_HW_DEVICE_TYPES=vaapi
 
 // Gravity: a Quickshell desktop for niri inspired by Gravity Rush.
-// Wallpaper with a picker, a levitating bar, notifications and a lock screen. Colours are
+// Wallpaper with a picker, a bar, notifications and a lock screen. Colours are
 // the built-in palette or picked from the wallpaper with matugen (services/Theme.qml).
 import QtQuick
 import Quickshell

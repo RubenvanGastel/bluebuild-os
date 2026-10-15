@@ -21,12 +21,15 @@ Singleton {
             nebula: "#7b5cff",     // inverse_primary
             glow: "#b9a3ff",       // secondary
             gold: "#f4c66d",       // primary (the accent)
+            goldInk: "#2b1d00",    // on_primary (text on the accent)
+            tonal: "#40306e",      // secondary_container (selected-but-quiet fills)
+            tonalInk: "#e6dbff",   // on_secondary_container
             amber: "#ec9550",      // tertiary
             rose: "#ff7eb0",       // error
             cream: "#f7ecd6",      // on_surface
             text: "#efe8ff",       // on_surface
             textDim: "#a99ccc",    // on_surface_variant
-            panel: "#0f0a26"       // surface_container (drawn see-through)
+            panel: "#0f0a26"       // surface_container (the bar, cards, fields)
         })
 
     readonly property var roles: ({
@@ -38,6 +41,9 @@ Singleton {
             nebula: "inverse_primary",
             glow: "secondary",
             gold: "primary",
+            goldInk: "on_primary",
+            tonal: "secondary_container",
+            tonalInk: "on_secondary_container",
             amber: "tertiary",
             rose: "error",
             cream: "on_surface",
@@ -66,20 +72,23 @@ Singleton {
     readonly property color nebula: palette.nebula
     readonly property color glow: palette.glow
     readonly property color gold: palette.gold
+    readonly property color goldInk: palette.goldInk
+    readonly property color tonal: palette.tonal
+    readonly property color tonalInk: palette.tonalInk
     readonly property color amber: palette.amber
     readonly property color rose: palette.rose
     readonly property color cream: palette.cream
 
     readonly property color text: palette.text
     readonly property color textDim: palette.textDim
-    readonly property color panel: Qt.alpha(palette.panel, 0.78)
-    readonly property color panelBorder: Qt.alpha(gold, 0.30)
+    // Solid surface for the bar, notification cards and the password field.
+    readonly property color surface: palette.panel
 
     // Behind the lock screen text: the wallpaper is darkened with this.
     readonly property color scrim: Qt.alpha(night, 0.35)
 
-    readonly property string font: "sans-serif"
-    readonly property string displayFont: "serif"
+    // Material 3 Expressive's typeface; falls back to the system sans if it's missing.
+    readonly property string font: "Google Sans Flex"
 
     readonly property int fast: 180
     readonly property int normal: 320
@@ -88,6 +97,8 @@ Singleton {
 
     // Material "emphasized decelerate": things that arrive and settle.
     readonly property var settle: [0.05, 0.7, 0.1, 1.0, 1.0, 1.0]
+    // Emphasized: things that move from one place to another and stay on screen.
+    readonly property var emphasized: [0.2, 0.0, 0.0, 1.0, 1.0, 1.0]
     // Emphasized accelerate: things that leave.
     readonly property var depart: [0.3, 0.0, 0.8, 0.15, 1.0, 1.0]
 
@@ -159,7 +170,17 @@ Singleton {
         property string path
         property string scheme
 
-        command: ["sh", "-c", 'mkdir -p "$0" && exec matugen image "$1" --dry-run --json hex -m dark -t "$2"', root.cacheDir, path, scheme]
+        // Videos are read from their poster frame, taken here if it isn't cached yet.
+        command: ["sh", "-c", `
+            mkdir -p "$0" "$(dirname "$1")" || exit 1
+            if [ -n "$3" ] && [ ! -s "$1" ]; then
+                tmp="$1.$$.jpg"
+                ffmpeg -loglevel error -ss 1 -i "$3" -frames:v 1 -q:v 3 -y "$tmp"
+                [ -s "$tmp" ] || ffmpeg -loglevel error -i "$3" -frames:v 1 -q:v 3 -y "$tmp"
+                [ -s "$tmp" ] && mv -f "$tmp" "$1"
+            fi
+            exec matugen image "$1" --dry-run --json hex -m dark -t "$2"
+        `, root.cacheDir, Media.stillOf(path), scheme, Media.isVideo(path) ? path : ""]
         stdout: StdioCollector {
             id: out
         }
@@ -265,7 +286,7 @@ overview {
         onLoaded: {
             try {
                 const data = JSON.parse(text());
-                if (data.key && data.palette?.night) {
+                if (data.key && data.palette && Object.keys(root.roles).every(k => data.palette[k])) {
                     root.generated = data.palette;
                     root.generatedKey = data.key;
                     root.cachedKey = data.key;

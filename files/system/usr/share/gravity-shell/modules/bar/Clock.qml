@@ -8,6 +8,7 @@ Item {
     id: root
 
     property bool showDate: false
+    property color color: Theme.cream
 
     implicitWidth: Math.max(time.implicitWidth, 60)
     implicitHeight: 24
@@ -21,10 +22,10 @@ Item {
         id: time
 
         anchors.fill: parent
-        horizontalAlignment: Text.AlignRight
-        color: Theme.cream
+        horizontalAlignment: Text.AlignHCenter
+        color: root.color
         font.pixelSize: 14
-        font.weight: Font.DemiBold
+        font.weight: Font.Bold
         text: root.showDate ? Qt.formatDateTime(clock.date, "ddd d MMM") : Qt.formatDateTime(clock.date, Config.use24h ? "HH:mm" : "h:mm AP")
     }
 

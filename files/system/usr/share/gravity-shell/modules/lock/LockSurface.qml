@@ -4,7 +4,8 @@ import Quickshell
 import Quickshell.Wayland
 import qs.services
 
-// The lock screen: the wallpaper, blurred and dimmed, with the clock and a password pill.
+// The lock screen: the wallpaper, blurred and dimmed, with a bold clock, the date in a
+// tonal pill and a solid password pill, in the same style as the bar.
 WlSessionLockSurface {
     id: surface
 
@@ -47,7 +48,8 @@ WlSessionLockSurface {
         anchors.fill: parent
         // The screen is assigned just after the surface is created; wait for it so the
         // image isn't decoded twice.
-        source: surface.screen ? "file://" + Config.wallpaperPath : ""
+        // A video wallpaper shows its poster frame here.
+        source: surface.screen ? Media.stillUrl(Config.wallpaperPath) : ""
         fillMode: Image.PreserveAspectCrop
         sourceSize: surface.screen ? Qt.size(surface.screen.width * surface.screen.devicePixelRatio, surface.screen.height * surface.screen.devicePixelRatio) : Qt.size(0, 0)
         // Synchronous so the very first frame already has the picture.
@@ -95,10 +97,10 @@ WlSessionLockSurface {
             anchors.horizontalCenter: parent.horizontalCenter
             y: surface.height * 0.28 + (1 - surface.show) * 30
             text: Qt.formatDateTime(clock.date, Config.use24h ? "HH:mm" : "h:mm")
-            color: Theme.cream
-            font.family: Theme.displayFont
-            font.pixelSize: Math.round(surface.height * 0.13)
-            font.weight: Font.Light
+            color: Theme.text
+            font.family: Theme.font
+            font.pixelSize: Math.round(surface.height * 0.14)
+            font.weight: Font.Bold
 
             layer.enabled: true
             layer.effect: MultiEffect {
@@ -110,15 +112,25 @@ WlSessionLockSurface {
             }
         }
 
-        Text {
+        Rectangle {
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.top: time.bottom
-            anchors.topMargin: 4
-            text: Qt.formatDateTime(clock.date, "dddd d MMMM")
-            color: Theme.text
-            font.family: Theme.font
-            font.pixelSize: Math.round(surface.height * 0.022)
-            font.letterSpacing: 2
+            anchors.topMargin: 8
+            width: date.implicitWidth + height
+            height: Math.round(surface.height * 0.045)
+            radius: height / 2
+            color: Theme.tonal
+
+            Text {
+                id: date
+
+                anchors.centerIn: parent
+                text: Qt.formatDateTime(clock.date, "dddd d MMMM")
+                color: Theme.tonalInk
+                font.family: Theme.font
+                font.pixelSize: Math.round(surface.height * 0.02)
+                font.weight: Font.Bold
+            }
         }
 
         // --- password pill ------------------------------------------------------------
@@ -139,18 +151,13 @@ WlSessionLockSurface {
                 }
             }
 
+            // Solid surface; an accent ring while the password is checked.
             Rectangle {
                 anchors.fill: parent
                 radius: height / 2
-                color: Theme.panel
-                border.width: 1
-                border.color: surface.lock.pamActive ? Theme.gold : Theme.panelBorder
-
-                Behavior on border.color {
-                    ColorAnimation {
-                        duration: Theme.normal
-                    }
-                }
+                color: Theme.surface
+                border.width: surface.lock.pamActive ? 3 : 0
+                border.color: Theme.gold
             }
 
             Row {
@@ -224,12 +231,11 @@ WlSessionLockSurface {
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.top: entry.bottom
             anchors.topMargin: 16
-            opacity: 0.9
             text: surface.lock.message !== "" ? surface.lock.message : surface.lock.pamActive ? "Checking…" : surface.lock.buffer.length > 0 ? "Press Enter" : "Type your password"
-            color: surface.lock.message !== "" ? Theme.rose : Theme.textDim
+            color: surface.lock.message !== "" ? Theme.rose : Theme.text
             font.family: Theme.font
-            font.pixelSize: Math.round(surface.height * 0.015)
-            font.letterSpacing: 1
+            font.pixelSize: Math.round(surface.height * 0.016)
+            font.weight: Font.Bold
         }
     }
 }

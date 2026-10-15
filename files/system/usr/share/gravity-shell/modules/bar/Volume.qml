@@ -99,6 +99,7 @@ Item {
             color: root.muted ? Theme.textDim : Theme.text
             font.family: Theme.font
             font.pixelSize: 13
+            font.weight: Font.Bold
         }
     }
 

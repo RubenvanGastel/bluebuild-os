@@ -18,6 +18,7 @@ modules:
         - quickshell
         - matugen # wallpaper colours for the Gravity shell (Config "colors": "wallpaper")
         - qt6-qtimageformats # lets Quickshell show .webp/.tiff wallpapers
+        - qt6-qtmultimedia # video wallpapers in the Gravity shell (frames are taken with ffmpeg)
         - brightnessctl # brightness keys in niri
         - playerctl # media keys in niri
         - fuzzel # app launcher in niri (Mod+D)
@@ -51,6 +52,9 @@ modules:
     fonts:
       nerd-fonts:
         - NerdFontsSymbolsOnly
+      # Material 3 Expressive typeface used by the Gravity shell
+      google-fonts:
+        - Google Sans Flex
 
   # After dnf, so our files (e.g. the fuzzel theme) win over files that packages ship.
   # Includes the Gravity shell (/usr/share/gravity-shell), niri config (/etc/niri)

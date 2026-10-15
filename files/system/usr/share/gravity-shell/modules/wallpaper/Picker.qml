@@ -15,8 +15,13 @@ import qs.services
 Scope {
     id: root
 
-    // `shown` keeps the window alive while the closing animation plays after `open` drops.
+    // `shown` keeps the window visible while the closing animation plays after `open` drops.
     property bool shown: false
+    // The window is made on first use and then kept (hidden), so later opens don't have to
+    // build the scene again in the middle of the animation.
+    property bool made: false
+    // Screen the picker opens on: the focused one (niri), chosen when it opens.
+    property var targetScreen: Quickshell.screens[0]
     property bool open: false
     property var files: []
     // The folder actually listed, as resolved by the scan; created if missing.
@@ -43,7 +48,9 @@ Scope {
         if (open) {
             open = false;
         } else {
+            targetScreen = Quickshell.screens.find(s => s.name === (Object.values(Niri.workspaces).find(w => w.is_focused)?.output ?? "")) ?? Quickshell.screens[0];
             scan.running = true;
+            made = true;
             shown = true;
             open = true;
         }
@@ -69,7 +76,7 @@ Scope {
             fi
             mkdir -p "$d" 2>/dev/null
             echo "$d"
-            find -L "$d" -maxdepth 3 -type f \\( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.webp" -o -iname "*.jxl" -o -iname "*.avif" \\) 2>/dev/null | sort
+            find -L "$d" -maxdepth 3 -type f \\( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.webp" -o -iname "*.jxl" -o -iname "*.avif" -o -iname "*.mp4" -o -iname "*.webm" -o -iname "*.mkv" -o -iname "*.mov" -o -iname "*.m4v" \\) 2>/dev/null | sort
         `, "sh", root.userDir]
         stdout: StdioCollector {
             onStreamFinished: {
@@ -78,7 +85,11 @@ Scope {
                 // The current wallpaper is always in the list, even from elsewhere.
                 if (!list.includes(Config.wallpaperPath))
                     list.unshift(Config.wallpaperPath);
-                root.files = list;
+                // Posters for the videos, made in the background.
+                list.forEach(p => Media.ensureFrame(p));
+                // Only on a real change: a new list rebuilds every card.
+                if (JSON.stringify(list) !== JSON.stringify(root.files))
+                    root.files = list;
             }
         }
     }
@@ -124,20 +135,26 @@ Scope {
 
         signal clicked
 
-        implicitWidth: chipText.implicitWidth + 24
-        implicitHeight: 28
+        implicitWidth: chipText.implicitWidth + 28
+        implicitHeight: 32
         radius: height / 2
-        color: selected ? Qt.alpha(Theme.gold, 0.22) : chipMouse.containsMouse ? Qt.alpha(Theme.text, 0.12) : Theme.panel
-        border.width: 1
-        border.color: selected ? Theme.gold : Qt.alpha(Theme.text, 0.15)
+        // Like the bar: accent pill when selected, tonal otherwise.
+        color: selected ? Theme.gold : chipMouse.containsMouse ? Qt.lighter(Theme.tonal, 1.25) : Theme.tonal
+
+        Behavior on color {
+            ColorAnimation {
+                duration: Theme.fast
+            }
+        }
 
         Text {
             id: chipText
             anchors.centerIn: parent
             text: chip.label
-            color: chip.selected ? Theme.gold : Theme.text
+            color: chip.selected ? Theme.goldInk : Theme.tonalInk
             font.family: Theme.font
             font.pixelSize: 13
+            font.weight: Font.Bold
         }
 
         MouseArea {
@@ -150,12 +167,13 @@ Scope {
     }
 
     LazyLoader {
-        active: root.shown
+        active: root.made
 
         PanelWindow {
             id: win
 
-            screen: Quickshell.screens.find(s => s.name === (Object.values(Niri.workspaces).find(w => w.is_focused)?.output ?? "")) ?? Quickshell.screens[0]
+            screen: root.targetScreen
+            visible: root.shown
             color: "transparent"
             anchors {
                 top: true
@@ -190,7 +208,7 @@ Scope {
             }
 
             FrameAnimation {
-                running: true
+                running: root.shown
                 onTriggered: {
                     win.t += frameTime;
                     win.g = Gravity.active ? Gravity.offsetAt(Gravity.now()) : Qt.point(0, 0);
@@ -227,14 +245,54 @@ Scope {
                     carousel.currentIndex = i;
             }
 
-            Component.onCompleted: openAnim.start()
+            // The open animation waits until the preview shows the current wallpaper, so it
+            // starts as an exact copy of the desktop instead of an empty frame. Should the
+            // image not load, it starts anyway after a moment.
+            property bool started: false
+
+            // Back to the start state each time it opens.
+            function prepare(): void {
+                openAnim.stop();
+                closeAnim.stop();
+                fade = 0;
+                zoom = 0;
+                rise = 0;
+                started = false;
+                previewDelay.stop();
+                previewDelay.path = Config.wallpaperPath;
+                syncIndex();
+                carousel.forceActiveFocus();
+                fallback.restart();
+                begin(false);
+            }
+
+            function begin(force: bool): void {
+                if (started || !root.open)
+                    return;
+                if (!force && previewImage.current !== Config.wallpaperPath)
+                    return;
+                started = true;
+                openAnim.start();
+            }
+
+            Timer {
+                id: fallback
+
+                interval: 400
+                onTriggered: win.begin(true)
+            }
+
+            Component.onCompleted: prepare()
 
             Connections {
                 target: root
 
                 function onOpenChanged(): void {
-                    if (!root.open) {
+                    if (root.open) {
+                        win.prepare();
+                    } else {
                         openAnim.stop();
+                        fallback.stop();
                         closeAnim.start();
                     }
                 }
@@ -244,35 +302,42 @@ Scope {
                 }
             }
 
-            SequentialAnimation {
+            // Everything moves at once: the overlay fades in quickly while the wallpaper
+            // zooms out, and the cards start rising just after.
+            ParallelAnimation {
                 id: openAnim
 
                 NumberAnimation {
                     target: win
                     property: "fade"
                     to: 1
-                    duration: 160
+                    duration: 140
                     easing.type: Easing.OutQuad
                 }
-                ParallelAnimation {
-                    NumberAnimation {
-                        target: win
-                        property: "zoom"
-                        to: 1
-                        duration: Theme.slow
-                        easing.type: Easing.BezierSpline
-                        easing.bezierCurve: Theme.settle
+                NumberAnimation {
+                    target: win
+                    property: "zoom"
+                    to: 1
+                    duration: 560
+                    easing.type: Easing.BezierSpline
+                    easing.bezierCurve: Theme.emphasized
+                }
+                SequentialAnimation {
+                    PauseAnimation {
+                        duration: 90
                     }
                     NumberAnimation {
                         target: win
                         property: "rise"
                         to: 1
-                        duration: 1100
+                        duration: 820
                     }
                 }
             }
 
-            // Cards drop out of the air, then the wallpaper grows back to full screen.
+            // The reverse, overlapped: cards drop, the wallpaper grows back to full screen,
+            // and the overlay already fades out during the last part of the zoom, so it
+            // never stops at full screen.
             SequentialAnimation {
                 id: closeAnim
 
@@ -281,32 +346,42 @@ Scope {
                         target: win
                         property: "rise"
                         to: 0
-                        duration: 520
-                        easing.type: Easing.InQuad
+                        duration: 340
                     }
                     SequentialAnimation {
                         PauseAnimation {
-                            duration: 140
+                            duration: 80
                         }
                         NumberAnimation {
                             target: win
                             property: "zoom"
                             to: 0
-                            duration: 460
+                            duration: 420
                             easing.type: Easing.BezierSpline
-                            easing.bezierCurve: Theme.settle
+                            easing.bezierCurve: Theme.emphasized
+                        }
+                    }
+                    SequentialAnimation {
+                        PauseAnimation {
+                            duration: 340
+                        }
+                        NumberAnimation {
+                            target: win
+                            property: "fade"
+                            to: 0
+                            duration: 180
+                            easing.type: Easing.InQuad
                         }
                     }
                 }
-                NumberAnimation {
-                    target: win
-                    property: "fade"
-                    to: 0
-                    duration: 180
-                    easing.type: Easing.InQuad
-                }
+                // Hidden now: get the preview and carousel ready for the next open.
                 ScriptAction {
-                    script: root.shown = false
+                    script: {
+                        root.shown = false;
+                        previewDelay.stop();
+                        previewDelay.path = Config.wallpaperPath;
+                        win.syncIndex();
+                    }
                 }
             }
 
@@ -333,17 +408,21 @@ Scope {
 
                     readonly property real shrink: 0.4
 
-                    width: stage.width * (1 - preview.shrink * win.zoom)
-                    height: stage.height * (1 - preview.shrink * win.zoom)
-                    x: (stage.width - width) / 2
+                    // Always full size and zoomed with a scale, which the GPU does for free;
+                    // resizing it every frame would redo the clipping and the image crop.
+                    // Sizes inside are divided by the scale so they look the same on screen.
+                    width: stage.width
+                    height: stage.height
+                    transformOrigin: Item.Top
+                    scale: 1 - preview.shrink * win.zoom
                     y: stage.height * 0.03 * win.zoom
 
                     RectangularShadow {
                         anchors.fill: parent
                         radius: frame.radius
-                        blur: 40
+                        blur: 40 / preview.scale
                         spread: 0
-                        offset.y: 12
+                        offset.y: 12 / preview.scale
                         color: Qt.rgba(0, 0, 0, 0.55 * win.zoom)
                     }
 
@@ -351,13 +430,19 @@ Scope {
                         id: frame
 
                         anchors.fill: parent
-                        radius: 22 * win.zoom
+                        radius: 28 * win.zoom / preview.scale
                         color: Theme.deep
-                        border.width: win.zoom > 0.5 ? 1 : 0
-                        border.color: Theme.panelBorder
 
                         FadeImage {
+                            id: previewImage
+
                             anchors.fill: parent
+                            fadeFirst: false
+                            // Until the open animation starts, swap images without a fade.
+                            instant: !win.started
+                            onCurrentChanged: win.begin(false)
+                            // Paused while the picker is hidden.
+                            playing: root.shown
                             source: previewDelay.path
                             duration: Theme.normal
                             sourceSize: Qt.size(win.screen.width * win.screen.devicePixelRatio, win.screen.height * win.screen.devicePixelRatio)
@@ -392,7 +477,7 @@ Scope {
                 // --- colours -------------------------------------------------------------
                 Column {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    y: preview.y + preview.height + 14 - (1 - win.zoom) * 30
+                    y: preview.y + preview.height * preview.scale + 14 - (1 - win.zoom) * 30
                     spacing: 8
                     opacity: win.zoom
 
@@ -440,6 +525,7 @@ Scope {
                         color: Theme.rose
                         font.family: Theme.font
                         font.pixelSize: 13
+                        font.weight: Font.Bold
                     }
                 }
 
@@ -553,26 +639,20 @@ Scope {
                             id: cardFrame
 
                             anchors.fill: parent
-                            radius: 14
+                            radius: 20
                             color: Theme.deep
-                            border.width: card.middle ? 3 : 1
-                            border.color: card.middle ? Theme.gold : Qt.alpha(Theme.text, 0.15)
+                            border.width: card.middle ? 3 : 0
+                            border.color: Theme.gold
 
-                            Image {
-                                id: thumb
-
+                            // Videos play live on the three cards in view; the ones peeking
+                            // in at the edges show their poster.
+                            FadeImage {
                                 anchors.fill: parent
-                                source: "file://" + card.modelData
+                                source: card.modelData
                                 sourceSize: Qt.size(480, 300)
-                                fillMode: Image.PreserveAspectCrop
-                                asynchronous: true
-                                opacity: status === Image.Ready ? 1 : 0
-
-                                Behavior on opacity {
-                                    NumberAnimation {
-                                        duration: Theme.fast
-                                    }
-                                }
+                                duration: Theme.fast
+                                live: card.ad < 1.5 && root.shown
+                                playing: root.open
                             }
                         }
 
@@ -610,9 +690,10 @@ Scope {
                     Text {
                         anchors.horizontalCenter: parent.horizontalCenter
                         text: win.selected.split("/").pop()
-                        color: Theme.cream
+                        color: Theme.text
                         font.family: Theme.font
-                        font.pixelSize: 14
+                        font.pixelSize: 15
+                        font.weight: Font.Bold
                     }
 
                     Text {
@@ -621,6 +702,7 @@ Scope {
                         color: Theme.textDim
                         font.family: Theme.font
                         font.pixelSize: 12
+                        font.weight: Font.DemiBold
                     }
                 }
             }

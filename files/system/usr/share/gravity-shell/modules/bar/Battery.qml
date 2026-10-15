@@ -90,6 +90,7 @@ Item {
             color: root.low ? Theme.rose : Theme.text
             font.family: Theme.font
             font.pixelSize: 13
+            font.weight: Font.Bold
         }
     }
 }

@@ -1,9 +1,15 @@
 # Gravity shell
 
-A Quickshell desktop for niri inspired by Gravity Rush: a levitating bar, notifications that
+A Quickshell desktop for niri inspired by Gravity Rush: floating workspaces, notifications that
 fall away and a lock screen, all coloured by the Hekseville palette or by your wallpaper.
 
-- **Wallpaper**: your own image, on every screen. `Super+Y` (or `gravity-shell wallpaper`)
+Everything shares one Material 3 Expressive style: solid surfaces without borders, fully
+rounded pills, the accent colour for whatever is focused or selected, tonal fills for the
+rest, and bold [Google Sans Flex](https://fonts.google.com/specimen/Google+Sans+Flex) text.
+
+- **Wallpaper**: your own image or video (mp4, webm, mkv, mov; muted and looping, decoded
+  with VA-API), on every screen. Videos also play live in the picker; for colours and the
+  lock screen a still frame is taken with ffmpeg. `Super+Y` (or `gravity-shell wallpaper`)
   opens the picker: the wallpaper zooms out into a preview and three wallpapers rise from the
   bottom and float in the gravity field. Left/Right (or the mouse wheel) scrolls them, Enter
   applies, Esc closes. It lists only your wallpaper folder: `Wallpapers` inside your Pictures
@@ -13,12 +19,16 @@ fall away and a lock screen, all coloured by the Hekseville palette or by your w
 - **Colours**: the built-in Hekseville palette (indigo, violet and gold), or picked from the
   wallpaper with [matugen](https://github.com/InioX/matugen). Switch in the picker, which also
   offers matugen's scheme variants (tonal, vibrant, expressive, ...).
-- **Bar**: a floating island that drops in on login and sways when gravity shifts
-  (workspace switches, notifications, the occasional "gravity storm").
-  It holds niri workspace orbs, the window title, the tray, volume, battery and a clock.
-- **Notifications**: cards drift in from the right; when they expire they fall away.
+- **Bar**: a solid Material 3 Expressive style bar along the top edge that curves into the
+  screen with inverted corners, with status in tonal pills and the clock in an accent pill.
+  The niri workspaces are numbered circles floating in it (the focused one filled with the
+  accent): they bob gently and swing one after another when gravity shifts (workspace
+  switches, notifications, the occasional "gravity storm").
+  It also holds the window title, the tray, volume, battery and a clock.
+- **Notifications**: solid rounded cards drift in from the right, with the first action as an
+  accent pill and the others tonal; when they expire they fall away.
 - **Lock screen** (`Super+Alt+L`, or after 10 idle minutes): your wallpaper blurs in behind a
-  clock and a password field.
+  bold clock, the date in a tonal pill and a password pill.
 
 ## Settings
 
