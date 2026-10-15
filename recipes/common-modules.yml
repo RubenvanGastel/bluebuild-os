@@ -24,6 +24,10 @@ modules:
         - fuzzel # app launcher in niri (Mod+D)
         - eza # modern ls with icons (aliased in /etc/profile.d/eza.sh)
         - fastfetch # system info in the terminal
+        # zsh + plugins; shared config in /etc/zsh/custom.zsh (hooked in by setup-zsh.sh)
+        - zsh
+        - zsh-autosuggestions # grey inline suggestions from history (→ to accept)
+        - zsh-syntax-highlighting # colors commands green/red as you type
     remove:
       packages:
         # System monitors from the base image; replaced by the Resources flatpak
@@ -49,6 +53,7 @@ modules:
   - type: script
     scripts:
       - install-miku-plymouth.sh
+      - setup-zsh.sh # sources /etc/zsh/custom.zsh from /etc/zshrc
 
   # GNOME extensions from extensions.gnome.org (by name)
   - type: gnome-extensions
