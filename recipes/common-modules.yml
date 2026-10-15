@@ -16,13 +16,9 @@ modules:
         - xwayland-satellite
         - quickshell
         - fuzzel # app launcher in niri (Mod+D)
-        - eza # modern ls with icons (aliased in /etc/profile.d/eza.sh)
+        - eza # modern ls with icons (aliased in /etc/profile.d/eza.sh and /etc/fish/conf.d/eza.fish)
         - fastfetch # system info in the terminal
-        # zsh + plugins; shared config in /etc/zsh/custom.zsh (hooked in by setup-zsh.sh)
-        - zsh
-        - zsh-autosuggestions # grey inline suggestions from history (→ to accept)
-        - zsh-syntax-highlighting # colors commands green/red as you type
-        # Powerlevel10k prompt is downloaded by setup-zsh.sh (not in Fedora repos)
+        - fish # shell with autosuggestions and syntax highlighting built in
     remove:
       packages:
         # System monitors from the base image; replaced by the Resources flatpak
@@ -61,7 +57,7 @@ modules:
   - type: script
     scripts:
       - install-miku-plymouth.sh
-      - setup-zsh.sh # hooks /etc/zsh/custom.zsh into /etc/zshrc, zsh as default shell for new users
+      - rebuild-font-cache.sh # makes the Nerd Font visible (stale cache otherwise)
 
   # GNOME extensions from extensions.gnome.org (by name)
   - type: gnome-extensions

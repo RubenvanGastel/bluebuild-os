@@ -26,13 +26,13 @@ Both images use the same module list, [`recipes/common-modules.yml`](recipes/com
 | Browser & chat | | Zen Browser, Vesktop |
 | Gaming | | Steam |
 | System | GNOME Tweaks | Resources, Flatseal, Gear Lever, DistroShelf |
-| Terminal | eza, fastfetch, zsh (+ Powerlevel10k, autosuggestions, syntax highlighting) | |
+| Terminal | eza, fastfetch, fish | |
 
 Dev tools are installed per user, so they update themselves without an image rebuild:
 
 - `ujust install-claude-code`: Claude Code in `~/.local/bin` (auto-updates)
 - `ujust install-antigravity`: Antigravity IDE in `~/.local/opt` (run again to update)
-- `ujust set-shell-zsh`: make zsh your login shell (once per laptop; new users get it automatically)
+- `ujust set-shell-fish`: make fish your login shell (once per user)
 
 Resources replaces the System Monitor, htop and nvtop that come with the base image.
 
