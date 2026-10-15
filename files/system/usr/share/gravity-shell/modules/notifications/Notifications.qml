@@ -36,15 +36,19 @@ Scope {
             top: true
             right: true
         }
-        margins {
-            top: 58
-            right: 12
-        }
-        implicitWidth: 400
-        implicitHeight: Math.max(1, stack.implicitHeight + 40)
+        // Right under the bar, tucked into its curved corner: the cards sit Theme.gap below
+        // the bar and from the screen edge. The window starts at the bar and reaches a bit
+        // further left and down than the cards, for their shadow and the slide-in.
+        // Ignore the bar's reserved space, so the margin below is exact.
+        exclusionMode: ExclusionMode.Ignore
+        margins.top: Theme.barHeight
+        implicitWidth: cardWidth + Theme.gap + 40
+        implicitHeight: Math.max(1, stack.implicitHeight + Theme.gap + 40)
         exclusiveZone: 0
         WlrLayershell.layer: WlrLayer.Overlay
         WlrLayershell.namespace: "gravity-notifications"
+
+        readonly property int cardWidth: 360
         mask: Region {
             item: stack
         }
@@ -52,8 +56,9 @@ Scope {
         Column {
             id: stack
 
-            x: 20
-            width: parent.width - 40
+            x: parent.width - width - Theme.gap
+            y: Theme.gap
+            width: win.cardWidth
             spacing: 10
 
             move: Transition {

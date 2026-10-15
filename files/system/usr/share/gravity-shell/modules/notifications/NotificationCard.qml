@@ -75,7 +75,8 @@ Item {
         y: card.bob * 2.5
     }
 
-    // Leaving: gravity wins. The card drops and tumbles, then really goes away.
+    // Leaving: the card is pulled off to the right, over the screen edge, with a slight
+    // tilt; dismissed ones go a little quicker, as if flicked.
     function leave(dismissed: bool): void {
         if (leaving)
             return;
@@ -84,36 +85,51 @@ Item {
         fallAnim.start();
     }
 
+    // An action button: slide out first and invoke at the end, since invoking removes the
+    // notification at once. Resident notifications stay after an action, so they don't move.
+    function invoke(action: NotificationAction): void {
+        if (leaving)
+            return;
+        if (notification.resident) {
+            action.invoke();
+            return;
+        }
+        fallAnim.action = action;
+        leave(true);
+    }
+
     SequentialAnimation {
         id: fallAnim
 
         property bool dismissed: false
+        property NotificationAction action: null
 
         ParallelAnimation {
             NumberAnimation {
                 target: card
-                property: "y"
-                to: card.y + 260
-                duration: 620
-                easing.type: Easing.InQuad
+                property: "x"
+                to: card.width + 60
+                duration: fallAnim.dismissed ? 340 : 480
+                easing.type: Easing.InBack
+                easing.overshoot: 1.2
             }
             NumberAnimation {
                 target: card
                 property: "rotation"
-                to: fallAnim.dismissed ? -9 : 7
-                duration: 620
+                to: 4
+                duration: fallAnim.dismissed ? 340 : 480
                 easing.type: Easing.InQuad
-            }
-            NumberAnimation {
-                target: card
-                property: "opacity"
-                to: 0
-                duration: 620
-                easing.type: Easing.InCubic
             }
         }
         ScriptAction {
-            script: fallAnim.dismissed ? card.notification.dismiss() : card.notification.expire()
+            script: {
+                if (fallAnim.action)
+                    fallAnim.action.invoke();
+                else if (fallAnim.dismissed)
+                    card.notification.dismiss();
+                else
+                    card.notification.expire();
+            }
         }
     }
 
@@ -308,7 +324,7 @@ Item {
                             anchors.fill: parent
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
-                            onClicked: action.modelData.invoke()
+                            onClicked: card.invoke(action.modelData)
                         }
                     }
                 }

@@ -90,6 +90,11 @@ Singleton {
     // Material 3 Expressive's typeface; falls back to the system sans if it's missing.
     readonly property string font: "Google Sans Flex"
 
+    // Height of the bar; notifications and other popups line up below it.
+    readonly property int barHeight: 42
+    // Gap between popups and the bar or the screen edge.
+    readonly property int gap: 12
+
     readonly property int fast: 180
     readonly property int normal: 320
     readonly property int slow: 620

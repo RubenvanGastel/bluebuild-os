@@ -5,7 +5,7 @@
 //@ pragma Env QT_FFMPEG_DECODING_HW_DEVICE_TYPES=vaapi
 
 // Gravity: a Quickshell desktop for niri inspired by Gravity Rush.
-// Wallpaper with a picker, a bar, notifications and a lock screen. Colours are
+// Wallpaper with a picker, a bar, notifications, volume/brightness popups and a lock screen. Colours are
 // the built-in palette or picked from the wallpaper with matugen (services/Theme.qml).
 import QtQuick
 import Quickshell
@@ -14,6 +14,7 @@ import qs.modules.bar
 import qs.modules.controls
 import qs.modules.lock
 import qs.modules.notifications
+import qs.modules.osd
 import qs.modules.wallpaper
 
 ShellRoot {
@@ -22,5 +23,6 @@ ShellRoot {
     Controls {}
     Lock {}
     Notifications {}
+    Osd {}
     Picker {}
 }

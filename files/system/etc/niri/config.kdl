@@ -404,8 +404,8 @@ binds {
     XF86AudioLowerVolume hotkey-overlay-title="Volume Down" allow-when-locked=true { spawn "gravity-shell" "ipc" "call" "volume" "decrease"; }
     XF86AudioMute hotkey-overlay-title="Mute" allow-when-locked=true { spawn "gravity-shell" "ipc" "call" "volume" "muteOutput"; }
     XF86AudioMicMute hotkey-overlay-title="Mic Mute" allow-when-locked=true { spawn "gravity-shell" "ipc" "call" "volume" "muteInput"; }
-    XF86MonBrightnessUp hotkey-overlay-title="Brightness Up" allow-when-locked=true { spawn "brightnessctl" "--class=backlight" "set" "+5%"; }
-    XF86MonBrightnessDown hotkey-overlay-title="Brightness Down" allow-when-locked=true { spawn "brightnessctl" "--class=backlight" "set" "5%-"; }
+    XF86MonBrightnessUp hotkey-overlay-title="Brightness Up" allow-when-locked=true { spawn "gravity-shell" "ipc" "call" "brightness" "increase"; }
+    XF86MonBrightnessDown hotkey-overlay-title="Brightness Down" allow-when-locked=true { spawn "gravity-shell" "ipc" "call" "brightness" "decrease"; }
     Mod+P hotkey-overlay-title="Power Profile" allow-when-locked=true { spawn "gravity-shell" "ipc" "call" "powerProfile" "cycle"; }
     XF86AudioPlay allow-when-locked=true { spawn "playerctl" "play-pause"; }
     XF86AudioStop allow-when-locked=true { spawn "playerctl" "stop"; }

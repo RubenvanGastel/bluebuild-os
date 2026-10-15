@@ -42,7 +42,7 @@ Variants {
             id: bar
 
             width: parent.width
-            height: 42
+            height: Theme.barHeight
             color: Theme.surface
 
             Behavior on color {

@@ -6,9 +6,11 @@ import Quickshell.Services.Pam
 import qs.services
 
 // Lock state machine:
-//   idle -> locked     session lock engaged; the wallpaper blurs in behind the clock
-//        -> unlocking  password accepted; the content fades and the blur clears
-//        -> idle       session unlocked
+//   idle -> capturing  each screen is captured as it is now (windows and all)
+//        -> locked     session lock engaged; the lock screen starts from that capture,
+//                      so nothing jumps, then blurs it into the wallpaper behind the clock
+//        -> unlocking  password accepted; everything runs back to the sharp capture
+//        -> idle       session unlocked, the real desktop takes over
 Scope {
     id: root
 
@@ -17,7 +19,11 @@ Scope {
     property string message: ""
     readonly property bool pamActive: pam.active
 
-    readonly property int outroDuration: 420
+    readonly property int outroDuration: 520
+
+    // Screen name -> grabToImage result of that screen just before locking. The result
+    // objects own the images, so they're kept here until the lock is gone.
+    property var captures: ({})
 
     signal failed
 
@@ -26,9 +32,77 @@ Scope {
             return;
         buffer = "";
         message = "";
+        captures = {};
         Gravity.hold = true;
+        phase = "capturing";
+        captureTimeout.restart();
+    }
+
+    function addCapture(name: string, result: var): void {
+        if (phase !== "capturing")
+            return;
+        const c = Object.assign({}, captures);
+        c[name] = result;
+        captures = c;
+        if (Quickshell.screens.every(s => captures[s.name]))
+            engage();
+    }
+
+    function engage(): void {
+        if (phase !== "capturing")
+            return;
+        captureTimeout.stop();
         phase = "locked";
         sessionLock.locked = true;
+    }
+
+    // Without screencopy (or if it is slow), lock anyway; it then starts from the wallpaper.
+    Timer {
+        id: captureTimeout
+
+        interval: 400
+        onTriggered: root.engage()
+    }
+
+    // Before locking: a click-through overlay per screen showing a screencopy of it, which
+    // looks exactly like the screen, so it is invisible. Its first frame is grabbed into an
+    // image the lock surfaces can use.
+    LazyLoader {
+        active: root.phase === "capturing"
+
+        Variants {
+            model: Quickshell.screens
+
+            PanelWindow {
+                id: grabber
+
+                required property ShellScreen modelData
+
+                screen: modelData
+                color: "transparent"
+                anchors {
+                    top: true
+                    bottom: true
+                    left: true
+                    right: true
+                }
+                exclusionMode: ExclusionMode.Ignore
+                WlrLayershell.layer: WlrLayer.Overlay
+                WlrLayershell.namespace: "gravity-lock-capture"
+                mask: Region {}
+
+                ScreencopyView {
+                    id: copy
+
+                    anchors.fill: parent
+                    captureSource: grabber.modelData
+                    live: false
+
+                    onHasContentChanged: if (hasContent)
+                        grabToImage(result => root.addCapture(grabber.modelData.name, result), Qt.size(grabber.modelData.width * grabber.modelData.devicePixelRatio, grabber.modelData.height * grabber.modelData.devicePixelRatio))
+                }
+            }
+        }
     }
 
     function handleKey(event: var): void {
@@ -89,6 +163,7 @@ Scope {
             sessionLock.locked = false;
             root.phase = "idle";
             root.buffer = "";
+            root.captures = {};
             Gravity.hold = false;
         }
     }
@@ -109,7 +184,7 @@ Scope {
         }
 
         function isLocked(): bool {
-            return root.phase !== "idle";
+            return root.phase === "locked" || root.phase === "unlocking";
         }
     }
 }
