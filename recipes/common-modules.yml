@@ -10,7 +10,6 @@ modules:
         - errornointernet/quickshell
     install:
       packages:
-        - gnome-tweaks
         - morewaita-icon-theme
         - plymouth-plugin-script
         - niri
@@ -94,6 +93,8 @@ modules:
           - it.mijorus.gearlever # manage AppImages (adds them to the app grid, updates them)
           - com.ranfdev.DistroShelf # GUI for distrobox containers (distrobox ships in the base image)
           - io.github.kolunmi.Bazaar # Flathub app store (replaces GNOME Software)
+          - page.tesk.Refine # advanced GNOME settings (replaces GNOME Tweaks)
+          - com.usebottles.bottles # run Windows apps via Wine prefixes
           # Basic apps (the base image ships no GNOME apps as flatpaks)
           - org.gnome.Loupe # image viewer
           - org.gnome.Papers # PDF/document viewer
