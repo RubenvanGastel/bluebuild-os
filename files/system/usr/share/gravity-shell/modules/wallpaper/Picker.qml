@@ -331,12 +331,12 @@ Scope {
                 Item {
                     id: preview
 
-                    readonly property real shrink: 0.5
+                    readonly property real shrink: 0.4
 
                     width: stage.width * (1 - preview.shrink * win.zoom)
                     height: stage.height * (1 - preview.shrink * win.zoom)
                     x: (stage.width - width) / 2
-                    y: stage.height * 0.09 * win.zoom
+                    y: stage.height * 0.03 * win.zoom
 
                     RectangularShadow {
                         anchors.fill: parent
@@ -444,24 +444,34 @@ Scope {
                 }
 
                 // --- three wallpapers floating in the air ---------------------------------
+                // Three in full view, and the edge of the next one peeking in from each side
+                // of the screen.
                 PathView {
                     id: carousel
 
-                    readonly property real cardW: Math.round(Math.min(stage.width * 0.2, stage.height * 0.3))
+                    // Scale of the cards one and two slots from the middle.
+                    readonly property real nearScale: 0.85
+                    readonly property real farScale: 0.8
+                    // How much of the far cards shows at the screen edge.
+                    readonly property real peek: width * 0.035
+                    // Card width follows the slot width, but stays short enough to fit
+                    // under the preview; the slots then place the far cards' edges.
+                    readonly property real cardW: Math.round(Math.min(0.82 * (width / 2 - peek) / (2 - 0.41 * farScale), stage.height * 0.22 / 0.62))
                     readonly property real cardH: Math.round(cardW * 0.62)
-                    readonly property real spacing: cardW * 1.08
+                    readonly property real spacing: (width / 2 - peek + farScale * cardW / 2) / 2
                     readonly property real cy: height / 2
 
                     anchors.left: parent.left
                     anchors.right: parent.right
                     anchors.bottom: parent.bottom
-                    anchors.bottomMargin: stage.height * 0.06
-                    height: cardH * 1.5
+                    anchors.bottomMargin: stage.height * 0.055
+                    height: cardH * 1.25
 
                     model: root.files
                     focus: true
-                    // Five on the path: three in view, one waiting on each side to slide in.
-                    pathItemCount: Math.min(5, root.files.length)
+                    // Seven on the path: three in view, two peeking, and one waiting off
+                    // screen on each side to slide in.
+                    pathItemCount: Math.min(7, root.files.length)
                     preferredHighlightBegin: 0.5
                     preferredHighlightEnd: 0.5
                     highlightRangeMode: PathView.StrictlyEnforceRange
@@ -509,7 +519,7 @@ Scope {
                         required property string modelData
                         required property int index
 
-                        // Position relative to the middle, in card slots (-2..2).
+                        // Position relative to the middle, in card slots (-3..3).
                         readonly property real d: (x + width / 2 - carousel.width / 2) / carousel.spacing
                         readonly property real ad: Math.abs(d)
                         readonly property real p: win.lift(d + 2)
@@ -519,8 +529,9 @@ Scope {
                         width: carousel.cardW
                         height: carousel.cardH
                         z: 10 - ad
-                        scale: 1 - 0.22 * Math.min(ad, 1.5)
-                        opacity: Math.max(0, Math.min(1, 1.9 - ad * 0.95))
+                        scale: 1 - (1 - carousel.nearScale) * Math.min(ad, 1) - (carousel.nearScale - carousel.farScale) * Math.max(0, Math.min(ad, 2) - 1)
+                        // The peeking cards are dimmed, and fade out as they leave the screen.
+                        opacity: ad <= 1 ? 1 : ad <= 2 ? 1 - (ad - 1) * 0.35 : Math.max(0, 0.65 - (ad - 2) * 1.3)
 
                         // Each card bobs on its own and swings with the gravity field; while
                         // rising or falling it comes from below the screen.
