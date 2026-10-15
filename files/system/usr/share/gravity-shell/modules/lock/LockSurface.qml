@@ -65,7 +65,8 @@ WlSessionLockSurface {
             anchors.fill: parent
             source: surface.screen ? surface.desktopUrl : ""
             fillMode: Image.PreserveAspectCrop
-            sourceSize: surface.fullSize
+            // A capture already has the screen's size (and can't be scaled on load).
+            sourceSize: surface.desktopUrl.startsWith("file:") ? surface.fullSize : undefined
             // Synchronous: the very first frame must already be the desktop.
             asynchronous: false
             visible: false

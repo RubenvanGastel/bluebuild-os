@@ -5,6 +5,7 @@ import Quickshell.Io
 import Quickshell.Wayland
 import Quickshell.Widgets
 import qs.components
+import qs.modules.bar
 import qs.services
 
 // Wallpaper picker (`gravity-shell wallpaper`, Mod+Shift+W).
@@ -17,9 +18,27 @@ Scope {
 
     // `shown` keeps the window visible while the closing animation plays after `open` drops.
     property bool shown: false
-    // The window is made on first use and then kept (hidden), so later opens don't have to
-    // build the scene again in the middle of the animation.
+    // The window is made on first use and kept (hidden) for a while, so opening it again
+    // soon doesn't have to build the scene in the middle of the animation. After
+    // `keepFor` ms closed it is unloaded to give its memory (preview, thumbnails, video
+    // decoders) back.
     property bool made: false
+    readonly property int keepFor: 30000
+
+    onShownChanged: {
+        if (shown)
+            unloadTimer.stop();
+        else
+            unloadTimer.restart();
+    }
+
+    Timer {
+        id: unloadTimer
+
+        interval: root.keepFor
+        onTriggered: if (!root.shown)
+            root.made = false
+    }
     // Screen the picker opens on: the focused one (niri), chosen when it opens.
     property var targetScreen: Quickshell.screens[0]
     property bool open: false
@@ -191,6 +210,8 @@ Scope {
             property real fade: 0
             property real zoom: 0
             property real rise: 0
+            // 0 = the bar in place, 1 = slid up off the screen.
+            property real barAway: 0
 
             // Scene time and gravity offset for the floating cards.
             property real t: 0
@@ -257,6 +278,7 @@ Scope {
                 fade = 0;
                 zoom = 0;
                 rise = 0;
+                barAway = 0;
                 started = false;
                 previewDelay.stop();
                 previewDelay.path = Config.wallpaperPath;
@@ -333,6 +355,19 @@ Scope {
                         duration: 820
                     }
                 }
+                SequentialAnimation {
+                    PauseAnimation {
+                        duration: 70
+                    }
+                    NumberAnimation {
+                        target: win
+                        property: "barAway"
+                        to: 1
+                        duration: 200
+                        easing.type: Easing.BezierSpline
+                        easing.bezierCurve: Theme.depart
+                    }
+                }
             }
 
             // The reverse, overlapped: cards drop, the wallpaper grows back to full screen,
@@ -359,6 +394,19 @@ Scope {
                             duration: 420
                             easing.type: Easing.BezierSpline
                             easing.bezierCurve: Theme.emphasized
+                        }
+                    }
+                    SequentialAnimation {
+                        PauseAnimation {
+                            duration: 40
+                        }
+                        NumberAnimation {
+                            target: win
+                            property: "barAway"
+                            to: 0
+                            duration: 220
+                            easing.type: Easing.BezierSpline
+                            easing.bezierCurve: Theme.settle
                         }
                     }
                     SequentialAnimation {
@@ -400,6 +448,21 @@ Scope {
                 MouseArea {
                     anchors.fill: parent
                     onClicked: root.open = false
+                }
+
+                // A live copy of the bar, exactly where the real one is. As the overlay
+                // fades in it takes the real bar's place, then quickly slides up off the
+                // screen; on close it drops back down before the overlay fades out over
+                // the real bar again.
+                BarSurface {
+                    z: 10
+                    width: parent.width
+                    output: win.screen?.name ?? ""
+                    barWindow: win
+                    visible: win.barAway < 1
+                    transform: Translate {
+                        y: -win.barAway * (Theme.barHeight + Theme.barCorner + 8)
+                    }
                 }
 
                 // --- the wallpaper, zoomed out into a preview ---------------------------
@@ -610,7 +673,6 @@ Scope {
                         readonly property real ad: Math.abs(d)
                         readonly property real p: win.lift(d + 2)
                         readonly property bool middle: ad < 0.5
-                        readonly property bool applied: modelData === Config.wallpaperPath
 
                         width: carousel.cardW
                         height: carousel.cardH
@@ -654,16 +716,6 @@ Scope {
                                 live: card.ad < 1.5 && root.shown
                                 playing: root.open
                             }
-                        }
-
-                        // A small gem marks the wallpaper that is set now.
-                        Gem {
-                            visible: card.applied
-                            size: 16
-                            spinning: false
-                            anchors.right: parent.right
-                            anchors.top: parent.top
-                            anchors.margins: 10
                         }
 
                         MouseArea {

@@ -12,6 +12,10 @@ Item {
     required property Notification notification
 
     readonly property bool critical: notification.urgency === NotificationUrgency.Critical
+    // The "default" action is what clicking the notification itself does (e.g. focus the
+    // app); it has no label and is not drawn as a button. The rest are buttons.
+    readonly property var defaultAction: notification.actions.find(a => a.identifier === "default") ?? null
+    readonly property var buttons: notification.actions.filter(a => a.identifier !== "default" && a.text !== "")
     // Seconds; the sender's timeout if it gave one, else 6s. Critical ones stay.
     readonly property real lifetime: notification.expireTimeout > 0 ? notification.expireTimeout : 6
     property bool leaving: false
@@ -285,10 +289,10 @@ Item {
                 Layout.fillWidth: true
                 Layout.topMargin: 8
                 spacing: 8
-                visible: card.notification.actions.length > 0
+                visible: card.buttons.length > 0
 
                 Repeater {
-                    model: card.notification.actions
+                    model: card.buttons
 
                     // The first action is the main one: accent pill; the rest are tonal.
                     Rectangle {
@@ -332,8 +336,14 @@ Item {
         }
     }
 
-    // Clicking the card body dismisses it (actions above take priority).
+    // Clicking the card body runs its default action if it has one (and dismisses it);
+    // the buttons and the close button above take priority.
     TapHandler {
-        onTapped: card.leave(true)
+        onTapped: {
+            if (card.defaultAction)
+                card.invoke(card.defaultAction);
+            else
+                card.leave(true);
+        }
     }
 }

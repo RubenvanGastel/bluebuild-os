@@ -92,6 +92,8 @@ Singleton {
 
     // Height of the bar; notifications and other popups line up below it.
     readonly property int barHeight: 42
+    // Radius of the inverted corners below the bar.
+    readonly property int barCorner: 24
     // Gap between popups and the bar or the screen edge.
     readonly property int gap: 12
 
