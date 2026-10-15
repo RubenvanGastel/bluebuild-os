@@ -15,7 +15,7 @@ Both images use the same module list, [`recipes/common-modules.yml`](recipes/com
 
 ### Desktops
 
-- **GNOME** with the [MoreWaita](https://github.com/somepaulo/MoreWaita) icon theme and the [Hot Edge](https://extensions.gnome.org/extension/4222/hot-edge/) extension turned on.
+- **GNOME** with the [MoreWaita](https://github.com/somepaulo/MoreWaita) icon theme and the [Hot Edge](https://extensions.gnome.org/extension/4222/hot-edge/), [AppIndicator](https://extensions.gnome.org/extension/615/appindicator-support/) and [Alphabetical App Grid](https://extensions.gnome.org/extension/4269/alphabetical-app-grid/) extensions turned on.
 - **niri**, a scrollable-tiling Wayland compositor, which you can choose at login. It runs the **Gravity shell**, a custom [Quickshell](https://quickshell.org) desktop inspired by Gravity Rush, with an animated wallpaper, a bar, notifications and a lock screen ([details](files/system/usr/share/gravity-shell/README.md)). `fuzzel` is the app launcher.
 - A **Miku Plymouth** boot animation.
 

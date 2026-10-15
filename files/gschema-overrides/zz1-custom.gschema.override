@@ -4,7 +4,7 @@
 icon-theme='MoreWaita'
 
 [org.gnome.shell]
-enabled-extensions=['hotedge@jonathan.jdoda.ca']
+enabled-extensions=['hotedge@jonathan.jdoda.ca', 'appindicatorsupport@rgcjonas.gmail.com', 'AlphabeticalAppGrid@stuarthayhurst']
 
 [org.gnome.desktop.input-sources]
 xkb-options=['compose:ralt']

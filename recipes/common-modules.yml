@@ -67,8 +67,10 @@ modules:
   - type: gnome-extensions
     install:
       - Hot Edge
+      - AppIndicator and KStatusNotifierItem Support # tray icons (Steam, Vesktop, ...)
+      - Alphabetical App Grid # keeps the app grid sorted A-Z
 
-  # Default settings: MoreWaita icons, Hot Edge enabled, Compose on Right Alt
+  # Default settings: MoreWaita icons, extensions enabled, Compose on Right Alt
   # (system-wide extensions are installed disabled; enabling them here is required)
   - type: gschema-overrides
     include:
