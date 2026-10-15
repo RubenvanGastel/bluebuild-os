@@ -22,6 +22,21 @@ modules:
         - xwayland-satellite
         - quickshell
         - fuzzel # app launcher in niri (Mod+D)
+        - eza # modern ls with icons (aliased in /etc/profile.d/eza.sh)
+        - fastfetch # system info in the terminal
+    remove:
+      packages:
+        # System monitors from the base image; replaced by the Resources flatpak
+        - htop
+        - nvtop
+        - gnome-system-monitor
+
+  # Nerd Font icon glyphs for eza; terminals fall back to it automatically,
+  # so no need to change the terminal font
+  - type: fonts
+    fonts:
+      nerd-fonts:
+        - NerdFontsSymbolsOnly
 
   # After dnf, so our files (e.g. the fuzzel theme) win over files that packages ship.
   # Includes the Gravity shell (/usr/share/gravity-shell) and niri config (/etc/niri).
@@ -60,6 +75,7 @@ modules:
           - dev.vencord.Vesktop
           - com.mattjakeman.ExtensionManager
           - com.github.tchx84.Flatseal
+          - net.nokyan.Resources # GNOME Circle system monitor (replaces System Monitor, htop, nvtop)
 
   - type: signing # sets up container signing so you can rebase to the signed image
 
