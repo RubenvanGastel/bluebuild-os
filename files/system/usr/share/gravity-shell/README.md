@@ -1,49 +1,54 @@
 # Gravity shell
 
-A Quickshell desktop for niri inspired by Gravity Rush: Hekseville at dusk, with floating
-islands, crates, street lamps and gems drifting in a shared "gravity field".
+A Quickshell desktop for niri inspired by Gravity Rush: a levitating bar, notifications that
+fall away and a lock screen, all coloured by the Hekseville palette or by your wallpaper.
 
-- **Wallpaper**: animated floating city. Switching workspaces shifts gravity (things swing
-  up when you move down the strip, sideways when you scroll columns), with a violet ripple.
-  Every minute or so a random gravity storm passes through.
-- **Bar**: a floating island that drops in on login and sways with gravity shifts.
+- **Wallpaper**: your own image, on every screen. `Super+Shift+W` (or `gravity-shell wallpaper`)
+  opens the picker: the wallpaper zooms out into a preview and three wallpapers rise from the
+  bottom and float in the gravity field. Left/Right (or the mouse wheel) scrolls them, Enter
+  applies, Esc closes. It lists only your wallpaper folder: `Wallpapers` inside your Pictures
+  folder (whatever it is called in your language, e.g. `~/Afbeeldingen/Wallpapers`), or the
+  folder set as `wallpaperDir`. The folder is created the first time the picker opens.
+  `gravity-shell wallpaper ~/pic.jpg` sets one directly.
+- **Colours**: the built-in Hekseville palette (indigo, violet and gold), or picked from the
+  wallpaper with [matugen](https://github.com/InioX/matugen). Switch in the picker, which also
+  offers matugen's scheme variants (tonal, vibrant, expressive, ...).
+- **Bar**: a floating island that drops in on login and sways when gravity shifts
+  (workspace switches, notifications, the occasional "gravity storm").
   It holds niri workspace orbs, the window title, the tray, volume, battery and a clock.
 - **Notifications**: cards drift in from the right; when they expire they fall away.
-- **Lock screen** (`Super+Alt+L`, or after 10 idle minutes): the desktop floats up and blurs
-  into the scene, and the clock digits fall into place. Your password appears as gems; a
-  wrong one makes them tumble. On unlock the desktop drops back into place.
-
-## How the lock stays seamless
-
-Every moving thing is a pure function of the shared scene time (`services/Gravity.qml`) and
-fixed seeds, so the wallpaper, the transition overlay (`modules/lock/Curtain.qml`) and the
-lock surface all draw identical frames. Locking snapshots the desktop with screencopy and
-animates that picture away before the real session lock engages on an identical frame.
-Unlocking freezes scene time, draws that frozen frame on a fresh overlay, unlocks underneath
-it, and then lets the desktop picture fall back in before fading to the live desktop.
+- **Lock screen** (`Super+Alt+L`, or after 10 idle minutes): your wallpaper blurs in behind a
+  clock and a password field.
 
 ## Settings
 
-Optional `~/.config/gravity-shell/config.json` (live-reloaded):
+Optional `~/.config/gravity-shell/config.json` (live-reloaded). The picker writes it too,
+storing only settings that differ from the defaults:
 
 ```json
 {
   "wallpaper": "/path/to/image.jpg",
-  "animatedBackground": true,
-  "debrisCount": 18,
-  "starCount": 90,
+  "wallpaperDir": "~/Somewhere/Else",
+  "colors": "wallpaper",
+  "colorScheme": "scheme-tonal-spot",
   "ambientShifts": true,
   "idleLockMinutes": 10,
   "use24h": true
 }
 ```
 
-`"animatedBackground": false` freezes the scene. On battery this takes the shell from
-roughly a tenth of a CPU core to near zero.
+`"colors"` is `"default"` or `"wallpaper"`. Generated colours are cached in
+`~/.cache/gravity-shell/colors.json`. matugen can't read `.jxl` images, so with those the
+default colours are used. From a terminal:
+
+```sh
+gravity-shell ipc call theme set wallpaper     # or: default
+gravity-shell ipc call theme scheme vibrant
+```
 
 ## Changing the shell itself
 
 `cp -r /usr/share/gravity-shell ~/.config/quickshell/gravity`, then edit. `gravity-shell`
 prefers that copy, and Quickshell reloads it live as you save.
 
-Useful commands: `gravity-shell lock`, `gravity-shell ipc show`, `gravity-shell log`.
+Useful commands: `gravity-shell lock`, `gravity-shell wallpaper [image]`, `gravity-shell ipc show`, `gravity-shell log`.

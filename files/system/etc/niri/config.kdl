@@ -297,7 +297,8 @@ prefer-no-csd
 // You can change the path where screenshots are saved.
 // A ~ at the front will be expanded to the home directory.
 // The path is formatted with strftime(3) to give you the screenshot date and time.
-screenshot-path "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png"
+// niri doesn't look up the XDG Pictures folder, so its Dutch name is written out here.
+screenshot-path "~/Afbeeldingen/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png"
 
 // You can also set this to null to disable saving screenshots to disk.
 // screenshot-path null
@@ -319,7 +320,7 @@ window-rule {
     clip-to-geometry true
 }
 
-// Gravity: keep the floating-city wallpaper visible behind the overview.
+// Gravity: keep the wallpaper visible behind the overview.
 layer-rule {
     match namespace="^gravity-wallpaper$"
     place-within-backdrop true
@@ -390,6 +391,7 @@ binds {
     Mod+T hotkey-overlay-title="Open a Terminal: Ghostty" { spawn "ghostty"; }
     Mod+D hotkey-overlay-title="Run an Application: fuzzel" { spawn "fuzzel"; }
     Super+Alt+L hotkey-overlay-title="Lock the Screen" { spawn "gravity-shell" "lock"; }
+    Mod+Shift+W hotkey-overlay-title="Change the Wallpaper" { spawn "gravity-shell" "wallpaper"; }
 
     // Use spawn-sh to run a shell command. Do this if you need pipes, multiple commands, etc.
     // Note: the entire command goes as a single argument. It's passed verbatim to `sh -c`.

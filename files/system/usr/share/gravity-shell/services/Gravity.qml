@@ -3,9 +3,8 @@ pragma Singleton
 import QtQuick
 import Quickshell
 
-// The shared gravity field. Everything that floats reads its offset from here, so the
-// wallpaper, the lock curtain and the lock screen all move identically. That is what
-// makes the lock transition seamless: every surface draws the same frame.
+// The shared gravity field. Workspace switches, notifications and the occasional
+// "gravity storm" kick it; the bar reads its offset and sways along.
 Singleton {
     id: root
 
@@ -14,35 +13,13 @@ Singleton {
     property var kicks: []
     // True while a kick is still visibly moving things, so idle widgets can stop animating.
     property bool active: false
-    // While locking/unlocking we don't want random shifts breaking the illusion.
+    // No random shifts while the screen is locked.
     property bool hold: false
-
-    // Scene time can be frozen. The lock screen freezes it while handing over between
-    // surfaces, so a surface that has not redrawn for a while still matches exactly.
-    property real frozenAt: -1
-    property real pausedTotal: 0
 
     signal kicked(real dx, real dy, real strength)
 
-    function rawNow(): real {
-        return (Date.now() - epoch) / 1000;
-    }
-
     function now(): real {
-        return (frozenAt >= 0 ? frozenAt : rawNow()) - pausedTotal;
-    }
-
-    function freeze(): void {
-        if (frozenAt < 0)
-            frozenAt = rawNow();
-    }
-
-    // Resumes from the exact frozen frame, without a jump.
-    function thaw(): void {
-        if (frozenAt >= 0) {
-            pausedTotal += rawNow() - frozenAt;
-            frozenAt = -1;
-        }
+        return (Date.now() - epoch) / 1000;
     }
 
     // Shift gravity towards (dx, dy). Magnitudes around 1 are a normal workspace switch.

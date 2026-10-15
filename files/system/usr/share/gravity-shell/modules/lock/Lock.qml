@@ -6,28 +6,18 @@ import Quickshell.Services.Pam
 import qs.services
 
 // Lock state machine:
-//   idle -> covering   curtain snapshots the desktop and lets it float away
-//        -> locked     session lock engaged; digits fall into place
-//        -> unlocking  password accepted; content floats off, scene time freezes,
-//                      fresh reveal curtains render that frozen frame
-//        -> revealing  session unlocked under the curtain; desktop drops back in
-//        -> idle
+//   idle -> locked     session lock engaged; the wallpaper blurs in behind the clock
+//        -> unlocking  password accepted; the content fades and the blur clears
+//        -> idle       session unlocked
 Scope {
     id: root
 
     property string phase: "idle"
     property string buffer: ""
     property string message: ""
-    property real fall: 0
     readonly property bool pamActive: pam.active
-    // Snapshot of each screen taken just before locking: name -> grab result url.
-    property var snapshots: ({})
-    property var grabs: ({})
 
-    readonly property real dim: 0.28
-    readonly property int coverDuration: 820
-    readonly property int outroDuration: 520
-    readonly property int revealDuration: 760
+    readonly property int outroDuration: 420
 
     signal failed
 
@@ -36,38 +26,13 @@ Scope {
             return;
         buffer = "";
         message = "";
-        snapshots = {};
-        grabs = {};
         Gravity.hold = true;
-        phase = "covering";
-        coverFallback.restart();
-    }
-
-    function storeSnapshot(screen: string, result: var): void {
-        // Keep the grab result alive; its url is only valid as long as it exists.
-        grabs = Object.assign({}, grabs, { [screen]: result });
-        snapshots = Object.assign({}, snapshots, { [screen]: result.url });
-    }
-
-    function coverDone(): void {
-        if (phase !== "covering")
-            return;
-        coverFallback.stop();
+        phase = "locked";
         sessionLock.locked = true;
     }
 
-    function revealDone(): void {
-        if (phase !== "revealing")
-            return;
-        phase = "idle";
-        buffer = "";
-        snapshots = {};
-        grabs = {};
-        Gravity.hold = false;
-    }
-
     function handleKey(event: var): void {
-        if (phase !== "locked" || pam.active || fall > 0)
+        if (phase !== "locked" || pam.active)
             return;
         message = "";
         if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
@@ -85,31 +50,8 @@ Scope {
     WlSessionLock {
         id: sessionLock
 
-        onSecureChanged: if (secure && root.phase === "covering")
-            root.phase = "locked"
-
         LockSurface {
             lock: root
-        }
-    }
-
-    // Cover curtains exist while covering; reveal curtains from the moment the password
-    // is accepted until the desktop is back.
-    Variants {
-        model: root.phase === "covering" ? Quickshell.screens : []
-
-        Curtain {
-            lock: root
-            mode: "cover"
-        }
-    }
-
-    Variants {
-        model: root.phase === "unlocking" || root.phase === "revealing" ? Quickshell.screens : []
-
-        Curtain {
-            lock: root
-            mode: "reveal"
         }
     }
 
@@ -128,62 +70,27 @@ Scope {
         onCompleted: result => {
             if (result === PamResult.Success) {
                 root.phase = "unlocking";
-                // Freeze the scene so the lock surface and the fresh curtains agree.
-                Gravity.freeze();
                 unlockTimer.restart();
             } else {
                 if (root.message === "")
                     root.message = "That's not it. Try again";
-                root.failed();
-                dropGems.restart();
-            }
-        }
-    }
-
-    // Wrong password: the gems tumble out of the sky, then the field clears.
-    SequentialAnimation {
-        id: dropGems
-
-        NumberAnimation {
-            target: root
-            property: "fall"
-            from: 0
-            to: 1
-            duration: 750
-            easing.type: Easing.InQuad
-        }
-        ScriptAction {
-            script: {
                 root.buffer = "";
-                root.fall = 0;
+                root.failed();
             }
         }
     }
 
-    // Give the outro time to play and the reveal curtains time to draw their first frame.
+    // Let the outro play before the session lock lets go.
     Timer {
         id: unlockTimer
 
-        interval: root.outroDuration + 60
+        interval: root.outroDuration
         onTriggered: {
             sessionLock.locked = false;
-            Gravity.thaw();
-            root.phase = "revealing";
-            revealFallback.restart();
+            root.phase = "idle";
+            root.buffer = "";
+            Gravity.hold = false;
         }
-    }
-
-    // Safety nets: never get stuck halfway.
-    Timer {
-        id: coverFallback
-        interval: 2500
-        onTriggered: root.coverDone()
-    }
-
-    Timer {
-        id: revealFallback
-        interval: root.revealDuration + 1500
-        onTriggered: root.revealDone()
     }
 
     IdleMonitor {
@@ -193,7 +100,7 @@ Scope {
             root.lock()
     }
 
-    // `qs -c gravity ipc call lock lock` (or `gravity-shell lock`) from niri keybinds.
+    // `gravity-shell lock` (bound to Super+Alt+L in niri).
     IpcHandler {
         target: "lock"
 

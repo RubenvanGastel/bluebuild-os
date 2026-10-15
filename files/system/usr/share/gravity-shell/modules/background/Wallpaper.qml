@@ -4,7 +4,7 @@ import Quickshell.Wayland
 import qs.components
 import qs.services
 
-// Animated floating-city wallpaper on every screen.
+// The wallpaper (Config.wallpaper) on every screen, cross-fading when it changes.
 Variants {
     model: Quickshell.screens
 
@@ -26,18 +26,11 @@ Variants {
         // niri's config places this namespace inside the overview backdrop.
         WlrLayershell.namespace: "gravity-wallpaper"
 
-        GravityScene {
-            id: scene
-
+        FadeImage {
             anchors.fill: parent
-
-            // On login the city rises up from below and settles into place.
-            NumberAnimation on intro {
-                from: 0
-                to: 1
-                duration: 2600
-                easing.type: Easing.OutCubic
-            }
+            // Wait for the config, so a custom wallpaper doesn't load after the default.
+            source: Config.ready ? Config.wallpaperPath : ""
+            sourceSize: Qt.size(win.modelData.width * win.modelData.devicePixelRatio, win.modelData.height * win.modelData.devicePixelRatio)
         }
     }
 }

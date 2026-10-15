@@ -79,7 +79,7 @@ Item {
                 }
                 GradientStop {
                     position: 1
-                    color: "#3b1f9e"
+                    color: Qt.darker(Theme.nebula, 1.9)
                 }
             }
             PathPolyline {

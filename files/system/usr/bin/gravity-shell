@@ -2,6 +2,8 @@
 # Starts or talks to the Gravity Quickshell desktop.
 #   gravity-shell          start the shell (niri runs this at startup)
 #   gravity-shell lock     lock the screen
+#   gravity-shell wallpaper [image]
+#                          open the wallpaper picker, or set the wallpaper to image
 #   gravity-shell ...      any other qs arguments, e.g. `gravity-shell ipc show`
 #
 # A copy in ~/.config/quickshell/gravity takes precedence over the system one, so you can
@@ -19,5 +21,11 @@ fi
 case "${1:-}" in
     "") exec qs -p "$dir" ;;
     lock) exec qs -p "$dir" ipc call lock lock ;;
+    wallpaper)
+        if [ -n "${2:-}" ]; then
+            exec qs -p "$dir" ipc call wallpaper set "$(realpath -- "$2")"
+        fi
+        exec qs -p "$dir" ipc call wallpaper toggle
+        ;;
     *) exec qs -p "$dir" "$@" ;;
 esac

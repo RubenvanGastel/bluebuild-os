@@ -89,7 +89,8 @@ Variants {
 
                 Gem {
                     size: 18
-                    spinning: Config.animatedBackground
+                    // Turns while gravity shifts, rests otherwise (no idle redraws).
+                    spinning: Gravity.active
                     Layout.alignment: Qt.AlignVCenter
                 }
 
