@@ -180,6 +180,15 @@ Scope {
 
             readonly property string selected: root.files[carousel.currentIndex] ?? Config.wallpaperPath
 
+            // Colours follow the selected wallpaper while browsing; back to the applied one
+            // when the picker closes.
+            Binding {
+                target: Theme
+                property: "previewPath"
+                value: win.selected
+                when: root.open
+            }
+
             FrameAnimation {
                 running: true
                 onTriggered: {
