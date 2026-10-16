@@ -16,6 +16,10 @@ Item {
     // True: a new image replaces the old one at once, without fading (e.g. while hidden).
     property bool instant: false
 
+    // Keep decoded images in Qt's cache. Worth it for small thumbnails that come and go
+    // (the picker cards); off for full-screen wallpapers, which are large.
+    property bool cache: false
+
     // Videos: `live` gives them a player at all (false = poster only), `playing` pauses it.
     property bool live: true
     property bool playing: true
@@ -31,12 +35,16 @@ Item {
     function load(): void {
         const back = front === 0 ? b : a;
         const top = front === 0 ? a : front === 1 ? b : null;
-        if (source === "" || (top && top.path === source))
+        if (source === "")
             return;
         Media.ensureFrame(source);
-        // Switched back to the one still underneath (mid-fade): bring it up again.
-        if (back.path === source && back.ready)
-            back.promote();
+        // Mid-fade the layer underneath still shows through, so loading into it would
+        // blank it out; the fade's end loads the latest source instead.
+        if (top?.fading)
+            return;
+        // Back to the one on top: drop whatever was still loading underneath.
+        if (top && top.path === source)
+            back.path = "";
         else
             back.path = source;
     }
@@ -52,12 +60,14 @@ Item {
 
         readonly property bool video: Media.isVideo(path)
         readonly property bool ready: path !== "" && (still.status === Image.Ready || (player.item?.ready ?? false))
+        readonly property bool fading: fadeIn.running
 
         anchors.fill: parent
         z: root.front === slot ? 1 : 0
         opacity: 0
 
-        onReadyChanged: if (ready && root.front !== slot)
+        // Only if it's still the one wanted; the source may have moved on meanwhile.
+        onReadyChanged: if (ready && root.front !== slot && path === root.source)
             promote()
 
         function promote(): void {
@@ -67,6 +77,7 @@ Item {
                 fadeIn.stop();
                 opacity = 1;
                 layer.retireOther();
+                root.load();
             } else {
                 fadeIn.restart();
             }
@@ -88,7 +99,7 @@ Item {
             fillMode: Image.PreserveAspectCrop
             sourceSize: root.sourceSize
             asynchronous: true
-            cache: false
+            cache: root.cache
         }
 
         Loader {
@@ -111,7 +122,10 @@ Item {
             to: 1
             duration: root.duration
             easing.type: Easing.OutCubic
-            onFinished: layer.retireOther()
+            onFinished: {
+                layer.retireOther();
+                root.load();
+            }
         }
     }
 

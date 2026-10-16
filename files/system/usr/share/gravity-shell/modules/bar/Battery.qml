@@ -1,15 +1,19 @@
 import QtQuick
+import QtQuick.Shapes
 import Quickshell.Services.UPower
 import qs.services
 
-// Battery outline with a fill that eases to the current level. Hidden on desktops.
+// Battery outline with a fill that eases to the current level, and a bolt beside it
+// while on AC: gold while charging, dim when plugged in but not charging (full or
+// held by a charge limit). Hidden on desktops.
 Item {
     id: root
 
     readonly property var dev: UPower.displayDevice
     readonly property real level: dev?.percentage ?? 0
-    readonly property bool charging: dev?.state === UPowerDeviceState.Charging || dev?.state === UPowerDeviceState.PendingCharge || dev?.state === UPowerDeviceState.FullyCharged
-    readonly property bool low: level < 0.15 && !charging
+    readonly property bool charging: dev?.state === UPowerDeviceState.Charging
+    readonly property bool plugged: charging || !UPower.onBattery
+    readonly property bool low: level < 0.15 && !plugged
 
     implicitWidth: row.implicitWidth
     implicitHeight: 24
@@ -23,6 +27,42 @@ Item {
 
         anchors.verticalCenter: parent.verticalCenter
         spacing: 6
+
+        // Lightning bolt; slides open when the charger is connected.
+        Item {
+            width: root.plugged ? 8 : 0
+            height: 13
+            anchors.verticalCenter: parent.verticalCenter
+            opacity: root.plugged ? 1 : 0
+            clip: true
+
+            Behavior on width {
+                NumberAnimation {
+                    duration: Theme.slow
+                    easing.type: Easing.OutCubic
+                }
+            }
+            Behavior on opacity {
+                NumberAnimation {
+                    duration: Theme.slow
+                    easing.type: Easing.OutCubic
+                }
+            }
+
+            Shape {
+                width: 8
+                height: 13
+                preferredRendererType: Shape.CurveRenderer
+
+                ShapePath {
+                    strokeColor: "transparent"
+                    fillColor: root.charging ? Theme.gold : Theme.textDim
+                    PathPolyline {
+                        path: [Qt.point(5, 0), Qt.point(0, 7.5), Qt.point(3.5, 7.5), Qt.point(2.5, 13), Qt.point(8, 5.5), Qt.point(4.5, 5.5), Qt.point(5, 0)]
+                    }
+                }
+            }
+        }
 
         Item {
             width: 24

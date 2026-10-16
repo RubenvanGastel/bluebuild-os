@@ -80,6 +80,8 @@ Scope {
     readonly property string batteryIcon: {
         if (charging)
             return "\u{f0084}";
+        if (!UPower.onBattery)
+            return "\u{f06a5}";
         const tenths = Math.round(batteryLevel * 10);
         return tenths >= 10 ? "\u{f0079}" : tenths <= 0 ? "\u{f0083}" : String.fromCodePoint(0xf007a + tenths - 1);
     }

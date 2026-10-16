@@ -121,11 +121,13 @@ Singleton {
     property var memo: ({})
     property string cachedKey
 
-    // Palette of the applied wallpaper (not a preview) and its key, for niri.
+    // Palette of the applied wallpaper (not a preview), for niri.
     property var appliedGenerated: ({})
-    property string appliedGeneratedKey
 
     onWantedChanged: regenerate.restart()
+    // Applying the wallpaper that is being previewed leaves `wanted` as it was, but its
+    // palette still has to become the applied one (for niri and the cache).
+    onAppliedKeyChanged: regenerate.restart()
 
     function use(key: string, palette: var): void {
         error = "";
@@ -133,7 +135,6 @@ Singleton {
         generatedKey = key;
         if (key === appliedKey) {
             appliedGenerated = palette;
-            appliedGeneratedKey = key;
         }
         if (key === appliedKey && key !== cachedKey) {
             cachedKey = key;
@@ -235,8 +236,9 @@ Singleton {
     }
 
     // niri's colours (included by its config), following the applied palette only, so
-    // browsing in the picker doesn't recolour every window.
-    readonly property var niriPalette: Config.colors === "wallpaper" && appliedGeneratedKey === appliedKey ? appliedGenerated : defaults
+    // browsing in the picker doesn't recolour every window. A new wallpaper keeps the
+    // previous palette until its own is ready, rather than flashing the defaults.
+    readonly property var niriPalette: Config.colors === "wallpaper" && appliedGenerated.gold !== undefined ? appliedGenerated : defaults
     readonly property string niriConfig: `// Written by gravity-shell from its colours; edits are overwritten.
 layout {
     focus-ring {
@@ -298,7 +300,6 @@ overview {
                     root.generatedKey = data.key;
                     root.cachedKey = data.key;
                     root.appliedGenerated = data.palette;
-                    root.appliedGeneratedKey = data.key;
                 }
             } catch (e) {}
             regenerate.restart();

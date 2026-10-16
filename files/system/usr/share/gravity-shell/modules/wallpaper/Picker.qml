@@ -210,12 +210,10 @@ Scope {
             property real fade: 0
             property real zoom: 0
             property real rise: 0
-            // 0 = the bar in place, 1 = slid up off the screen.
-            property real barAway: 0
 
-            // Scene time and gravity offset for the floating cards.
+            // Scene time for the floating cards. They ignore the gravity field, so
+            // workspace switches and the like don't jolt them while browsing.
             property real t: 0
-            property point g: Qt.point(0, 0)
 
             readonly property string selected: root.files[carousel.currentIndex] ?? Config.wallpaperPath
 
@@ -240,7 +238,6 @@ Scope {
                 running: root.shown
                 onTriggered: {
                     win.t += frameTime;
-                    win.g = Gravity.active ? Gravity.offsetAt(Gravity.now()) : Qt.point(0, 0);
                 }
             }
 
@@ -254,13 +251,19 @@ Scope {
                 return easeOutBack(Math.max(0, Math.min(1, rise * 1.7 - n * 0.14)));
             }
 
-            function scroll(dir: int): void {
+            // Held keys and the wheel step at most this often (ms), so the cards keep up.
+            readonly property int repeatInterval: 190
+            property real lastStep: 0
+
+            function scroll(dir: int, repeated: bool): void {
+                const now = Date.now();
+                if (repeated && now - lastStep < repeatInterval)
+                    return;
+                lastStep = now;
                 if (dir > 0)
                     carousel.incrementCurrentIndex();
                 else
                     carousel.decrementCurrentIndex();
-                // Moving right swings things to the left, like a push.
-                Gravity.kick(-dir * 0.7, -0.15, 0.8);
             }
 
             function apply(): void {
@@ -286,7 +289,6 @@ Scope {
                 fade = 0;
                 zoom = 0;
                 rise = 0;
-                barAway = 0;
                 started = false;
                 previewDelay.stop();
                 previewDelay.path = Config.wallpaperPath;
@@ -363,19 +365,6 @@ Scope {
                         duration: 820
                     }
                 }
-                SequentialAnimation {
-                    PauseAnimation {
-                        duration: 70
-                    }
-                    NumberAnimation {
-                        target: win
-                        property: "barAway"
-                        to: 1
-                        duration: 200
-                        easing.type: Easing.BezierSpline
-                        easing.bezierCurve: Theme.depart
-                    }
-                }
             }
 
             // The reverse, overlapped: cards drop, the wallpaper grows back to full screen,
@@ -402,19 +391,6 @@ Scope {
                             duration: 420
                             easing.type: Easing.BezierSpline
                             easing.bezierCurve: Theme.emphasized
-                        }
-                    }
-                    SequentialAnimation {
-                        PauseAnimation {
-                            duration: 40
-                        }
-                        NumberAnimation {
-                            target: win
-                            property: "barAway"
-                            to: 0
-                            duration: 220
-                            easing.type: Easing.BezierSpline
-                            easing.bezierCurve: Theme.settle
                         }
                     }
                     SequentialAnimation {
@@ -456,21 +432,6 @@ Scope {
                 MouseArea {
                     anchors.fill: parent
                     onClicked: root.open = false
-                }
-
-                // A live copy of the bar, exactly where the real one is. As the overlay
-                // fades in it takes the real bar's place, then quickly slides up off the
-                // screen; on close it drops back down before the overlay fades out over
-                // the real bar again.
-                BarSurface {
-                    z: 10
-                    width: parent.width
-                    output: win.screen?.name ?? ""
-                    barWindow: win
-                    visible: win.barAway < 1
-                    transform: Translate {
-                        y: -win.barAway * (Theme.barHeight + Theme.barCorner + 8)
-                    }
                 }
 
                 // --- the wallpaper, zoomed out into a preview ---------------------------
@@ -517,6 +478,17 @@ Scope {
                             source: previewDelay.path
                             duration: Theme.normal
                             sourceSize: Qt.size(win.screen.width * win.screen.devicePixelRatio, win.screen.height * win.screen.devicePixelRatio)
+                        }
+
+                        // A live copy of the bar, exactly where the real one is. As the
+                        // overlay fades in it takes the real bar's place, then zooms out
+                        // with the wallpaper, like a small copy of the desktop. Just a
+                        // picture: clicks go to the preview.
+                        BarSurface {
+                            width: parent.width
+                            output: win.screen?.name ?? ""
+                            barWindow: win
+                            enabled: false
                         }
                     }
 
@@ -649,9 +621,9 @@ Scope {
 
                     Keys.onPressed: event => {
                         if (event.key === Qt.Key_Right || event.key === Qt.Key_L) {
-                            win.scroll(1);
+                            win.scroll(1, event.isAutoRepeat);
                         } else if (event.key === Qt.Key_Left || event.key === Qt.Key_H) {
-                            win.scroll(-1);
+                            win.scroll(-1, event.isAutoRepeat);
                         } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space) {
                             win.apply();
                         } else if (event.key === Qt.Key_Escape) {
@@ -666,7 +638,7 @@ Scope {
                         onWheel: event => {
                             const d = event.angleDelta.y !== 0 ? event.angleDelta.y : -event.angleDelta.x;
                             if (d !== 0)
-                                win.scroll(d < 0 ? 1 : -1);
+                                win.scroll(d < 0 ? 1 : -1, true);
                         }
                     }
 
@@ -689,12 +661,11 @@ Scope {
                         // The peeking cards are dimmed, and fade out as they leave the screen.
                         opacity: ad <= 1 ? 1 : ad <= 2 ? 1 - (ad - 1) * 0.35 : Math.max(0, 0.65 - (ad - 2) * 1.3)
 
-                        // Each card bobs on its own and swings with the gravity field; while
+                        // Each card bobs and tilts gently on its own; while
                         // rising or falling it comes from below the screen.
-                        rotation: Math.sin(win.t * 0.8 + index * 2.1) * 1.4 + win.g.x * 5
+                        rotation: Math.sin(win.t * 0.8 + index * 2.1) * 1.4
                         transform: Translate {
-                            x: win.g.x * 26 * (1 + card.ad * 0.4)
-                            y: Math.sin(win.t * 1.3 + card.index * 1.7) * carousel.cardH * 0.035 + win.g.y * 22 + (1 - card.p) * win.height * 0.6
+                            y: Math.sin(win.t * 1.3 + card.index * 1.7) * carousel.cardH * 0.035 + (1 - card.p) * win.height * 0.6
                         }
 
                         RectangularShadow {
@@ -720,6 +691,7 @@ Scope {
                                 anchors.fill: parent
                                 source: card.modelData
                                 sourceSize: Qt.size(480, 300)
+                                cache: true
                                 duration: Theme.fast
                                 live: card.middle && root.shown
                                 playing: root.open
@@ -733,7 +705,7 @@ Scope {
                                 if (card.middle)
                                     win.apply();
                                 else
-                                    win.scroll(card.d > 0 ? 1 : -1);
+                                    win.scroll(card.d > 0 ? 1 : -1, false);
                             }
                         }
                     }
