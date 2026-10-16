@@ -16,8 +16,9 @@ Item {
     // True: a new image replaces the old one at once, without fading (e.g. while hidden).
     property bool instant: false
 
-    // Keep decoded images in Qt's cache. Worth it for small thumbnails that come and go
-    // (the picker cards); off for full-screen wallpapers, which are large.
+    // Keep decoded images in Qt's cache: for thumbnails that come and go (the picker
+    // cards), and for an image shown in two places at the same size (the desktop and the
+    // picker preview share one copy).
     property bool cache: false
 
     // Videos: `live` gives them a player at all (false = poster only), `playing` pauses it.

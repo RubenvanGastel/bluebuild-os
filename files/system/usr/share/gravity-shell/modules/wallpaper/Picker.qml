@@ -428,6 +428,46 @@ Scope {
                     color: Theme.night
                 }
 
+                // Wheel and touchpad browse from anywhere in the picker, vertically or
+                // sideways. A wheel notch is 120 (angle units); a touchpad sends many small
+                // pixel deltas, which add up so a swipe moves a few cards rather than one
+                // per event. A WheelHandler listens to one axis, so there is one per axis;
+                // each only acts when its axis is the main one, so diagonals count once.
+                QtObject {
+                    id: wheel
+
+                    property real sum: 0
+
+                    function take(event: var, horizontal: bool): void {
+                        const px = event.pixelDelta.x !== 0 || event.pixelDelta.y !== 0;
+                        const v = px ? event.pixelDelta : event.angleDelta;
+                        if ((Math.abs(v.x) > Math.abs(v.y)) !== horizontal)
+                            return;
+                        // Swiping right moves the list left (to the next one), like a browser.
+                        const d = horizontal ? v.x : v.y;
+                        if (d === 0)
+                            return;
+                        // Turning around starts over instead of first undoing the other way.
+                        sum = Math.sign(sum) === Math.sign(d) ? sum + d : d;
+                        if (Math.abs(sum) >= (px ? 60 : 120)) {
+                            win.scroll(sum < 0 ? 1 : -1, true);
+                            sum = 0;
+                        }
+                    }
+                }
+
+                WheelHandler {
+                    orientation: Qt.Vertical
+                    acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+                    onWheel: event => wheel.take(event, false)
+                }
+
+                WheelHandler {
+                    orientation: Qt.Horizontal
+                    acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+                    onWheel: event => wheel.take(event, true)
+                }
+
                 // Click on empty space to close.
                 MouseArea {
                     anchors.fill: parent
@@ -470,6 +510,9 @@ Scope {
 
                             anchors.fill: parent
                             fadeFirst: false
+                            // Shares the desktop's decoded image (same file and size), so it's
+                            // there at once when the picker shows instead of decoding again.
+                            cache: true
                             // Until the open animation starts, swap images without a fade.
                             instant: !win.started
                             onCurrentChanged: win.begin(false)
@@ -634,14 +677,6 @@ Scope {
                         event.accepted = true;
                     }
 
-                    WheelHandler {
-                        onWheel: event => {
-                            const d = event.angleDelta.y !== 0 ? event.angleDelta.y : -event.angleDelta.x;
-                            if (d !== 0)
-                                win.scroll(d < 0 ? 1 : -1, true);
-                        }
-                    }
-
                     delegate: Item {
                         id: card
 
@@ -685,21 +720,24 @@ Scope {
                             border.width: card.middle ? 3 : 0
                             border.color: Theme.gold
 
-                            // Only the highlighted card plays its video; the others show
-                            // their poster.
+                            // The highlighted card and the one under the pointer play their
+                            // video; the others show their poster.
                             FadeImage {
                                 anchors.fill: parent
                                 source: card.modelData
                                 sourceSize: Qt.size(480, 300)
                                 cache: true
                                 duration: Theme.fast
-                                live: card.middle && root.shown
+                                live: (card.middle || cardMouse.containsMouse) && root.shown
                                 playing: root.open
                             }
                         }
 
                         MouseArea {
+                            id: cardMouse
+
                             anchors.fill: parent
+                            hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
                             onClicked: {
                                 if (card.middle)
