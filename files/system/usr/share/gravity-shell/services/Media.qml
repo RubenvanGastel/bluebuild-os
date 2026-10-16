@@ -14,8 +14,9 @@ Singleton {
     readonly property var videoExtensions: ["mp4", "webm", "mkv", "mov", "m4v"]
     readonly property string frameDir: (Quickshell.env("XDG_CACHE_HOME") || Quickshell.env("HOME") + "/.cache") + "/gravity-shell/frames"
 
-    // Goes up whenever a frame has been made, so posters can load it.
-    property int frameTick: 0
+    // Per video, goes up when its frame has been made, so its poster loads it. Only that
+    // video's url changes: the other posters keep theirs and don't decode again.
+    property var frameVersions: ({})
 
     // Screen the wallpaper picker covers completely right now ("" = none). The desktop
     // wallpaper there pauses, since nobody can see it.
@@ -42,7 +43,7 @@ Singleton {
     function stillUrl(path: string): string {
         if (path === "")
             return "";
-        return "file://" + stillOf(path) + (isVideo(path) ? "?" + frameTick : "");
+        return "file://" + stillOf(path) + (isVideo(path) ? "?" + (frameVersions[path] ?? 0) : "");
     }
 
     property var queue: []
@@ -72,16 +73,21 @@ Singleton {
         property string video
 
         command: ["sh", "-c", `
-            [ -s "$2" ] && exit 0
+            [ -s "$2" ] && exit 2
             mkdir -p "$(dirname "$2")" || exit 1
             tmp="$2.$$.jpg"
             ffmpeg -loglevel error -i "$1" -frames:v 1 -q:v 3 -y "$tmp"
             [ -s "$tmp" ] && mv -f "$tmp" "$2"
         `, "sh", video, root.frameOf(video)]
+        // 2: it was cached already, so there is nothing to reload.
         onExited: code => {
-            if (code !== 0)
+            if (code !== 0 && code !== 2)
                 console.warn("gravity: could not take a frame from", grab.video);
-            root.frameTick++;
+            if (code === 0) {
+                const v = Object.assign({}, root.frameVersions);
+                v[grab.video] = (v[grab.video] ?? 0) + 1;
+                root.frameVersions = v;
+            }
             Qt.callLater(root.next);
         }
     }

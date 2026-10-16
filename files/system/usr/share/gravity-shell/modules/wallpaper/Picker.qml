@@ -400,6 +400,10 @@ Scope {
             // starts as an exact copy of the desktop instead of an empty frame. Should the
             // image not load, it starts anyway after a moment.
             property bool started: false
+            // True once the open animation is done. The cards' video players wait for it:
+            // setting up a decoder takes long enough to make the animation stutter, and the
+            // poster (the video's first frame) shows meanwhile.
+            property bool settled: false
 
             // Back to the start state each time it opens.
             function prepare(): void {
@@ -410,6 +414,7 @@ Scope {
                 zoom = 0;
                 rise = 0;
                 started = false;
+                settled = false;
                 previewDelay.stop();
                 previewDelay.path = Config.wallpaperPath;
                 syncIndex();
@@ -463,6 +468,8 @@ Scope {
             // zooms out, and the cards start rising just after.
             ParallelAnimation {
                 id: openAnim
+
+                onFinished: win.settled = true
 
                 NumberAnimation {
                     target: win
@@ -896,7 +903,7 @@ Scope {
                                 sourceSize: Qt.size(480, 300)
                                 cache: true
                                 duration: Theme.fast
-                                live: (card.middle || card.seen) && root.shown
+                                live: (card.middle || card.seen) && root.shown && win.settled
                                 playing: root.open && (card.middle || cardMouse.containsMouse)
                             }
                         }
