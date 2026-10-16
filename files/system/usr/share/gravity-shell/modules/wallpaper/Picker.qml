@@ -43,6 +43,40 @@ Scope {
     property var targetScreen: Quickshell.screens[0]
     property bool open: false
     property var files: []
+    // Display names for files that have one (Wallpaper Engine items), by path.
+    property var titles: ({})
+
+    // Which wallpapers the carousel shows. Kept while the shell runs; a filter that no
+    // longer matches anything falls back to all.
+    property string filter: "all"
+    readonly property var filters: [
+        { id: "all", label: "All" },
+        { id: "images", label: "Images" },
+        { id: "videos", label: "Videos" },
+        { id: "workshop", label: "Workshop" }
+    ]
+
+    function matches(path: string, f: string): bool {
+        switch (f) {
+        case "images":
+            return !Media.isVideo(path);
+        case "videos":
+            return Media.isVideo(path);
+        case "workshop":
+            return path.includes("/steamapps/workshop/content/431960/");
+        default:
+            return true;
+        }
+    }
+
+    function count(f: string): int {
+        return files.filter(p => matches(p, f)).length;
+    }
+
+    readonly property var shownFiles: {
+        const list = files.filter(p => matches(p, filter));
+        return list.length > 0 ? list : files;
+    }
     // The folder actually listed, as resolved by the scan; created if missing.
     property string dir: ""
 
@@ -85,7 +119,9 @@ Scope {
     Process {
         id: scan
 
-        // Prints the folder on the first line, then its images.
+        // Prints the folder on the first line, then its images, then the video wallpapers
+        // subscribed to in Wallpaper Engine's Steam Workshop (as "path<TAB>title"; scene
+        // and web wallpapers need Wallpaper Engine itself and are left out).
         command: ["sh", "-c", `
             d="$1"
             if [ -z "$d" ]; then
@@ -96,11 +132,37 @@ Scope {
             mkdir -p "$d" 2>/dev/null
             echo "$d"
             find -L "$d" -maxdepth 3 -type f \\( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.webp" -o -iname "*.jxl" -o -iname "*.avif" -o -iname "*.mp4" -o -iname "*.webm" -o -iname "*.mkv" -o -iname "*.mov" -o -iname "*.m4v" \\) 2>/dev/null | sort
+
+            # Steam (Flatpak or native) and every library folder it knows about.
+            for s in "$HOME/.var/app/com.valvesoftware.Steam/.local/share/Steam" "$HOME/.local/share/Steam" "$HOME/.steam/steam"; do
+                [ -f "$s/steamapps/libraryfolders.vdf" ] || continue
+                echo "$s"
+                sed -n 's/^[[:space:]]*"path"[[:space:]]*"\\(.*\\)"$/\\1/p' "$s/steamapps/libraryfolders.vdf"
+            done | while read -r lib; do
+                realpath -q "$lib/steamapps/workshop/content/431960"
+            done | sort -u | while read -r ws; do
+                for item in "$ws"/*/; do
+                    j="$item/project.json"
+                    grep -qi '"type"[[:space:]]*:[[:space:]]*"video"' "$j" 2>/dev/null || continue
+                    f=$(sed -n 's/.*"file"[[:space:]]*:[[:space:]]*"\\([^"]*\\)".*/\\1/p' "$j" | head -n 1)
+                    [ -n "$f" ] && [ -f "$item$f" ] || continue
+                    t=$(sed -n 's/.*"title"[[:space:]]*:[[:space:]]*"\\([^"]*\\)".*/\\1/p' "$j" | head -n 1)
+                    printf '%s\\t%s\\n' "$(realpath "$item$f")" "$t"
+                done
+            done
         `, "sh", root.userDir]
         stdout: StdioCollector {
             onStreamFinished: {
-                const list = text.split("\n").filter(l => l !== "");
-                root.dir = list.shift() ?? "";
+                const lines = text.split("\n").filter(l => l !== "");
+                root.dir = lines.shift() ?? "";
+                const titles = {};
+                const list = lines.map(l => {
+                    const [path, title] = l.split("\t");
+                    if (title)
+                        titles[path] = title;
+                    return path;
+                });
+                root.titles = titles;
                 // The current wallpaper is always in the list, even from elsewhere.
                 if (!list.includes(Config.wallpaperPath))
                     list.unshift(Config.wallpaperPath);
@@ -215,7 +277,7 @@ Scope {
             // workspace switches and the like don't jolt them while browsing.
             property real t: 0
 
-            readonly property string selected: root.files[carousel.currentIndex] ?? Config.wallpaperPath
+            readonly property string selected: root.shownFiles[carousel.currentIndex] ?? Config.wallpaperPath
 
             // Colours follow the selected wallpaper while browsing; back to the applied one
             // when the picker closes.
@@ -272,9 +334,60 @@ Scope {
             }
 
             function syncIndex(): void {
-                const i = root.files.indexOf(Config.wallpaperPath);
+                const i = root.shownFiles.indexOf(Config.wallpaperPath);
                 if (i >= 0)
                     carousel.currentIndex = i;
+            }
+
+            // The filter being switched to; the chips show it at once, the cards follow
+            // once they've dropped out of view.
+            property string pendingFilter: root.filter
+            readonly property string shownFilter: filterAnim.running ? pendingFilter : root.filter
+
+            // The cards drop, the list changes behind them and the new cards rise in. Asking
+            // again midway drops them from wherever they are.
+            function setFilter(f: string): void {
+                if (f === shownFilter)
+                    return;
+                pendingFilter = f;
+                filterAnim.restart();
+            }
+
+            // Keeps the selected wallpaper if the new filter shows it, else the applied
+            // one, else the first.
+            function applyFilter(): void {
+                const keep = selected;
+                root.filter = pendingFilter;
+                const i = root.shownFiles.indexOf(keep);
+                carousel.currentIndex = i >= 0 ? i : Math.max(0, root.shownFiles.indexOf(Config.wallpaperPath));
+            }
+
+            // Next or previous filter that has something in it.
+            function cycleFilter(dir: int): void {
+                const ids = root.filters.map(f => f.id).filter(id => id === "all" || root.count(id) > 0);
+                const i = ids.indexOf(shownFilter);
+                setFilter(ids[((i < 0 ? 0 : i) + dir + ids.length) % ids.length]);
+            }
+
+            SequentialAnimation {
+                id: filterAnim
+
+                NumberAnimation {
+                    target: win
+                    property: "rise"
+                    to: 0
+                    duration: 200
+                    easing.type: Easing.InQuad
+                }
+                ScriptAction {
+                    script: win.applyFilter()
+                }
+                NumberAnimation {
+                    target: win
+                    property: "rise"
+                    to: 1
+                    duration: 700
+                }
             }
 
             // The open animation waits until the preview shows the current wallpaper, so it
@@ -286,6 +399,7 @@ Scope {
             function prepare(): void {
                 openAnim.stop();
                 closeAnim.stop();
+                filterAnim.stop();
                 fade = 0;
                 zoom = 0;
                 rise = 0;
@@ -325,6 +439,11 @@ Scope {
                     } else {
                         openAnim.stop();
                         fallback.stop();
+                        // A switch still under way lands at once; the cards drop anyway.
+                        if (filterAnim.running) {
+                            filterAnim.stop();
+                            win.applyFilter();
+                        }
                         closeAnim.start();
                     }
                 }
@@ -615,6 +734,30 @@ Scope {
                     }
                 }
 
+                // --- filters ---------------------------------------------------------------
+                // In the empty space left of the preview, sliding in as it zooms out. Only
+                // filters with something in them; "All" always.
+                Column {
+                    x: stage.width * (1 - preview.scale) / 2 - width - 28 - (1 - win.zoom) * 30
+                    y: preview.y + 8
+                    spacing: 8
+                    opacity: win.zoom
+                    visible: root.files.length > 1
+
+                    Repeater {
+                        model: root.filters.filter(f => f.id === "all" || root.count(f.id) > 0)
+
+                        Chip {
+                            required property var modelData
+
+                            anchors.right: parent.right
+                            label: modelData.label + "  " + root.count(modelData.id)
+                            selected: win.shownFilter === modelData.id
+                            onClicked: win.setFilter(modelData.id)
+                        }
+                    }
+                }
+
                 // --- three wallpapers floating in the air ---------------------------------
                 // Three in full view, and the edge of the next one peeking in from each side
                 // of the screen.
@@ -639,11 +782,11 @@ Scope {
                     anchors.bottomMargin: stage.height * 0.055
                     height: cardH * 1.25
 
-                    model: root.files
+                    model: root.shownFiles
                     focus: true
                     // Seven on the path: three in view, two peeking, and one waiting off
                     // screen on each side to slide in.
-                    pathItemCount: Math.min(7, root.files.length)
+                    pathItemCount: Math.min(7, root.shownFiles.length)
                     preferredHighlightBegin: 0.5
                     preferredHighlightEnd: 0.5
                     highlightRangeMode: PathView.StrictlyEnforceRange
@@ -671,6 +814,10 @@ Scope {
                             win.apply();
                         } else if (event.key === Qt.Key_Escape) {
                             root.open = false;
+                        } else if (event.key === Qt.Key_Down || event.key === Qt.Key_J || event.key === Qt.Key_Tab) {
+                            win.cycleFilter(1);
+                        } else if (event.key === Qt.Key_Up || event.key === Qt.Key_K || event.key === Qt.Key_Backtab) {
+                            win.cycleFilter(-1);
                         } else {
                             return;
                         }
@@ -688,9 +835,22 @@ Scope {
                         readonly property real ad: Math.abs(d)
                         readonly property real p: win.lift(d + 2)
                         readonly property bool middle: ad < 0.5
+                        // Hovered at some point while the picker is open: its video stays
+                        // loaded, paused where the pointer left it, instead of snapping
+                        // back to its poster.
+                        property bool seen: false
 
                         width: carousel.cardW
                         height: carousel.cardH
+
+                        Connections {
+                            target: root
+
+                            function onShownChanged(): void {
+                                if (!root.shown)
+                                    card.seen = false;
+                            }
+                        }
                         z: 10 - ad
                         scale: 1 - (1 - carousel.nearScale) * Math.min(ad, 1) - (carousel.nearScale - carousel.farScale) * Math.max(0, Math.min(ad, 2) - 1)
                         // The peeking cards are dimmed, and fade out as they leave the screen.
@@ -721,15 +881,16 @@ Scope {
                             border.color: Theme.gold
 
                             // The highlighted card and the one under the pointer play their
-                            // video; the others show their poster.
+                            // video; one hovered before is paused; the others show their
+                            // poster.
                             FadeImage {
                                 anchors.fill: parent
                                 source: card.modelData
                                 sourceSize: Qt.size(480, 300)
                                 cache: true
                                 duration: Theme.fast
-                                live: (card.middle || cardMouse.containsMouse) && root.shown
-                                playing: root.open
+                                live: (card.middle || card.seen) && root.shown
+                                playing: root.open && (card.middle || cardMouse.containsMouse)
                             }
                         }
 
@@ -739,6 +900,8 @@ Scope {
                             anchors.fill: parent
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
+                            onContainsMouseChanged: if (containsMouse)
+                                card.seen = true
                             onClicked: {
                                 if (card.middle)
                                     win.apply();
@@ -759,7 +922,7 @@ Scope {
 
                     Text {
                         anchors.horizontalCenter: parent.horizontalCenter
-                        text: win.selected.split("/").pop()
+                        text: root.titles[win.selected] ?? win.selected.split("/").pop()
                         color: Theme.text
                         font.family: Theme.font
                         font.pixelSize: 15
@@ -768,7 +931,7 @@ Scope {
 
                     Text {
                         anchors.horizontalCenter: parent.horizontalCenter
-                        text: (root.files.length <= 1 ? "Put images in " + root.prettyDir + " to see them here" : "←  →  browse    ·    Enter  apply    ·    Esc  close    ·    " + root.prettyDir)
+                        text: (root.files.length <= 1 ? "Put images in " + root.prettyDir + " to see them here" : "←  →  browse    ·    ↑  ↓  filter    ·    Enter  apply    ·    Esc  close    ·    " + root.prettyDir)
                         color: Theme.textDim
                         font.family: Theme.font
                         font.pixelSize: 12

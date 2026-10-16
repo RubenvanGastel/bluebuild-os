@@ -64,7 +64,8 @@ Singleton {
         grab.running = true;
     }
 
-    // One second in skips a fade from black; very short videos fall back to the start.
+    // The very first frame, which is where playback starts too, so a video takes over
+    // from its poster without a jump.
     Process {
         id: grab
 
@@ -74,8 +75,7 @@ Singleton {
             [ -s "$2" ] && exit 0
             mkdir -p "$(dirname "$2")" || exit 1
             tmp="$2.$$.jpg"
-            ffmpeg -loglevel error -ss 1 -i "$1" -frames:v 1 -q:v 3 -y "$tmp"
-            [ -s "$tmp" ] || ffmpeg -loglevel error -i "$1" -frames:v 1 -q:v 3 -y "$tmp"
+            ffmpeg -loglevel error -i "$1" -frames:v 1 -q:v 3 -y "$tmp"
             [ -s "$tmp" ] && mv -f "$tmp" "$2"
         `, "sh", video, root.frameOf(video)]
         onExited: code => {

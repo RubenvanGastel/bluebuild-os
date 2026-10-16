@@ -23,7 +23,7 @@ Variants {
         }
         exclusionMode: ExclusionMode.Ignore
         WlrLayershell.layer: WlrLayer.Background
-        // niri's config places this namespace inside the overview backdrop.
+        // niri layer rules can match this namespace.
         WlrLayershell.namespace: "gravity-wallpaper"
 
         FadeImage {

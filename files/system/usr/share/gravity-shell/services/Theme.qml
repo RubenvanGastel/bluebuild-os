@@ -183,8 +183,7 @@ Singleton {
             mkdir -p "$0" "$(dirname "$1")" || exit 1
             if [ -n "$3" ] && [ ! -s "$1" ]; then
                 tmp="$1.$$.jpg"
-                ffmpeg -loglevel error -ss 1 -i "$3" -frames:v 1 -q:v 3 -y "$tmp"
-                [ -s "$tmp" ] || ffmpeg -loglevel error -i "$3" -frames:v 1 -q:v 3 -y "$tmp"
+                ffmpeg -loglevel error -i "$3" -frames:v 1 -q:v 3 -y "$tmp"
                 [ -s "$tmp" ] && mv -f "$tmp" "$1"
             fi
             exec matugen image "$1" --dry-run --json hex -m dark -t "$2"

@@ -119,10 +119,6 @@ layout {
     // Gravity: slightly tighter gaps.
     gaps 14
 
-    // Gravity: transparent workspaces, so the wallpaper in the overview
-    // backdrop shows through outside the overview too.
-    background-color "transparent"
-
     // When to center a column when changing focus, options are:
     // - "never", default behavior, focusing an off-screen column will keep at the left
     //   or right edge of the screen.
@@ -322,12 +318,6 @@ animations {
 window-rule {
     geometry-corner-radius 14
     clip-to-geometry true
-}
-
-// Gravity: keep the wallpaper visible behind the overview.
-layer-rule {
-    match namespace="^gravity-wallpaper$"
-    place-within-backdrop true
 }
 
 overview {
