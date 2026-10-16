@@ -16,10 +16,29 @@ Singleton {
 
     function toggleQuick(output: string): void {
         quick = quick === output ? "" : output;
+        if (quick !== "")
+            closeTray();
     }
 
     function closeQuick(): void {
         quick = "";
+    }
+
+    // The open tray menu: output, the app's menu (QsMenuHandle) and where its right edge
+    // goes, in screen coordinates. trayOutput "" = closed.
+    property string trayOutput: ""
+    property var trayMenu: null
+    property real trayX: 0
+
+    function openTray(output: string, menu: var, x: real): void {
+        closeQuick();
+        trayMenu = menu;
+        trayX = x;
+        trayOutput = output;
+    }
+
+    function closeTray(): void {
+        trayOutput = "";
     }
 
     IpcHandler {

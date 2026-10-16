@@ -6,8 +6,8 @@ import Quickshell.Services.Pipewire
 import qs.services
 
 // On-screen display for volume, mic mute and brightness: a solid pill that rises from the
-// bottom of the focused screen with a spring, shows an accent icon, a thick level track
-// and the value, then drops away again when left alone.
+// bottom of the focused screen with a spring, shows an accent icon, a level slider that
+// moves like the quick panel's, and the value, then drops away again when left alone.
 Scope {
     id: root
 
@@ -200,6 +200,40 @@ Scope {
                     radius: 20
                     color: root.muted ? Theme.tonal : Theme.gold
 
+                    // A little pop when the icon changes (crossing a volume or brightness
+                    // step) or on muting, as in the quick panel.
+                    Connections {
+                        target: root
+
+                        function onIconChanged(): void {
+                            pop.restart();
+                        }
+
+                        function onMutedChanged(): void {
+                            pop.restart();
+                        }
+                    }
+
+                    SequentialAnimation {
+                        id: pop
+
+                        NumberAnimation {
+                            target: badge
+                            property: "scale"
+                            to: 1.14
+                            duration: 90
+                            easing.type: Easing.OutQuad
+                        }
+                        NumberAnimation {
+                            target: badge
+                            property: "scale"
+                            to: 1
+                            duration: 420
+                            easing.type: Easing.OutBack
+                            easing.overshoot: 3
+                        }
+                    }
+
                     Behavior on color {
                         ColorAnimation {
                             duration: Theme.fast
@@ -215,31 +249,131 @@ Scope {
                     }
                 }
 
-                // Thick rounded level track.
-                Rectangle {
-                    id: track
+                // Level slider, as in the quick panel: the handle chases the level on a
+                // spring with a little overshoot and leans the way it is going; each
+                // change makes the track swell and the handle stretch for a moment. It
+                // fills up from empty as the OSD rises, and drains as it drops away.
+                Item {
+                    id: slider
+
+                    readonly property real f: win.rise > 0.6 ? Math.max(0, Math.min(1, root.value)) : 0
+                    // Briefly true after each change, like the quick panel's slider under
+                    // the pointer.
+                    property bool active: false
+
+                    // The level as drawn, springing after `f`.
+                    property real shown: f
+
+                    Behavior on shown {
+                        SpringAnimation {
+                            spring: 3.5
+                            damping: 0.28
+                            epsilon: 0.0005
+                        }
+                    }
+
+                    Connections {
+                        target: root
+
+                        function onValueChanged(): void {
+                            slider.bump();
+                        }
+
+                        function onMutedChanged(): void {
+                            slider.bump();
+                        }
+                    }
+
+                    function bump(): void {
+                        active = true;
+                        settle.restart();
+                    }
+
+                    Timer {
+                        id: settle
+
+                        interval: 420
+                        onTriggered: slider.active = false
+                    }
 
                     anchors.left: badge.right
                     anchors.leftMargin: 14
                     anchors.right: valueText.left
                     anchors.rightMargin: 14
                     anchors.verticalCenter: parent.verticalCenter
-                    height: 14
-                    radius: height / 2
-                    color: Theme.tonal
+                    height: 40
                     visible: root.kind !== "mic"
 
+                    readonly property real trackHeight: active ? 18 : 14
+
+                    // Filled part, up to the handle.
                     Rectangle {
-                        height: parent.height
+                        anchors.verticalCenter: parent.verticalCenter
+                        width: Math.max(0, handle.x - 4)
+                        height: slider.trackHeight
                         radius: height / 2
-                        width: Math.max(height, parent.width * Math.min(1, root.value))
                         color: root.muted ? Theme.textDim : Theme.gold
-                        opacity: root.value <= 0.001 ? 0 : 1
+
+                        Behavior on height {
+                            NumberAnimation {
+                                duration: Theme.fast
+                                easing.type: Easing.OutBack
+                                easing.overshoot: 2
+                            }
+                        }
+                        Behavior on color {
+                            ColorAnimation {
+                                duration: Theme.normal
+                            }
+                        }
+                    }
+
+                    // The rest, after the handle.
+                    Rectangle {
+                        anchors.verticalCenter: parent.verticalCenter
+                        x: handle.x + handle.width + 4
+                        width: Math.max(0, slider.width - x)
+                        height: slider.trackHeight
+                        radius: height / 2
+                        color: Theme.tonal
+
+                        Behavior on height {
+                            NumberAnimation {
+                                duration: Theme.fast
+                                easing.type: Easing.OutBack
+                                easing.overshoot: 2
+                            }
+                        }
+                    }
+
+                    Rectangle {
+                        id: handle
+
+                        anchors.verticalCenter: parent.verticalCenter
+                        x: Math.max(0, Math.min(1, slider.shown)) * (slider.width - width)
+                        width: slider.active ? 6 : 5
+                        height: slider.active ? 34 : 28
+                        radius: width / 2
+                        color: root.muted ? Theme.textDim : Theme.gold
+                        // Leans into the way it is moving: the further it lags behind the
+                        // level, the more; it straightens (and wobbles past) as it settles.
+                        rotation: Math.max(-22, Math.min(22, (slider.f - slider.shown) * 160))
 
                         Behavior on width {
-                            SpringAnimation {
-                                spring: 6
-                                damping: 0.4
+                            NumberAnimation {
+                                duration: Theme.fast
+                            }
+                        }
+                        Behavior on height {
+                            NumberAnimation {
+                                duration: Theme.normal
+                                easing.type: Easing.OutBack
+                                easing.overshoot: 2.5
+                            }
+                        }
+                        Behavior on color {
+                            ColorAnimation {
+                                duration: Theme.normal
                             }
                         }
                     }
@@ -258,6 +392,17 @@ Scope {
                     font.family: Theme.font
                     font.pixelSize: 16
                     font.weight: Font.Bold
+                    // Pops a touch bigger on each change.
+                    scale: slider.active ? 1.12 : 1
+                    transformOrigin: root.kind === "mic" ? Item.Left : Item.Right
+
+                    Behavior on scale {
+                        NumberAnimation {
+                            duration: Theme.normal
+                            easing.type: Easing.OutBack
+                            easing.overshoot: 2
+                        }
+                    }
                 }
             }
         }

@@ -46,8 +46,9 @@ Scope {
     // Display names for files that have one (Wallpaper Engine items), by path.
     property var titles: ({})
 
-    // Which wallpapers the carousel shows. Kept while the shell runs; a filter that no
-    // longer matches anything falls back to all.
+    // Which wallpapers the carousel shows: images and videos from the wallpaper folder,
+    // and Wallpaper Engine Workshop items, apart. Kept while the shell runs; a filter
+    // that no longer matches anything shows all.
     property string filter: "all"
     readonly property var filters: [
         { id: "all", label: "All" },
@@ -56,14 +57,18 @@ Scope {
         { id: "workshop", label: "Workshop" }
     ]
 
+    function isWorkshop(path: string): bool {
+        return path.includes("/steamapps/workshop/content/431960/");
+    }
+
     function matches(path: string, f: string): bool {
         switch (f) {
         case "images":
-            return !Media.isVideo(path);
+            return !isWorkshop(path) && !Media.isVideo(path);
         case "videos":
-            return Media.isVideo(path);
+            return !isWorkshop(path) && Media.isVideo(path);
         case "workshop":
-            return path.includes("/steamapps/workshop/content/431960/");
+            return isWorkshop(path);
         default:
             return true;
         }
@@ -219,6 +224,7 @@ Scope {
         implicitWidth: chipText.implicitWidth + 28
         implicitHeight: 32
         radius: height / 2
+        opacity: enabled ? 1 : 0.4
         // Like the bar: accent pill when selected, tonal otherwise.
         color: selected ? Theme.gold : chipMouse.containsMouse ? Qt.lighter(Theme.tonal, 1.25) : Theme.tonal
 
@@ -735,8 +741,8 @@ Scope {
                 }
 
                 // --- filters ---------------------------------------------------------------
-                // In the empty space left of the preview, sliding in as it zooms out. Only
-                // filters with something in them; "All" always.
+                // In the empty space left of the preview, sliding in as it zooms out. Empty
+                // ones stay in their place, dimmed and out of reach (the keys skip them).
                 Column {
                     x: stage.width * (1 - preview.scale) / 2 - width - 28 - (1 - win.zoom) * 30
                     y: preview.y + 8
@@ -745,12 +751,13 @@ Scope {
                     visible: root.files.length > 1
 
                     Repeater {
-                        model: root.filters.filter(f => f.id === "all" || root.count(f.id) > 0)
+                        model: root.filters
 
                         Chip {
                             required property var modelData
 
                             anchors.right: parent.right
+                            enabled: modelData.id === "all" || root.count(modelData.id) > 0
                             label: modelData.label + "  " + root.count(modelData.id)
                             selected: win.shownFilter === modelData.id
                             onClicked: win.setFilter(modelData.id)

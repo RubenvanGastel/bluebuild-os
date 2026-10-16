@@ -16,6 +16,7 @@ import qs.modules.lock
 import qs.modules.notifications
 import qs.modules.osd
 import qs.modules.quickpanel
+import qs.modules.traymenu
 import qs.modules.wallpaper
 
 ShellRoot {
@@ -26,5 +27,6 @@ ShellRoot {
     Notifications {}
     Osd {}
     QuickPanel {}
+    TrayMenu {}
     Picker {}
 }
