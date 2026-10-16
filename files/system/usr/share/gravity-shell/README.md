@@ -25,6 +25,10 @@ rest, and bold [Google Sans Flex](https://fonts.google.com/specimen/Google+Sans+
   accent): they bob gently and swing one after another when gravity shifts (workspace
   switches, notifications, the occasional "gravity storm").
   It also holds the window title, the tray, volume, battery and a clock.
+- **System monitor**: a pill in the bar with short bars for CPU and memory use. Click it
+  (or `Super+M`) and the bar grows down into a panel with the last minute of CPU and memory
+  use, every core, all temperature sensors and fans, memory and GPU use and the busiest
+  processes.
 - **Notifications**: solid rounded cards drift in from the right, with the first action as an
   accent pill and the others tonal; when they expire they fall away.
 - **Lock screen** (`Super+Alt+L`, or after 10 idle minutes): your wallpaper blurs in behind a

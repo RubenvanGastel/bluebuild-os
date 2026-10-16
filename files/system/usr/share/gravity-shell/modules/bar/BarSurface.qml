@@ -6,8 +6,8 @@ import qs.components
 
 // What the bar looks like: a solid Material 3 Expressive style strip with inverted corners
 // curving down into the screen at both ends: the workspaces floating on the left, the clock
-// and date in an accent pill in the middle, and at the right end volume and battery in a
-// tonal pill that opens the quick panel. Used by the bar window, and by the
+// and date in an accent pill in the middle, and at the right end the system monitor, the
+// tray, and volume and battery in a tonal pill that opens the quick panel. Used by the bar window, and by the
 // wallpaper picker, which draws an identical live copy it can slide off the screen.
 Item {
     id: root
@@ -68,10 +68,51 @@ Item {
         }
 
         Row {
+            id: right
+
             anchors.right: parent.right
             anchors.rightMargin: 6
             anchors.verticalCenter: parent.verticalCenter
             spacing: 12
+
+            // CPU and memory bars. Click for the monitor panel under it.
+            Item {
+                id: stats
+
+                readonly property bool active: Panels.monitor === root.output
+                // Middle of the pill on the screen, where the panel opens from Mod+M too.
+                // (Not from the wallpaper picker's copy of the bar.)
+                readonly property real centre: right.x + x + width / 2
+
+                onCentreChanged: if (root.enabled)
+                    Panels.setMonitorAnchor(root.output, centre)
+                Component.onCompleted: if (root.enabled)
+                    Panels.setMonitorAnchor(root.output, centre)
+
+                anchors.verticalCenter: parent.verticalCenter
+                implicitWidth: statsPill.implicitWidth
+                implicitHeight: statsPill.implicitHeight
+
+                Pill {
+                    id: statsPill
+
+                    anchors.fill: parent
+                    color: statsMouse.containsMouse && !stats.active ? Qt.lighter(Theme.dusk, 1.2) : Theme.dusk
+                    border.width: stats.active ? 2 : 0
+                    border.color: Theme.gold
+
+                    SysStats {}
+                }
+
+                MouseArea {
+                    id: statsMouse
+
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: Panels.toggleMonitor(root.output)
+                }
+            }
 
             Tray {
                 anchors.verticalCenter: parent.verticalCenter
