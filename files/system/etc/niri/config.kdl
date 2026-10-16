@@ -377,7 +377,7 @@ binds {
 
     // Shell & widgets
     Mod+Space hotkey-overlay-title="Launcher" { spawn "fuzzel"; }
-    Mod+M hotkey-overlay-title="System Monitor" { spawn "flatpak" "run" "net.nokyan.Resources"; }
+    Mod+M hotkey-overlay-title="System Monitor" { spawn "gravity-shell" "ipc" "call" "monitor" "toggle"; }
     Mod+Y hotkey-overlay-title="Wallpaper Menu" { spawn "gravity-shell" "wallpaper"; }
     Mod+F1 hotkey-overlay-title="Keybind Cheatsheet" { show-hotkey-overlay; }
 
