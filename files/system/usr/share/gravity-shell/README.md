@@ -29,6 +29,10 @@ rest, and bold [Google Sans Flex](https://fonts.google.com/specimen/Google+Sans+
   (or `Super+M`) and the bar grows down into a panel with the last minute of CPU and memory
   use, every core, all temperature sensors and fans, memory and GPU use and the busiest
   processes.
+- **Quick panel**: click the volume/battery pill. Wi-Fi and Bluetooth tiles (the round icon
+  switches them on or off, the rest of the tile unfolds the networks or devices to connect
+  to, and asks for a Wi-Fi password in place), the audio output, volume and brightness
+  sliders and the power mode.
 - **Notifications**: solid rounded cards drift in from the right, with the first action as an
   accent pill and the others tonal; when they expire they fall away.
 - **Lock screen** (`Super+Alt+L`, or after 10 idle minutes): your wallpaper blurs in behind a

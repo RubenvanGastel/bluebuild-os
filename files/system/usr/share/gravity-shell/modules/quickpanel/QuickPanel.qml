@@ -8,8 +8,9 @@ import qs.services
 
 // Quick panel, opened from the volume/battery pill at the right end of the bar (or
 // `gravity-shell ipc call quickPanel toggle`). The bar grows down into it at the right
-// screen edge, joined to it, with the battery state, volume (and output device) and
-// brightness sliders and the power profile. Click outside it or press Esc to close.
+// screen edge, joined to it, with the battery state, Wi-Fi and Bluetooth, volume (and
+// output device) and brightness sliders and the power profile. Click outside it or press
+// Esc to close.
 Scope {
     id: root
 
@@ -34,7 +35,7 @@ Scope {
 
     // Audio outputs (hardware and network speakers, not app streams).
     readonly property var sinks: Pipewire.nodes.values.filter(n => n.isSink && !n.isStream && n.audio)
-    // Which list in the panel is unfolded: "output" or "" (none).
+    // Which list in the panel is unfolded: "output", "wifi", "bluetooth" or "" (none).
     property string expanded: ""
 
     function nodeName(node: PwNode): string {
@@ -246,7 +247,7 @@ Scope {
                     // Changes in size grow rather than jump; the output list animates
                     // itself, so then it follows directly.
                     Behavior on full {
-                        enabled: !outputList.moving
+                        enabled: !outputList.moving && !connectivity.moving
 
                         NumberAnimation {
                             duration: Theme.normal
@@ -313,6 +314,13 @@ Scope {
                                         font.weight: Font.Medium
                                     }
                                 }
+                            }
+
+                            // --- Wi-Fi and Bluetooth ------------------------------------------
+                            Connectivity {
+                                id: connectivity
+
+                                panel: root
                             }
 
                             // --- audio output ----------------------------------------------
