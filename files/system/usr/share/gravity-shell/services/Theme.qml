@@ -125,6 +125,20 @@ Singleton {
     property var appliedGenerated: ({})
 
     onWantedChanged: regenerate.restart()
+
+    // Key whose shader had no frame to read yet; a saved frame tries it again.
+    property string waitingForFrame: ""
+
+    Connections {
+        target: Media
+
+        function onFrameTickChanged(): void {
+            if (root.waitingForFrame !== "" && root.waitingForFrame === root.wanted) {
+                root.waitingForFrame = "";
+                regenerate.restart();
+            }
+        }
+    }
     // Applying the wallpaper that is being previewed leaves `wanted` as it was, but its
     // palette still has to become the applied one (for niri and the cache).
     onAppliedKeyChanged: regenerate.restart()
@@ -179,15 +193,18 @@ Singleton {
         property string scheme
 
         // Videos are read from their poster frame, taken here if it isn't cached yet.
+        // Shaders save theirs once one runs: until then this exits with 3, and runs again
+        // when a frame is saved.
         command: ["sh", "-c", `
             mkdir -p "$0" "$(dirname "$1")" || exit 1
+            [ "$4" = shader ] && [ ! -s "$1" ] && exit 3
             if [ -n "$3" ] && [ ! -s "$1" ]; then
                 tmp="$1.$$.jpg"
                 ffmpeg -loglevel error -i "$3" -frames:v 1 -q:v 3 -y "$tmp"
                 [ -s "$tmp" ] && mv -f "$tmp" "$1"
             fi
             exec matugen image "$1" --dry-run --json hex -m dark -t "$2"
-        `, root.cacheDir, Media.stillOf(path), scheme, Media.isVideo(path) ? path : ""]
+        `, root.cacheDir, Media.stillOf(path), scheme, Media.isVideo(path) ? path : "", Media.isShader(path) ? "shader" : ""]
         stdout: StdioCollector {
             id: out
         }
@@ -195,7 +212,10 @@ Singleton {
             id: err
         }
         onExited: code => {
-            if (code !== 0) {
+            if (code === 3) {
+                // A shader without its frame yet: keep the colours as they are.
+                root.waitingForFrame = matugen.key;
+            } else if (code !== 0) {
                 root.error = code === 127 ? "matugen is not installed" : "matugen could not read this image";
                 console.warn("gravity: matugen failed:", err.text.trim());
                 root.generated = {};

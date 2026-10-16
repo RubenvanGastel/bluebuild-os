@@ -46,14 +46,15 @@ Scope {
     // Display names for files that have one (Wallpaper Engine items), by path.
     property var titles: ({})
 
-    // Which wallpapers the carousel shows: images and videos from the wallpaper folder,
-    // and Wallpaper Engine Workshop items, apart. Kept while the shell runs; a filter
+    // Which wallpapers the carousel shows: images, videos and shaders (from the wallpaper
+    // folder; shaders also from the shell's own), and Wallpaper Engine Workshop items. Kept while the shell runs; a filter
     // that no longer matches anything shows all.
     property string filter: "all"
     readonly property var filters: [
         { id: "all", label: "All" },
         { id: "images", label: "Images" },
         { id: "videos", label: "Videos" },
+        { id: "shaders", label: "Shaders" },
         { id: "workshop", label: "Workshop" }
     ]
 
@@ -64,9 +65,11 @@ Scope {
     function matches(path: string, f: string): bool {
         switch (f) {
         case "images":
-            return !isWorkshop(path) && !Media.isVideo(path);
+            return !isWorkshop(path) && !Media.isVideo(path) && !Media.isShader(path);
         case "videos":
             return !isWorkshop(path) && Media.isVideo(path);
+        case "shaders":
+            return Media.isShader(path);
         case "workshop":
             return isWorkshop(path);
         default:
@@ -124,9 +127,10 @@ Scope {
     Process {
         id: scan
 
-        // Prints the folder on the first line, then its images, then the video wallpapers
-        // subscribed to in Wallpaper Engine's Steam Workshop (as "path<TAB>title"; scene
-        // and web wallpapers need Wallpaper Engine itself and are left out).
+        // Prints the folder on the first line, then its images, videos and shaders, the
+        // shell's own shaders, then the video wallpapers subscribed to in Wallpaper
+        // Engine's Steam Workshop (as "path<TAB>title"; scene and web wallpapers need
+        // Wallpaper Engine itself and are left out).
         command: ["sh", "-c", `
             d="$1"
             if [ -z "$d" ]; then
@@ -136,7 +140,9 @@ Scope {
             fi
             mkdir -p "$d" 2>/dev/null
             echo "$d"
-            find -L "$d" -maxdepth 3 -type f \\( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.webp" -o -iname "*.jxl" -o -iname "*.avif" -o -iname "*.mp4" -o -iname "*.webm" -o -iname "*.mkv" -o -iname "*.mov" -o -iname "*.m4v" \\) 2>/dev/null | sort
+            find -L "$d" -maxdepth 3 -type f \\( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.webp" -o -iname "*.jxl" -o -iname "*.avif" -o -iname "*.mp4" -o -iname "*.webm" -o -iname "*.mkv" -o -iname "*.mov" -o -iname "*.m4v" -o -iname "*.glsl" \\) 2>/dev/null | sort
+            # The shaders that come with the shell.
+            [ -d "$2" ] && find -L "$2" -maxdepth 1 -type f -iname "*.glsl" 2>/dev/null | sort
 
             # Steam (Flatpak or native) and every library folder it knows about.
             for s in "$HOME/.var/app/com.valvesoftware.Steam/.local/share/Steam" "$HOME/.local/share/Steam" "$HOME/.steam/steam"; do
@@ -155,7 +161,7 @@ Scope {
                     printf '%s\\t%s\\n' "$(realpath "$item$f")" "$t"
                 done
             done
-        `, "sh", root.userDir]
+        `, "sh", root.userDir, Quickshell.shellPath("shaders")]
         stdout: StdioCollector {
             onStreamFinished: {
                 const lines = text.split("\n").filter(l => l !== "");
