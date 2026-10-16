@@ -32,10 +32,10 @@ Scope {
         objects: [root.sink]
     }
 
-    // Audio outputs (hardware and network speakers, not app streams), and whether their
-    // list is unfolded under the volume slider.
+    // Audio outputs (hardware and network speakers, not app streams).
     readonly property var sinks: Pipewire.nodes.values.filter(n => n.isSink && !n.isStream && n.audio)
-    property bool pickOutput: false
+    // Which list in the panel is unfolded: "output" or "" (none).
+    property string expanded: ""
 
     function nodeName(node: PwNode): string {
         return node?.description || node?.nickname || node?.name || "";
@@ -44,7 +44,7 @@ Scope {
     onOpenChanged: if (open) {
         screenName = Panels.quick;
         shown = true;
-        pickOutput = false;
+        expanded = "";
         Brightness.reload();
     }
 
@@ -243,8 +243,11 @@ Scope {
                     // Full height of the panel's surface.
                     property real full: content.implicitHeight + 40
 
-                    // Unfolding the output list makes the surface grow, not jump.
+                    // Changes in size grow rather than jump; the output list animates
+                    // itself, so then it follows directly.
                     Behavior on full {
+                        enabled: !outputList.moving
+
                         NumberAnimation {
                             duration: Theme.normal
                             easing.type: Easing.BezierSpline
@@ -314,135 +317,148 @@ Scope {
 
                             // --- audio output ----------------------------------------------
                             // The current one; click to choose another.
-                            Rectangle {
+                            Column {
                                 visible: root.sinks.length > 1
                                 width: parent.width
-                                height: 44
-                                radius: 22
-                                color: outputMouse.containsMouse ? Qt.lighter(Theme.tonal, 1.25) : Theme.tonal
 
-                                Behavior on color {
-                                    ColorAnimation {
-                                        duration: Theme.fast
-                                    }
-                                }
+                                Rectangle {
+                                    width: parent.width
+                                    height: 44
+                                    radius: 22
+                                    color: outputMouse.containsMouse ? Qt.lighter(Theme.tonal, 1.25) : Theme.tonal
 
-                                Text {
-                                    id: outputIcon
-
-                                    x: 16
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    text: "\u{f04c3}"
-                                    color: Theme.tonalInk
-                                    font.family: "Symbols Nerd Font"
-                                    font.pixelSize: 18
-                                }
-
-                                Text {
-                                    anchors.left: outputIcon.right
-                                    anchors.leftMargin: 10
-                                    anchors.right: chevron.left
-                                    anchors.rightMargin: 10
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    text: root.nodeName(root.sink)
-                                    elide: Text.ElideRight
-                                    color: Theme.tonalInk
-                                    font.family: Theme.font
-                                    font.pixelSize: 13
-                                    font.weight: Font.Bold
-                                }
-
-                                Text {
-                                    id: chevron
-
-                                    anchors.right: parent.right
-                                    anchors.rightMargin: 16
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    text: "\u{f0140}"
-                                    rotation: root.pickOutput ? 180 : 0
-                                    color: Theme.tonalInk
-                                    font.family: "Symbols Nerd Font"
-                                    font.pixelSize: 18
-
-                                    Behavior on rotation {
-                                        NumberAnimation {
-                                            duration: Theme.normal
-                                            easing.type: Easing.OutBack
+                                    Behavior on color {
+                                        ColorAnimation {
+                                            duration: Theme.fast
                                         }
                                     }
-                                }
 
-                                MouseArea {
-                                    id: outputMouse
+                                    Text {
+                                        id: outputIcon
 
-                                    anchors.fill: parent
-                                    hoverEnabled: true
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: root.pickOutput = !root.pickOutput
-                                }
-                            }
+                                        x: 16
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        text: "\u{f04c3}"
+                                        color: Theme.tonalInk
+                                        font.family: "Symbols Nerd Font"
+                                        font.pixelSize: 18
+                                    }
 
-                            Column {
-                                visible: root.pickOutput && root.sinks.length > 1
-                                width: parent.width
-                                spacing: 4
+                                    Text {
+                                        anchors.left: outputIcon.right
+                                        anchors.leftMargin: 10
+                                        anchors.right: chevron.left
+                                        anchors.rightMargin: 10
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        text: root.nodeName(root.sink)
+                                        elide: Text.ElideRight
+                                        color: Theme.tonalInk
+                                        font.family: Theme.font
+                                        font.pixelSize: 13
+                                        font.weight: Font.Bold
+                                    }
 
-                                Repeater {
-                                    model: root.sinks
+                                    Text {
+                                        id: chevron
 
-                                    Rectangle {
-                                        id: output
+                                        anchors.right: parent.right
+                                        anchors.rightMargin: 16
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        text: "\u{f0140}"
+                                        rotation: root.expanded === "output" ? 180 : 0
+                                        color: Theme.tonalInk
+                                        font.family: "Symbols Nerd Font"
+                                        font.pixelSize: 18
 
-                                        required property PwNode modelData
-                                        readonly property bool selected: modelData === root.sink
-
-                                        width: parent.width
-                                        height: 40
-                                        radius: selected ? 14 : 20
-                                        color: selected ? Theme.gold : outputItemMouse.containsMouse ? Theme.tonal : "transparent"
-
-                                        Behavior on color {
-                                            ColorAnimation {
-                                                duration: Theme.fast
+                                        Behavior on rotation {
+                                            NumberAnimation {
+                                                duration: Theme.normal
+                                                easing.type: Easing.OutBack
                                             }
                                         }
+                                    }
 
-                                        Text {
-                                            anchors.left: parent.left
-                                            anchors.leftMargin: 16
-                                            anchors.right: check.left
-                                            anchors.rightMargin: 10
-                                            anchors.verticalCenter: parent.verticalCenter
-                                            text: root.nodeName(output.modelData)
-                                            elide: Text.ElideRight
-                                            color: output.selected ? Theme.goldInk : Theme.text
-                                            font.family: Theme.font
-                                            font.pixelSize: 13
-                                            font.weight: output.selected ? Font.Bold : Font.Medium
-                                        }
+                                    MouseArea {
+                                        id: outputMouse
 
-                                        Text {
-                                            id: check
+                                        anchors.fill: parent
+                                        hoverEnabled: true
+                                        cursorShape: Qt.PointingHandCursor
+                                        onClicked: root.expanded = root.expanded === "output" ? "" : "output"
+                                    }
+                                }
 
-                                            anchors.right: parent.right
-                                            anchors.rightMargin: 16
-                                            anchors.verticalCenter: parent.verticalCenter
-                                            visible: output.selected
-                                            text: "\u{f012c}"
-                                            color: Theme.goldInk
-                                            font.family: "Symbols Nerd Font"
-                                            font.pixelSize: 16
-                                        }
+                                // The list unfolds out of the selector.
+                                Unfold {
+                                    id: outputList
 
-                                        MouseArea {
-                                            id: outputItemMouse
+                                    open: root.expanded === "output"
+                                    count: root.sinks.length
 
-                                            anchors.fill: parent
-                                            hoverEnabled: true
-                                            cursorShape: Qt.PointingHandCursor
-                                            onClicked: {
-                                                Pipewire.preferredDefaultAudioSink = output.modelData;
-                                                root.pickOutput = false;
+                                    Repeater {
+                                        model: root.sinks
+
+                                        Rectangle {
+                                            id: output
+
+                                            required property PwNode modelData
+                                            required property int index
+                                            readonly property bool selected: modelData === root.sink
+                                            readonly property real p: outputList.share(index)
+
+                                            opacity: p
+                                            transform: Translate {
+                                                y: (1 - output.p) * -10
+                                            }
+
+                                            width: parent.width
+                                            height: 40
+                                            radius: selected ? 14 : 20
+                                            color: selected ? Theme.gold : outputItemMouse.containsMouse ? Theme.tonal : "transparent"
+
+                                            Behavior on color {
+                                                ColorAnimation {
+                                                    duration: Theme.fast
+                                                }
+                                            }
+
+                                            Text {
+                                                anchors.left: parent.left
+                                                anchors.leftMargin: 16
+                                                anchors.right: check.left
+                                                anchors.rightMargin: 10
+                                                anchors.verticalCenter: parent.verticalCenter
+                                                text: root.nodeName(output.modelData)
+                                                elide: Text.ElideRight
+                                                color: output.selected ? Theme.goldInk : Theme.text
+                                                font.family: Theme.font
+                                                font.pixelSize: 13
+                                                font.weight: output.selected ? Font.Bold : Font.Medium
+                                            }
+
+                                            Text {
+                                                id: check
+
+                                                anchors.right: parent.right
+                                                anchors.rightMargin: 16
+                                                anchors.verticalCenter: parent.verticalCenter
+                                                visible: output.selected
+                                                text: "\u{f012c}"
+                                                color: Theme.goldInk
+                                                font.family: "Symbols Nerd Font"
+                                                font.pixelSize: 16
+                                            }
+
+                                            MouseArea {
+                                                id: outputItemMouse
+
+                                                anchors.fill: parent
+                                                hoverEnabled: true
+                                                cursorShape: Qt.PointingHandCursor
+                                                onClicked: {
+                                                    Pipewire.preferredDefaultAudioSink = output.modelData;
+                                                    root.expanded = "";
+                                                }
                                             }
                                         }
                                     }
