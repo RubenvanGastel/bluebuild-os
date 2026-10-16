@@ -1,10 +1,9 @@
 import QtQuick
 import qs.services
 
-// A wallpaper (image, video or shader, by file path) that cross-fades when its source
-// changes: the new one loads underneath, then fades in on top. A video or shader shows its
-// still frame until it plays. Used for the desktop, the picker preview and the picker
-// cards.
+// A wallpaper (image or video, by file path) that cross-fades when its source changes:
+// the new one loads underneath, then fades in on top. A video shows its poster frame
+// until it plays. Used for the desktop, the picker preview and the picker cards.
 Item {
     id: root
 
@@ -61,8 +60,7 @@ Item {
         property string path
 
         readonly property bool video: Media.isVideo(path)
-        readonly property bool shader: Media.isShader(path)
-        readonly property bool ready: path !== "" && (still.status === Image.Ready || (player.item?.ready ?? false) || (shaderView.item?.ready ?? false))
+        readonly property bool ready: path !== "" && (still.status === Image.Ready || (player.item?.ready ?? false))
         readonly property bool fading: fadeIn.running
 
         anchors.fill: parent
@@ -111,19 +109,6 @@ Item {
             anchors.fill: parent
             active: layer.video && root.live
             source: "VideoLayer.qml"
-            onLoaded: {
-                item.path = Qt.binding(() => layer.path);
-                item.playing = Qt.binding(() => root.playing);
-            }
-        }
-
-        // Shaders run where videos would play; elsewhere only until they have a still.
-        Loader {
-            id: shaderView
-
-            anchors.fill: parent
-            active: layer.shader && (root.live || still.status === Image.Error)
-            source: "ShaderLayer.qml"
             onLoaded: {
                 item.path = Qt.binding(() => layer.path);
                 item.playing = Qt.binding(() => root.playing);
