@@ -41,8 +41,3 @@ install-antigravity:
     Keywords=vscode;
     EOF
     echo "Done. Open Antigravity IDE from the app grid, or run: antigravity-ide"
-
-# Make fish your login shell (run once per user)
-set-shell-fish:
-    sudo usermod --shell /usr/bin/fish "$USER"
-    @echo "Done. Log out and back in, then open a new terminal."

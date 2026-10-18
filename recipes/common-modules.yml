@@ -21,9 +21,11 @@ modules:
         - qt6-qtmultimedia # video wallpapers in the Gravity shell (frames are taken with ffmpeg)
         - playerctl # media keys in niri
         - fuzzel # app launcher in niri (Mod+D)
-        - eza # modern ls with icons (aliased in /etc/profile.d/eza.sh and /etc/fish/conf.d/eza.fish)
+        - eza # modern ls with icons (aliased in /etc/profile.d/eza.sh)
         - fastfetch # system info in the terminal
-        - fish # shell with autosuggestions and syntax highlighting built in
+        - zsh # default login shell; image defaults in /etc/zshrc.d
+        - zsh-autosuggestions # fish-style suggestions from history
+        - zsh-syntax-highlighting
         - ghostty # terminal (cursor shaders set in /etc/ghostty/config)
     remove:
       packages:
@@ -70,6 +72,7 @@ modules:
     scripts:
       - install-miku-plymouth.sh
       - rebuild-font-cache.sh # makes the Nerd Font visible (stale cache otherwise)
+      - setup-zsh.sh # zsh for new users, /etc/zshrc loads /etc/zshrc.d
 
   # GNOME extensions from extensions.gnome.org (by name)
   - type: gnome-extensions

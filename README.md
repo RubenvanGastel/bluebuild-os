@@ -26,13 +26,12 @@ Both images use the same module list, [`recipes/common-modules.yml`](recipes/com
 | Browser & chat | | Zen Browser, Vesktop |
 | Gaming | | Steam |
 | System | GNOME Tweaks | Resources, Flatseal, Gear Lever, DistroShelf |
-| Terminal | Ghostty, eza, fastfetch, fish | |
+| Terminal | Ghostty, zsh, eza, fastfetch | |
 
 Dev tools are installed per user, so they update themselves without an image rebuild:
 
 - `ujust install-claude-code`: Claude Code in `~/.local/bin` (auto-updates)
 - `ujust install-antigravity`: Antigravity IDE in `~/.local/opt` (run again to update)
-- `ujust set-shell-fish`: make fish your login shell (once per user)
 
 Resources replaces the System Monitor, htop and nvtop that come with the base image.
 
@@ -40,6 +39,7 @@ Resources replaces the System Monitor, htop and nvtop that come with the base im
 
 - The Compose key is **Right Alt**. For example, press Right Alt, then `'` and `e` to type é.
 - **Ghostty** uses the [cursor warp and ripple shaders](https://github.com/sahaj-b/ghostty-cursor-shaders). New users get a `~/.config/ghostty/config.ghostty` that includes `/etc/ghostty/config`; existing users can copy it from `/etc/skel/.config/ghostty/config.ghostty`.
+- **zsh** is everyone's login shell, set up like fish: suggestions from your history (Right arrow accepts), syntax highlighting, a Tab completion menu, history shared between terminals and a prompt with the folder and git branch. Every new user gets it. The defaults are in `/etc/zshrc.d`, and your own `~/.zshrc` overrides them.
 - `ls`, `ll`, `la` and `lt` run **eza** with icons, using Nerd Font symbols.
 - Each user can change any of these. The defaults live in [`files/gschema-overrides/`](files/gschema-overrides/).
 
