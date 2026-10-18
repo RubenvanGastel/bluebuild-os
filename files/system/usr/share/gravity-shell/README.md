@@ -33,6 +33,11 @@ rest, and bold [Google Sans Flex](https://fonts.google.com/specimen/Google+Sans+
   switches them on or off, the rest of the tile unfolds the networks or devices to connect
   to, and asks for a Wi-Fi password in place), the audio output, volume and brightness
   sliders and the power mode.
+- **Session menu** (`Super+Shift+Q`): the screen dims and a card springs up with Lock,
+  Suspend (locks first), Log out, Reboot, BIOS (reboot into the firmware setup; only when the
+  machine supports it) and Power off. Left/Right or Tab picks one, Enter or a click runs it,
+  Esc or a click outside closes. The number keys 1-6 run one after a three-second countdown
+  (Enter skips it, Esc or any other key cancels), so a mispress can be undone.
 - **Notifications**: solid rounded cards drift in from the right, with the first action as an
   accent pill and the others tonal; when they expire they fall away.
 - **Lock screen** (`Super+Alt+L`, or after 10 idle minutes): your wallpaper blurs in behind a
@@ -70,6 +75,7 @@ gravity-shell ipc call theme scheme vibrant
 prefers that copy, and Quickshell reloads it live as you save.
 
 Keybinds use the IPC targets `volume` (increase, decrease, muteOutput, muteInput),
-`powerProfile` (cycle), `wallpaper` (toggle, set), `theme` and `lock`.
+`powerProfile` (cycle), `wallpaper` (toggle, set), `theme`, `lock` and `session` (toggle, run
+`lock|suspend|logout|reboot|firmware|poweroff`).
 
 Useful commands: `gravity-shell lock`, `gravity-shell wallpaper [image]`, `gravity-shell ipc show`, `gravity-shell log`.
