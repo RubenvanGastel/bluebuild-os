@@ -38,6 +38,11 @@ rest, and bold [Google Sans Flex](https://fonts.google.com/specimen/Google+Sans+
   machine supports it) and Power off. Left/Right or Tab picks one, Enter or a click runs it,
   Esc or a click outside closes. The number keys 1-6 run one after a three-second countdown
   (Enter skips it, Esc or any other key cancels), so a mispress can be undone.
+- **Keybind cheatsheet** (`Super+F1`): the screen dims and a card springs up with all niri
+  keybinds at once, grouped into blocks spread over even columns. The groups are the
+  comments in the `binds` block of your niri config (a comment after a blank line starts
+  one) and each bind shows its `hotkey-overlay-title`, or else its action. Esc or a click
+  outside closes.
 - **Notifications**: solid rounded cards drift in from the right, with the first action as an
   accent pill and the others tonal; when they expire they fall away.
 - **Lock screen** (`Super+Alt+L`, or after 10 idle minutes): your wallpaper blurs in behind a
@@ -75,7 +80,7 @@ gravity-shell ipc call theme scheme vibrant
 prefers that copy, and Quickshell reloads it live as you save.
 
 Keybinds use the IPC targets `volume` (increase, decrease, muteOutput, muteInput),
-`powerProfile` (cycle), `wallpaper` (toggle, set), `theme`, `lock` and `session` (toggle, run
-`lock|suspend|logout|reboot|firmware|poweroff`).
+`powerProfile` (cycle), `wallpaper` (toggle, set), `theme`, `lock`, `keybinds` (toggle) and `session`
+(toggle, run `lock|suspend|logout|reboot|firmware|poweroff`).
 
 Useful commands: `gravity-shell lock`, `gravity-shell wallpaper [image]`, `gravity-shell ipc show`, `gravity-shell log`.
