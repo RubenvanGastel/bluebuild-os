@@ -25,7 +25,22 @@ cd "$tmp/src"
 sed '/Step 6/,$d' install.sh > install-no-initramfs.sh
 bash install-no-initramfs.sh
 
-test -f /usr/share/plymouth/themes/MikuPlymouth/MikuPlymouth.script
+script=/usr/share/plymouth/themes/MikuPlymouth/MikuPlymouth.script
+test -f "$script"
+
+# Plymouth 24.x's Math.Random() only returns values in [0, 2^-32] (mrand48() divided
+# by LONG_MAX), so the boot-time shuffle always picks j=0 and plays the same order
+# every boot. Scale it back up and keep the fractional part; this also stays correct
+# on newer Plymouth, where Math.Random() returns a proper [0, 1).
+sed -i 's/Math\.Random()/rand01()/' "$script"
+sed -i '/^# Shuffle once at start/i\
+fun rand01() {\
+    r = Math.Random() * 4294967296;\
+    return r - Math.Int(r);\
+}\
+' "$script"
+grep -q '^fun rand01' "$script"
+if grep -q 'Math\.Random() \* (i' "$script"; then exit 1; fi
 
 mkdir -p /etc/plymouth
 cat > /etc/plymouth/plymouthd.conf <<'EOF'
