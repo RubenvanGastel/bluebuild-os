@@ -38,8 +38,14 @@ Singleton {
     // What the automatic mode wants; null when it can't tell (yet).
     readonly property var wanted: mode === "wallpaper" ? (wallpaperBrightness < 0 ? null : wallpaperBrightness > brightThreshold) : mode === "sun" ? (hasLocation ? sunUp : null) : null
 
-    onWantedChanged: follow()
-    onReadyChanged: follow()
+    onWantedChanged: {
+        follow();
+        updateShown();
+    }
+    onReadyChanged: {
+        follow();
+        updateShown();
+    }
 
     function follow(): void {
         if (ready && automatic && wanted !== null && wanted !== light)
@@ -141,31 +147,82 @@ Singleton {
     // instant. ffmpeg averages the image (or a video's first frame) down to one grey pixel.
     property var brightness: ({})
     readonly property real wallpaperBrightness: brightness[Config.wallpaperPath] ?? -1
-    // Light or dark of the previewed wallpaper; null when there is none or it isn't known yet.
-    readonly property var previewLight: mode === "wallpaper" && previewPath !== "" && brightness[previewPath] !== undefined ? brightness[previewPath] > brightThreshold : null
-    // What the shell shows: the preview while browsing, otherwise what is set.
-    readonly property bool shownLight: previewLight ?? light
+    // While the picker is open: its wallpapers, measured ahead (nearest the selected one
+    // first) so each is known by the time you get to it.
+    property var upcoming: []
 
-    // Measures the applied wallpaper and the previewed one when they aren't known yet, one
-    // at a time; each finished run looks again.
-    function measureNext(): void {
-        if (mode !== "wallpaper" || !Config.ready || measure.running)
+    // Whether light or dark is known for this wallpaper: always, unless the wallpaper picks
+    // it and it isn't measured yet. Theme waits for it before making colours, so it doesn't
+    // make the wrong mode's first and then switch.
+    function knows(path: string): bool {
+        return mode !== "wallpaper" || brightness[path] !== undefined;
+    }
+
+    // What the shell shows: the previewed wallpaper's light or dark while browsing, otherwise
+    // what the automatic mode wants (so it doesn't flick back to the old one while the
+    // setting is still being written), otherwise what is set. A wallpaper that isn't
+    // measured yet keeps what is shown, rather than flashing the other mode in between.
+    property bool shownLight: false
+    property bool shownSet: false
+
+    function updateShown(): void {
+        const path = previewPath !== "" ? previewPath : Config.wallpaperPath;
+        if (mode === "wallpaper") {
+            const b = brightness[path];
+            if (b !== undefined)
+                show(b > brightThreshold);
+            else if (!shownSet && ready)
+                show(light);
             return;
-        const path = [previewPath, Config.wallpaperPath].find(p => p !== "" && brightness[p] === undefined);
+        }
+        if (automatic && wanted !== null)
+            show(wanted);
+        else if (ready)
+            show(light);
+    }
+
+    function show(on: bool): void {
+        shownLight = on;
+        shownSet = true;
+    }
+
+    onLightChanged: updateShown()
+    onBrightnessChanged: {
+        updateShown();
+        saveBrightness.restart();
+    }
+    Component.onCompleted: updateShown()
+
+    // Measures the previewed wallpaper, the applied one and then the picker's others when
+    // they aren't known yet, one at a time; each finished run looks again.
+    function measureNext(): void {
+        if (mode !== "wallpaper" || !Config.ready || !cacheLoaded || measure.running)
+            return;
+        const at = Math.max(0, upcoming.indexOf(previewPath));
+        const near = upcoming.map((p, i) => [p, Math.abs(i - at)]).sort((a, b) => a[1] - b[1]).map(e => e[0]);
+        const path = [previewPath, Config.wallpaperPath, ...near].find(p => p !== "" && brightness[p] === undefined);
         if (!path)
             return;
         measure.path = path;
         measure.running = true;
     }
 
-    onModeChanged: measureNext()
-    onPreviewPathChanged: measureNext()
+    onModeChanged: {
+        measureNext();
+        updateShown();
+    }
+    onPreviewPathChanged: {
+        measureNext();
+        updateShown();
+    }
+    onUpcomingChanged: measureNext()
 
     Connections {
         target: Config
 
         function onWallpaperPathChanged(): void {
             root.measureNext();
+            root.updateShown();
         }
         function onReadyChanged(): void {
             root.measureNext();
@@ -189,6 +246,53 @@ Singleton {
             root.brightness = Object.assign({}, root.brightness, { [measure.path]: isNaN(v) ? 0 : v / 255 });
             root.measureNext();
         }
+    }
+
+    // Measurements are kept across restarts, by path; a wallpaper replaced under the same
+    // name keeps its old one until the cache is removed.
+    readonly property string cacheDir: (Quickshell.env("XDG_CACHE_HOME") || Quickshell.env("HOME") + "/.cache") + "/gravity-shell"
+    property bool cacheLoaded: false
+
+    onCacheLoadedChanged: measureNext()
+
+    FileView {
+        id: brightnessFile
+
+        path: root.cacheDir + "/brightness.json"
+        printErrors: false
+        blockLoading: true
+
+        onLoaded: {
+            try {
+                const data = JSON.parse(text());
+                if (data && typeof data === "object")
+                    root.brightness = Object.assign(data, root.brightness);
+            } catch (e) {}
+            root.cacheLoaded = true;
+        }
+        onLoadFailed: root.cacheLoaded = true
+    }
+
+    Timer {
+        id: saveBrightness
+
+        interval: 2000
+        onTriggered: {
+            if (!root.cacheLoaded)
+                return;
+            saveProc.running = false;
+            saveProc.text = JSON.stringify(root.brightness);
+            saveProc.running = true;
+        }
+    }
+
+    // Written to a temporary file and moved into place, like Theme's colours.
+    Process {
+        id: saveProc
+
+        property string text
+
+        command: ["sh", "-c", 'mkdir -p "$0" && printf "%s" "$1" > "$0/brightness.json.tmp" && mv -f "$0/brightness.json.tmp" "$0/brightness.json"', root.cacheDir, text]
     }
 
     // --- by the sun ---------------------------------------------------------------------------

@@ -12,7 +12,8 @@ import qs.services
 // The wallpaper zooms out into a preview, and three wallpapers rise from the bottom and
 // float there. Left/Right scrolls them, Enter applies, Esc closes.
 // Lists only the wallpaper folder (Config.wallpaperDir, by default <XDG Pictures>/Wallpapers)
-// and picks the colour source.
+// and picks the colour source, and light or dark (by hand, by the wallpaper or by time of
+// day).
 Scope {
     id: root
 
@@ -290,6 +291,12 @@ Scope {
                 target: Appearance
                 property: "previewPath"
                 value: win.selected
+                when: root.open
+            }
+            Binding {
+                target: Appearance
+                property: "upcoming"
+                value: root.shownFiles
                 when: root.open
             }
 
@@ -774,6 +781,46 @@ Scope {
                             selected: win.shownFilter === modelData.id
                             onClicked: win.setFilter(modelData.id)
                         }
+                    }
+                }
+
+                // --- light or dark ---------------------------------------------------------
+                // Right of the preview, mirroring the filters. By hand it switches at once;
+                // by the wallpaper the preview follows the selected one, and the apps change
+                // once it is applied.
+                Column {
+                    x: stage.width * (1 + preview.scale) / 2 + 28 + (1 - win.zoom) * 30
+                    y: preview.y + 8
+                    spacing: 8
+                    opacity: win.zoom
+
+                    Repeater {
+                        model: [
+                            { label: "Light", light: true },
+                            { label: "Dark", light: false },
+                            { label: "By wallpaper", mode: "wallpaper" },
+                            { label: "Time of day", mode: "sun" }
+                        ]
+
+                        Chip {
+                            required property var modelData
+
+                            // Time of day needs a place (for sunrise and sunset), set in the settings.
+                            enabled: modelData.mode !== "sun" || Appearance.hasLocation
+                            label: modelData.label
+                            selected: modelData.mode ? Appearance.mode === modelData.mode : !Appearance.automatic && Appearance.light === modelData.light
+                            onClicked: modelData.mode ? Appearance.setMode(modelData.mode) : Appearance.choose(modelData.light)
+                        }
+                    }
+
+                    Text {
+                        visible: Appearance.mode === "wallpaper"
+                        leftPadding: 4
+                        text: Appearance.brightness[win.selected] === undefined ? "Measuring…" : (Appearance.brightness[win.selected] > Appearance.brightThreshold ? "Light" : "Dark") + " for this one"
+                        color: Theme.textDim
+                        font.family: Theme.font
+                        font.pixelSize: 12
+                        font.weight: Font.Medium
                     }
                 }
 

@@ -111,22 +111,104 @@ Singleton {
     readonly property bool fromGenerated: generatedColors && generated.night !== undefined
     readonly property var palette: fromGenerated ? generated : defaults
 
-    readonly property color night: palette.night
-    readonly property color deep: palette.deep
-    readonly property color dusk: palette.dusk
+    property color night: palette.night
+    property color deep: palette.deep
+    property color dusk: palette.dusk
 
-    readonly property color glow: palette.glow
-    readonly property color gold: palette.gold
-    readonly property color goldInk: palette.goldInk
-    readonly property color tonal: palette.tonal
-    readonly property color tonalInk: palette.tonalInk
-    readonly property color amber: palette.amber
-    readonly property color rose: palette.rose
+    property color glow: palette.glow
+    property color gold: palette.gold
+    property color goldInk: palette.goldInk
+    property color tonal: palette.tonal
+    property color tonalInk: palette.tonalInk
+    property color amber: palette.amber
+    property color rose: palette.rose
 
-    readonly property color text: palette.text
-    readonly property color textDim: palette.textDim
+    property color text: palette.text
+    property color textDim: palette.textDim
     // Solid surface for the bar, notification cards and the password field.
-    readonly property color surface: palette.panel
+    property color surface: palette.panel
+
+    // Light and dark, and one palette to the next, fade into each other rather than snap.
+    readonly property int colorFade: 450
+
+    Behavior on night {
+        ColorAnimation {
+            duration: root.colorFade
+            easing.type: Easing.InOutQuad
+        }
+    }
+    Behavior on deep {
+        ColorAnimation {
+            duration: root.colorFade
+            easing.type: Easing.InOutQuad
+        }
+    }
+    Behavior on dusk {
+        ColorAnimation {
+            duration: root.colorFade
+            easing.type: Easing.InOutQuad
+        }
+    }
+    Behavior on glow {
+        ColorAnimation {
+            duration: root.colorFade
+            easing.type: Easing.InOutQuad
+        }
+    }
+    Behavior on gold {
+        ColorAnimation {
+            duration: root.colorFade
+            easing.type: Easing.InOutQuad
+        }
+    }
+    Behavior on goldInk {
+        ColorAnimation {
+            duration: root.colorFade
+            easing.type: Easing.InOutQuad
+        }
+    }
+    Behavior on tonal {
+        ColorAnimation {
+            duration: root.colorFade
+            easing.type: Easing.InOutQuad
+        }
+    }
+    Behavior on tonalInk {
+        ColorAnimation {
+            duration: root.colorFade
+            easing.type: Easing.InOutQuad
+        }
+    }
+    Behavior on amber {
+        ColorAnimation {
+            duration: root.colorFade
+            easing.type: Easing.InOutQuad
+        }
+    }
+    Behavior on rose {
+        ColorAnimation {
+            duration: root.colorFade
+            easing.type: Easing.InOutQuad
+        }
+    }
+    Behavior on text {
+        ColorAnimation {
+            duration: root.colorFade
+            easing.type: Easing.InOutQuad
+        }
+    }
+    Behavior on textDim {
+        ColorAnimation {
+            duration: root.colorFade
+            easing.type: Easing.InOutQuad
+        }
+    }
+    Behavior on surface {
+        ColorAnimation {
+            duration: root.colorFade
+            easing.type: Easing.InOutQuad
+        }
+    }
 
     // A hovered fill: a little lighter on dark surfaces, a little darker on light ones.
     function hover(c: color, amount: real): color {
@@ -172,7 +254,8 @@ Singleton {
     readonly property string wantedSource: Config.colors === "accent" ? appliedSource : "image:" + (previewPath || Config.wallpaperPath)
     // "source|scheme|mode" of the applied colours; only their palette goes in the cache.
     readonly property string appliedKey: appliedSource + "|" + Config.colorScheme + "|" + (appliedLight ? "light" : "dark")
-    readonly property string wanted: Config.ready && Appearance.ready && generatedColors ? wantedSource + "|" + Config.colorScheme + "|" + mode : ""
+    // Waits until it is known whether the wallpaper wants light or dark.
+    readonly property string wanted: Config.ready && Appearance.ready && generatedColors && (Config.colors === "accent" || Appearance.knows(previewPath || Config.wallpaperPath)) ? wantedSource + "|" + Config.colorScheme + "|" + mode : ""
 
     // Palettes generated this session by key, so browsing back and forth is instant.
     property var memo: ({})

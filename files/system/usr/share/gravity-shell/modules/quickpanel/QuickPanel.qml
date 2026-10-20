@@ -517,7 +517,7 @@ Scope {
                     Text {
                         topPadding: 4
                         // Says who decides while it's automatic.
-                        text: !Appearance.automatic ? "Appearance" : Appearance.mode === "wallpaper" ? "Appearance · automatic, by the wallpaper" : !Appearance.hasLocation ? "Appearance · automatic, set a place in the settings" : Appearance.nextChange ? "Appearance · automatic, " + (Appearance.sunUp ? "dark at sunset " : "light at sunrise ") + Qt.formatTime(Appearance.nextChange, Config.use24h ? "HH:mm" : "h:mm AP") : "Appearance · automatic, by the sun"
+                        text: !Appearance.automatic ? "Appearance" : Appearance.mode === "wallpaper" ? "Appearance · automatic, by the wallpaper" : !Appearance.hasLocation ? "Appearance · automatic, set a place in the settings" : Appearance.nextChange ? "Appearance · automatic, " + (Appearance.sunUp ? "dark at sunset " : "light at sunrise ") + Qt.formatTime(Appearance.nextChange, Config.use24h ? "HH:mm" : "h:mm AP") : "Appearance · automatic, by time of day"
                         color: Theme.textDim
                         font.family: Theme.font
                         font.pixelSize: 13

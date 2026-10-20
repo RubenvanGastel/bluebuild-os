@@ -24,7 +24,7 @@ Column {
                 { value: true, label: "Light", icon: "\u{f0599}" },
                 { value: false, label: "Dark", icon: "\u{f0594}" },
                 { value: "wallpaper", label: "Wallpaper", icon: "\u{f0fc1}" },
-                { value: "sun", label: "Sunrise & sunset", icon: "\u{f059a}" }
+                { value: "sun", label: "Time of day", icon: "\u{f059a}" }
             ]
             value: Appearance.automatic ? Appearance.mode : Appearance.light
             onChosen: v => typeof v === "boolean" ? Appearance.choose(v) : Appearance.setMode(v)
@@ -41,7 +41,7 @@ Column {
                 if (Appearance.mode !== "sun")
                     return "";
                 if (!Appearance.hasLocation)
-                    return "Set your location below to follow the sun.";
+                    return "Set your location below to switch by time of day.";
                 if (!Appearance.sunrise)
                     return Appearance.sunUp ? "The sun doesn't set today, so it stays light." : "The sun doesn't rise today, so it stays dark.";
                 return `Sunrise ${time(Appearance.sunrise)}, sunset ${time(Appearance.sunset)}` + (Appearance.nextChange ? `: ${Appearance.sunUp ? "dark" : "light"} from ${time(Appearance.nextChange)}.` : ".");

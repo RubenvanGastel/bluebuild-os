@@ -16,7 +16,9 @@ rest, and bold [Google Sans Flex](https://fonts.google.com/specimen/Google+Sans+
   applies, Esc closes. It lists only your wallpaper folder: `Wallpapers` inside your Pictures
   folder (whatever it is called in your language, e.g. `~/Afbeeldingen/Wallpapers`), or the
   folder set as `wallpaperDir`. The folder is created the first time the picker opens.
-  `gravity-shell wallpaper ~/pic.jpg` sets one directly.
+  Beside the preview you pick light or dark: by hand, by the wallpaper (the preview shows
+  each one's as you browse) or by time of day. `gravity-shell wallpaper ~/pic.jpg` sets one
+  directly.
 - **Colours**: a Material You palette made by [matugen](https://github.com/InioX/matugen)
   from one accent colour (GNOME's nine accents, or any other), or picked from the
   wallpaper. The default is GNOME's blue, built in so it works without matugen. GNOME apps
@@ -43,9 +45,10 @@ rest, and bold [Google Sans Flex](https://fonts.google.com/specimen/Google+Sans+
   `adw-gtk3` and `adw-gtk3-dark`. The shell's colours switch to their light variant.
   Changing the setting elsewhere (GNOME Settings) is picked up too. In the settings it can
   also go automatic: by the **wallpaper** (light when its average brightness is above 35%,
-  measured with ffmpeg) or by **sunrise and sunset** where you live (worked out on the
-  machine; the place is looked up once with Open-Meteo's place search). The quick panel's
-  Light/Dark buttons grey out then; clicking one goes back to choosing by hand.
+  measured with ffmpeg) or by **time of day**: light between sunrise and sunset where you
+  live (worked out on the machine; the place is looked up once with Open-Meteo's place
+  search). The quick panel's Light/Dark buttons grey out then; clicking one goes back to
+  choosing by hand.
   A GNOME session on the same account keeps its own light or dark, GTK theme and accent:
   `/usr/libexec/gravity-theme-session` swaps them when you switch sessions (the values are
   kept in `~/.local/state/gravity-shell`).
