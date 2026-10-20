@@ -1,0 +1,7 @@
+# Zen Browser (flatpak) as the default browser for all users. Takes precedence over
+# /usr/share/applications/mimeapps.list; users can still pick another in Settings.
+[Default Applications]
+text/html=app.zen_browser.zen.desktop
+application/xhtml+xml=app.zen_browser.zen.desktop
+x-scheme-handler/http=app.zen_browser.zen.desktop
+x-scheme-handler/https=app.zen_browser.zen.desktop
