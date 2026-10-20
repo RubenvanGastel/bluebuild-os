@@ -7,10 +7,13 @@ import qs.services
 // Status-notifier tray. Left click activates, right click opens the app's menu. Apps
 // with nothing to activate (AppIndicator icons such as Steam's) open the menu on a left
 // click too.
-Row {
+Grid {
     id: root
 
     required property var barWindow
+    property bool vertical: false
+
+    columns: vertical ? 1 : 100
 
     // Ids of the tray items that answer Activate, as found on D-Bus; until the check is
     // done, every item is assumed to.
@@ -59,7 +62,6 @@ Row {
 
             width: 18
             height: 18
-            anchors.verticalCenter: parent.verticalCenter
             scale: 0
 
             Component.onCompleted: scale = 1
@@ -89,13 +91,13 @@ Row {
                     } else if (mouse.button === Qt.MiddleButton) {
                         entry.modelData.secondaryActivate();
                     } else if (entry.modelData.hasMenu) {
-                        // The menu grows down out of the bar, its right edge just past the icon.
-                        const p = entry.mapToItem(null, entry.width, 0);
+                        // The menu grows out of the bar, its far end just past the icon.
+                        const p = entry.mapToItem(null, entry.width, entry.height);
                         const output = root.barWindow.screen?.name ?? "";
                         if (Panels.trayOutput === output && Panels.trayMenu === entry.modelData.menu)
                             Panels.closeTray();
                         else
-                            Panels.openTray(output, entry.modelData.menu, p.x + 12);
+                            Panels.openTray(output, entry.modelData.menu, (root.vertical ? p.y : p.x) + 12);
                     }
                 }
                 onWheel: wheel => entry.modelData.scroll(wheel.angleDelta.y, false)

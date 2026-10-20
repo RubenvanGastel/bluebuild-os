@@ -6,8 +6,8 @@ import qs.components
 import qs.services
 
 // Menu of a tray icon (right click), drawn in the shell's own style instead of a plain
-// Qt menu. Like the quick panel it is the bar growing down, under the icon, flowing into
-// the bar in a curve on each side; submenus open in place with a Back row. Esc, a click
+// Qt menu. Like the quick panel it is the bar growing into the screen beside the icon,
+// flowing into the bar in a curve on each side; submenus open in place with a Back row. Esc, a click
 // outside or choosing an entry closes it.
 Scope {
     id: root
@@ -181,41 +181,15 @@ Scope {
                 }
             }
 
-            // Concave curves joining the menu's sides to the bar; they swell as it grows.
-            InvertedCorner {
-                size: Theme.barCorner * Math.min(1, card.height / Theme.barCorner)
-                x: card.x - size
-                y: Theme.barHeight
-                fill: Theme.surface
-                mirrored: true
-            }
-
-            InvertedCorner {
-                size: Theme.barCorner * Math.min(1, card.height / Theme.barCorner)
-                x: card.x + card.width
-                y: Theme.barHeight
-                fill: Theme.surface
-            }
-
-            Rectangle {
-                id: card
-
-                // Right edge under the icon, kept clear of the screen edges.
-                width: 280
-                height: win.full * win.grow
-                x: Math.max(Theme.barCorner + Theme.gap, Math.min(Panels.trayX, win.width - Theme.barCorner - Theme.gap) - width)
-                y: Theme.barHeight
-                // Square where it meets the bar.
-                bottomLeftRadius: Math.min(24, height / 2)
-                bottomRightRadius: Math.min(24, height / 2)
-                color: Theme.surface
-                clip: true
-
-                // Swallow clicks on the card itself.
-                MouseArea {
-                    anchors.fill: parent
-                    acceptedButtons: Qt.AllButtons
-                }
+            // Its far end just past the icon, kept clear of the bar's ends.
+            BarSheet {
+                anchors.fill: parent
+                align: "end"
+                at: Panels.trayAt
+                radius: 24
+                fullWidth: 280
+                fullHeight: win.full
+                grow: win.grow
 
                 Column {
                     id: list
@@ -342,8 +316,6 @@ Scope {
         }
 
         Row {
-            id: content
-
             x: 12
             anchors.verticalCenter: parent.verticalCenter
             spacing: 10

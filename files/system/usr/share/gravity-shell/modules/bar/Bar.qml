@@ -3,7 +3,7 @@ import Quickshell
 import Quickshell.Wayland
 import qs.services
 
-// The bar along the top edge of every screen (its look is in BarSurface.qml).
+// The bar along one edge of every screen (Theme.barEdge; its look is in BarSurface.qml).
 Variants {
     model: Quickshell.screens
 
@@ -15,16 +15,18 @@ Variants {
         screen: modelData
         color: "transparent"
         anchors {
-            top: true
-            left: true
-            right: true
+            top: Theme.barEdge !== "bottom"
+            bottom: Theme.barEdge !== "top"
+            left: Theme.barEdge !== "right"
+            right: Theme.barEdge !== "left"
         }
-        implicitHeight: surface.implicitHeight
-        exclusiveZone: Theme.barHeight
+        implicitWidth: surface.depth
+        implicitHeight: surface.depth
+        exclusiveZone: Theme.barSize
         WlrLayershell.namespace: "gravity-bar"
         WlrLayershell.layer: WlrLayer.Top
 
-        // Only the strip takes clicks; the corners below it stay click-through.
+        // Only the strip takes clicks; the corners beside it stay click-through.
         mask: Region {
             item: surface.strip
         }
@@ -32,7 +34,7 @@ Variants {
         BarSurface {
             id: surface
 
-            width: parent.width
+            anchors.fill: parent
             output: win.modelData.name
             barWindow: win
         }

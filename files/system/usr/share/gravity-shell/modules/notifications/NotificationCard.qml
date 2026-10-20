@@ -149,8 +149,6 @@ Item {
 
     // Solid surface like the bar; critical ones get an error-coloured ring.
     Rectangle {
-        id: bg
-
         anchors.fill: parent
         radius: 24
         color: Theme.surface
@@ -305,7 +303,7 @@ Item {
                         width: label.implicitWidth + 28
                         height: 32
                         radius: height / 2
-                        color: primary ? (actionMouse.containsMouse ? Qt.lighter(Theme.gold, 1.12) : Theme.gold) : (actionMouse.containsMouse ? Qt.lighter(Theme.tonal, 1.25) : Theme.tonal)
+                        color: primary ? (actionMouse.containsMouse ? Theme.hover(Theme.gold, 1.12) : Theme.gold) : (actionMouse.containsMouse ? Theme.hover(Theme.tonal, 1.25) : Theme.tonal)
 
                         Behavior on color {
                             ColorAnimation {

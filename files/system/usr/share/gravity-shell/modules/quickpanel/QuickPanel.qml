@@ -6,11 +6,11 @@ import Quickshell.Services.UPower
 import qs.components
 import qs.services
 
-// Quick panel, opened from the volume/battery pill at the right end of the bar (or
-// `gravity-shell ipc call quickPanel toggle`). The bar grows down into it at the right
-// screen edge, joined to it, with the battery state, Wi-Fi and Bluetooth, volume (and
-// output device) and brightness sliders and the power profile. Click outside it or press
-// Esc to close.
+// Quick panel, opened from the volume/battery pill at the far end of the bar (or
+// `gravity-shell ipc call quickPanel toggle`). The bar grows into it there (at the right,
+// or the bottom along a side), joined to it, with the battery state, Wi-Fi and Bluetooth,
+// volume (and output device) and brightness sliders, light or dark mode (Appearance) and
+// the power profile. Click outside it or press Esc to close.
 Scope {
     id: root
 
@@ -124,7 +124,7 @@ Scope {
             Binding {
                 target: Panels
                 property: "quickHeight"
-                value: sheet.full
+                value: Theme.barEdge === "top" ? sheet.full : 0
                 when: root.open
             }
 
@@ -217,123 +217,229 @@ Scope {
                 Keys.onEscapePressed: Panels.closeQuick()
             }
 
-            // Joins the panel's left edge to the bar in a concave curve; it swells as the
-            // bar grows down.
-            InvertedCorner {
-                size: Theme.barCorner * Math.min(1, card.height / Theme.barCorner)
-                x: holder.x - size
-                y: Theme.barHeight
-                fill: Theme.surface
-                mirrored: true
-            }
+            // The panel is the bar itself growing into the screen at its far end (the right,
+            // or the bottom along a side): same colour, no seam, and the curve at the bar's
+            // end rides along on its outer edge.
+            BarSheet {
+                id: sheet
 
-            // The panel is the bar itself growing down at the right screen edge: same
-            // colour, no seam, and the curve at the bar's right end rides down on its
-            // bottom edge.
-            Item {
-                id: holder
+                // Full height of the panel's surface.
+                property real full: content.implicitHeight + 40
 
-                width: 400
-                height: sheet.height
-                x: parent.width - width
-                y: Theme.barHeight
+                // Changes in size grow rather than jump; the output list animates
+                // itself, so then it follows directly.
+                Behavior on full {
+                    enabled: !outputList.moving && !connectivity.moving
 
-                Item {
-                    id: sheet
+                    NumberAnimation {
+                        duration: Theme.normal
+                        easing.type: Easing.BezierSpline
+                        easing.bezierCurve: Theme.emphasized
+                    }
+                }
 
-                    // Full height of the panel's surface.
-                    property real full: content.implicitHeight + 40
+                anchors.fill: parent
+                align: "barEnd"
+                fullWidth: 400
+                fullHeight: full
+                grow: win.grow
 
-                    // Changes in size grow rather than jump; the output list animates
-                    // itself, so then it follows directly.
-                    Behavior on full {
-                        enabled: !outputList.moving && !connectivity.moving
+                Column {
+                    id: content
 
-                        NumberAnimation {
-                            duration: Theme.normal
-                            easing.type: Easing.BezierSpline
-                            easing.bezierCurve: Theme.emphasized
+                    x: 20
+                    y: 20 - (1 - win.reveal) * 10
+                    opacity: win.reveal
+                    width: parent.width - 40
+                    spacing: 14
+
+                    // --- battery, and the cog for the settings ----------------------------
+                    Item {
+                        width: parent.width
+                        height: Math.max(battery.height, 40)
+
+                        Row {
+                            id: battery
+
+                            visible: root.hasBattery
+                            spacing: 14
+
+                            Badge {
+                                icon: root.batteryIcon
+                                accent: root.charging || root.batteryLevel >= 0.15
+                            }
+
+                            Column {
+                                anchors.verticalCenter: parent.verticalCenter
+                                spacing: 1
+
+                                Text {
+                                    text: Math.round(root.batteryLevel * 100) + "%"
+                                    color: root.batteryLevel < 0.15 && !root.charging ? Theme.rose : Theme.text
+                                    font.family: Theme.font
+                                    font.pixelSize: 20
+                                    font.weight: Font.Bold
+                                }
+
+                                Text {
+                                    visible: text !== ""
+                                    text: root.batteryText
+                                    color: Theme.textDim
+                                    font.family: Theme.font
+                                    font.pixelSize: 13
+                                    font.weight: Font.Medium
+                                }
+                            }
+                        }
+
+                        Rectangle {
+                            anchors.right: parent.right
+                            anchors.verticalCenter: parent.verticalCenter
+                            width: 40
+                            height: 40
+                            radius: 20
+                            color: cogMouse.containsMouse ? Theme.hover(Theme.tonal, 1.25) : Theme.tonal
+
+                            Behavior on color {
+                                ColorAnimation {
+                                    duration: Theme.fast
+                                }
+                            }
+
+                            Text {
+                                anchors.centerIn: parent
+                                text: "\u{f0493}"
+                                color: Theme.tonalInk
+                                font.family: "Symbols Nerd Font"
+                                font.pixelSize: 20
+                                rotation: cogMouse.containsMouse ? 60 : 0
+
+                                Behavior on rotation {
+                                    NumberAnimation {
+                                        duration: Theme.normal
+                                        easing.type: Easing.OutBack
+                                    }
+                                }
+                            }
+
+                            MouseArea {
+                                id: cogMouse
+
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: Panels.openSettings("")
+                            }
                         }
                     }
 
-                    width: parent.width
-                    height: card.height + Theme.barCorner
+                    // --- Wi-Fi and Bluetooth ------------------------------------------
+                    Connectivity {
+                        id: connectivity
 
-                    Rectangle {
-                        id: card
+                        panel: root
+                    }
 
+                    // --- audio output ----------------------------------------------
+                    // The current one; click to choose another.
+                    Column {
+                        visible: root.sinks.length > 1
                         width: parent.width
-                        height: sheet.full * win.grow
-                        // Square where it meets the bar and the screen edge.
-                        bottomLeftRadius: Math.min(28, height / 2)
-                        color: Theme.surface
-                        clip: true
 
-                        // Clicks on the card itself don't close it.
-                        MouseArea {
-                            anchors.fill: parent
+                        Rectangle {
+                            width: parent.width
+                            height: 44
+                            radius: 22
+                            color: outputMouse.containsMouse ? Theme.hover(Theme.tonal, 1.25) : Theme.tonal
+
+                            Behavior on color {
+                                ColorAnimation {
+                                    duration: Theme.fast
+                                }
+                            }
+
+                            Text {
+                                id: outputIcon
+
+                                x: 16
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: "\u{f04c3}"
+                                color: Theme.tonalInk
+                                font.family: "Symbols Nerd Font"
+                                font.pixelSize: 18
+                            }
+
+                            Text {
+                                anchors.left: outputIcon.right
+                                anchors.leftMargin: 10
+                                anchors.right: chevron.left
+                                anchors.rightMargin: 10
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: root.nodeName(root.sink)
+                                elide: Text.ElideRight
+                                color: Theme.tonalInk
+                                font.family: Theme.font
+                                font.pixelSize: 13
+                                font.weight: Font.Bold
+                            }
+
+                            Text {
+                                id: chevron
+
+                                anchors.right: parent.right
+                                anchors.rightMargin: 16
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: "\u{f0140}"
+                                rotation: root.expanded === "output" ? 180 : 0
+                                color: Theme.tonalInk
+                                font.family: "Symbols Nerd Font"
+                                font.pixelSize: 18
+
+                                Behavior on rotation {
+                                    NumberAnimation {
+                                        duration: Theme.normal
+                                        easing.type: Easing.OutBack
+                                    }
+                                }
+                            }
+
+                            MouseArea {
+                                id: outputMouse
+
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: root.expanded = root.expanded === "output" ? "" : "output"
+                            }
                         }
 
-                        Column {
-                            id: content
+                        // The list unfolds out of the selector.
+                        Unfold {
+                            id: outputList
 
-                            x: 20
-                            y: 20 - (1 - win.reveal) * 10
-                            opacity: win.reveal
-                            width: parent.width - 40
-                            spacing: 14
+                            open: root.expanded === "output"
+                            count: root.sinks.length
 
-                            // --- battery ----------------------------------------------------
-                            Row {
-                                visible: root.hasBattery
-                                spacing: 14
-
-                                Badge {
-                                    icon: root.batteryIcon
-                                    accent: root.charging || root.batteryLevel >= 0.15
-                                }
-
-                                Column {
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    spacing: 1
-
-                                    Text {
-                                        text: Math.round(root.batteryLevel * 100) + "%"
-                                        color: root.batteryLevel < 0.15 && !root.charging ? Theme.rose : Theme.text
-                                        font.family: Theme.font
-                                        font.pixelSize: 20
-                                        font.weight: Font.Bold
-                                    }
-
-                                    Text {
-                                        visible: text !== ""
-                                        text: root.batteryText
-                                        color: Theme.textDim
-                                        font.family: Theme.font
-                                        font.pixelSize: 13
-                                        font.weight: Font.Medium
-                                    }
-                                }
-                            }
-
-                            // --- Wi-Fi and Bluetooth ------------------------------------------
-                            Connectivity {
-                                id: connectivity
-
-                                panel: root
-                            }
-
-                            // --- audio output ----------------------------------------------
-                            // The current one; click to choose another.
-                            Column {
-                                visible: root.sinks.length > 1
-                                width: parent.width
+                            Repeater {
+                                model: root.sinks
 
                                 Rectangle {
+                                    id: output
+
+                                    required property PwNode modelData
+                                    required property int index
+                                    readonly property bool selected: modelData === root.sink
+                                    readonly property real p: outputList.share(index)
+
+                                    opacity: p
+                                    transform: Translate {
+                                        y: (1 - output.p) * -10
+                                    }
+
                                     width: parent.width
-                                    height: 44
-                                    radius: 22
-                                    color: outputMouse.containsMouse ? Qt.lighter(Theme.tonal, 1.25) : Theme.tonal
+                                    height: 40
+                                    radius: selected ? 14 : 20
+                                    color: selected ? Theme.gold : outputItemMouse.containsMouse ? Theme.tonal : "transparent"
 
                                     Behavior on color {
                                         ColorAnimation {
@@ -342,233 +448,41 @@ Scope {
                                     }
 
                                     Text {
-                                        id: outputIcon
-
-                                        x: 16
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        text: "\u{f04c3}"
-                                        color: Theme.tonalInk
-                                        font.family: "Symbols Nerd Font"
-                                        font.pixelSize: 18
-                                    }
-
-                                    Text {
-                                        anchors.left: outputIcon.right
-                                        anchors.leftMargin: 10
-                                        anchors.right: chevron.left
+                                        anchors.left: parent.left
+                                        anchors.leftMargin: 16
+                                        anchors.right: check.left
                                         anchors.rightMargin: 10
                                         anchors.verticalCenter: parent.verticalCenter
-                                        text: root.nodeName(root.sink)
+                                        text: root.nodeName(output.modelData)
                                         elide: Text.ElideRight
-                                        color: Theme.tonalInk
+                                        color: output.selected ? Theme.goldInk : Theme.text
                                         font.family: Theme.font
                                         font.pixelSize: 13
-                                        font.weight: Font.Bold
+                                        font.weight: output.selected ? Font.Bold : Font.Medium
                                     }
 
                                     Text {
-                                        id: chevron
+                                        id: check
 
                                         anchors.right: parent.right
                                         anchors.rightMargin: 16
                                         anchors.verticalCenter: parent.verticalCenter
-                                        text: "\u{f0140}"
-                                        rotation: root.expanded === "output" ? 180 : 0
-                                        color: Theme.tonalInk
+                                        visible: output.selected
+                                        text: "\u{f012c}"
+                                        color: Theme.goldInk
                                         font.family: "Symbols Nerd Font"
-                                        font.pixelSize: 18
-
-                                        Behavior on rotation {
-                                            NumberAnimation {
-                                                duration: Theme.normal
-                                                easing.type: Easing.OutBack
-                                            }
-                                        }
+                                        font.pixelSize: 16
                                     }
 
                                     MouseArea {
-                                        id: outputMouse
+                                        id: outputItemMouse
 
                                         anchors.fill: parent
                                         hoverEnabled: true
                                         cursorShape: Qt.PointingHandCursor
-                                        onClicked: root.expanded = root.expanded === "output" ? "" : "output"
-                                    }
-                                }
-
-                                // The list unfolds out of the selector.
-                                Unfold {
-                                    id: outputList
-
-                                    open: root.expanded === "output"
-                                    count: root.sinks.length
-
-                                    Repeater {
-                                        model: root.sinks
-
-                                        Rectangle {
-                                            id: output
-
-                                            required property PwNode modelData
-                                            required property int index
-                                            readonly property bool selected: modelData === root.sink
-                                            readonly property real p: outputList.share(index)
-
-                                            opacity: p
-                                            transform: Translate {
-                                                y: (1 - output.p) * -10
-                                            }
-
-                                            width: parent.width
-                                            height: 40
-                                            radius: selected ? 14 : 20
-                                            color: selected ? Theme.gold : outputItemMouse.containsMouse ? Theme.tonal : "transparent"
-
-                                            Behavior on color {
-                                                ColorAnimation {
-                                                    duration: Theme.fast
-                                                }
-                                            }
-
-                                            Text {
-                                                anchors.left: parent.left
-                                                anchors.leftMargin: 16
-                                                anchors.right: check.left
-                                                anchors.rightMargin: 10
-                                                anchors.verticalCenter: parent.verticalCenter
-                                                text: root.nodeName(output.modelData)
-                                                elide: Text.ElideRight
-                                                color: output.selected ? Theme.goldInk : Theme.text
-                                                font.family: Theme.font
-                                                font.pixelSize: 13
-                                                font.weight: output.selected ? Font.Bold : Font.Medium
-                                            }
-
-                                            Text {
-                                                id: check
-
-                                                anchors.right: parent.right
-                                                anchors.rightMargin: 16
-                                                anchors.verticalCenter: parent.verticalCenter
-                                                visible: output.selected
-                                                text: "\u{f012c}"
-                                                color: Theme.goldInk
-                                                font.family: "Symbols Nerd Font"
-                                                font.pixelSize: 16
-                                            }
-
-                                            MouseArea {
-                                                id: outputItemMouse
-
-                                                anchors.fill: parent
-                                                hoverEnabled: true
-                                                cursorShape: Qt.PointingHandCursor
-                                                onClicked: {
-                                                    Pipewire.preferredDefaultAudioSink = output.modelData;
-                                                    root.expanded = "";
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-
-                            // --- sliders ------------------------------------------------------
-                            SliderRow {
-                                visible: root.sink !== null
-                                icon: root.volumeIcon
-                                value: root.volume
-                                dimmed: root.muted
-                                label: root.muted ? "Muted" : Math.round(root.volume * 100) + "%"
-                                iconClickable: true
-                                armed: win.reveal > 0.2
-                                onIconClicked: if (root.sink?.audio)
-                                    root.sink.audio.muted = !root.sink.audio.muted
-                                onMoved: v => root.setVolume(v)
-                            }
-
-                            SliderRow {
-                                visible: Brightness.available
-                                icon: root.brightnessIcon
-                                value: Brightness.level
-                                label: Math.round(Brightness.level * 100) + "%"
-                                armed: win.reveal > 0.55
-                                onMoved: v => Brightness.setLevel(v)
-                            }
-
-                            // --- power profile ------------------------------------------------
-                            Text {
-                                topPadding: 4
-                                text: "Power mode"
-                                color: Theme.textDim
-                                font.family: Theme.font
-                                font.pixelSize: 13
-                                font.weight: Font.Bold
-                            }
-
-                            Row {
-                                id: profileRow
-
-                                width: parent.width
-                                spacing: 6
-
-                                Repeater {
-                                    model: root.profiles
-
-                                    Rectangle {
-                                        id: profile
-
-                                        required property var modelData
-                                        readonly property bool selected: PowerProfiles.profile === modelData.value
-
-                                        width: (profileRow.width - profileRow.spacing * (root.profiles.length - 1)) / root.profiles.length
-                                        height: 48
-                                        // The chosen one squares off a little, like an M3 Expressive
-                                        // button group.
-                                        radius: selected ? 14 : height / 2
-                                        color: selected ? Theme.gold : profileMouse.containsMouse ? Qt.lighter(Theme.tonal, 1.25) : Theme.tonal
-
-                                        Behavior on radius {
-                                            NumberAnimation {
-                                                duration: Theme.normal
-                                                easing.type: Easing.OutBack
-                                            }
-                                        }
-                                        Behavior on color {
-                                            ColorAnimation {
-                                                duration: Theme.fast
-                                            }
-                                        }
-
-                                        Row {
-                                            anchors.centerIn: parent
-                                            spacing: 6
-
-                                            Text {
-                                                anchors.verticalCenter: parent.verticalCenter
-                                                text: profile.modelData.icon
-                                                color: profile.selected ? Theme.goldInk : Theme.tonalInk
-                                                font.family: "Symbols Nerd Font"
-                                                font.pixelSize: 16
-                                            }
-
-                                            Text {
-                                                anchors.verticalCenter: parent.verticalCenter
-                                                text: profile.modelData.label
-                                                color: profile.selected ? Theme.goldInk : Theme.tonalInk
-                                                font.family: Theme.font
-                                                font.pixelSize: 13
-                                                font.weight: Font.Bold
-                                            }
-                                        }
-
-                                        MouseArea {
-                                            id: profileMouse
-
-                                            anchors.fill: parent
-                                            hoverEnabled: true
-                                            cursorShape: Qt.PointingHandCursor
-                                            onClicked: PowerProfiles.profile = profile.modelData.value
+                                        onClicked: {
+                                            Pipewire.preferredDefaultAudioSink = output.modelData;
+                                            root.expanded = "";
                                         }
                                     }
                                 }
@@ -576,13 +490,193 @@ Scope {
                         }
                     }
 
-                    // Flows into the screen edge below the panel, like the bar's ends.
-                    InvertedCorner {
-                        x: sheet.width - Theme.barCorner
-                        y: card.height
-                        size: Theme.barCorner
-                        fill: Theme.surface
-                        mirrored: true
+                    // --- sliders ------------------------------------------------------
+                    SliderRow {
+                        visible: root.sink !== null
+                        icon: root.volumeIcon
+                        value: root.volume
+                        dimmed: root.muted
+                        label: root.muted ? "Muted" : Math.round(root.volume * 100) + "%"
+                        iconClickable: true
+                        armed: win.reveal > 0.2
+                        onIconClicked: if (root.sink?.audio)
+                            root.sink.audio.muted = !root.sink.audio.muted
+                        onMoved: v => root.setVolume(v)
+                    }
+
+                    SliderRow {
+                        visible: Brightness.available
+                        icon: root.brightnessIcon
+                        value: Brightness.level
+                        label: Math.round(Brightness.level * 100) + "%"
+                        armed: win.reveal > 0.55
+                        onMoved: v => Brightness.setLevel(v)
+                    }
+
+                    // --- light / dark -------------------------------------------------
+                    Text {
+                        topPadding: 4
+                        // Says who decides while it's automatic.
+                        text: !Appearance.automatic ? "Appearance" : Appearance.mode === "wallpaper" ? "Appearance · automatic, by the wallpaper" : !Appearance.hasLocation ? "Appearance · automatic, set a place in the settings" : Appearance.nextChange ? "Appearance · automatic, " + (Appearance.sunUp ? "dark at sunset " : "light at sunrise ") + Qt.formatTime(Appearance.nextChange, Config.use24h ? "HH:mm" : "h:mm AP") : "Appearance · automatic, by the sun"
+                        color: Theme.textDim
+                        font.family: Theme.font
+                        font.pixelSize: 13
+                        font.weight: Font.Bold
+                    }
+
+                    // Greyed out while it's automatic; choosing one goes back to manual.
+                    Row {
+                        id: appearanceRow
+
+                        width: parent.width
+                        spacing: 6
+                        opacity: Appearance.automatic ? 0.45 : 1
+
+                        Behavior on opacity {
+                            NumberAnimation {
+                                duration: Theme.normal
+                            }
+                        }
+
+                        Repeater {
+                            model: [
+                                { light: true, label: "Light", icon: "\u{f0599}" },
+                                { light: false, label: "Dark", icon: "\u{f0594}" }
+                            ]
+
+                            Rectangle {
+                                id: appearance
+
+                                required property var modelData
+                                readonly property bool selected: Appearance.light === modelData.light
+
+                                width: (appearanceRow.width - appearanceRow.spacing) / 2
+                                height: 48
+                                radius: selected ? 14 : height / 2
+                                color: selected ? Theme.gold : appearanceMouse.containsMouse ? Theme.hover(Theme.tonal, 1.25) : Theme.tonal
+
+                                Behavior on radius {
+                                    NumberAnimation {
+                                        duration: Theme.normal
+                                        easing.type: Easing.OutBack
+                                    }
+                                }
+                                Behavior on color {
+                                    ColorAnimation {
+                                        duration: Theme.fast
+                                    }
+                                }
+
+                                Row {
+                                    anchors.centerIn: parent
+                                    spacing: 6
+
+                                    Text {
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        text: appearance.modelData.icon
+                                        color: appearance.selected ? Theme.goldInk : Theme.tonalInk
+                                        font.family: "Symbols Nerd Font"
+                                        font.pixelSize: 16
+                                    }
+
+                                    Text {
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        text: appearance.modelData.label
+                                        color: appearance.selected ? Theme.goldInk : Theme.tonalInk
+                                        font.family: Theme.font
+                                        font.pixelSize: 13
+                                        font.weight: Font.Bold
+                                    }
+                                }
+
+                                MouseArea {
+                                    id: appearanceMouse
+
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: Appearance.choose(appearance.modelData.light)
+                                }
+                            }
+                        }
+                    }
+
+                    // --- power profile ------------------------------------------------
+                    Text {
+                        topPadding: 4
+                        text: "Power mode"
+                        color: Theme.textDim
+                        font.family: Theme.font
+                        font.pixelSize: 13
+                        font.weight: Font.Bold
+                    }
+
+                    Row {
+                        id: profileRow
+
+                        width: parent.width
+                        spacing: 6
+
+                        Repeater {
+                            model: root.profiles
+
+                            Rectangle {
+                                id: profile
+
+                                required property var modelData
+                                readonly property bool selected: PowerProfiles.profile === modelData.value
+
+                                width: (profileRow.width - profileRow.spacing * (root.profiles.length - 1)) / root.profiles.length
+                                height: 48
+                                // The chosen one squares off a little, like an M3 Expressive
+                                // button group.
+                                radius: selected ? 14 : height / 2
+                                color: selected ? Theme.gold : profileMouse.containsMouse ? Theme.hover(Theme.tonal, 1.25) : Theme.tonal
+
+                                Behavior on radius {
+                                    NumberAnimation {
+                                        duration: Theme.normal
+                                        easing.type: Easing.OutBack
+                                    }
+                                }
+                                Behavior on color {
+                                    ColorAnimation {
+                                        duration: Theme.fast
+                                    }
+                                }
+
+                                Row {
+                                    anchors.centerIn: parent
+                                    spacing: 6
+
+                                    Text {
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        text: profile.modelData.icon
+                                        color: profile.selected ? Theme.goldInk : Theme.tonalInk
+                                        font.family: "Symbols Nerd Font"
+                                        font.pixelSize: 16
+                                    }
+
+                                    Text {
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        text: profile.modelData.label
+                                        color: profile.selected ? Theme.goldInk : Theme.tonalInk
+                                        font.family: Theme.font
+                                        font.pixelSize: 13
+                                        font.weight: Font.Bold
+                                    }
+                                }
+
+                                MouseArea {
+                                    id: profileMouse
+
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: PowerProfiles.profile = profile.modelData.value
+                                }
+                            }
+                        }
                     }
                 }
             }

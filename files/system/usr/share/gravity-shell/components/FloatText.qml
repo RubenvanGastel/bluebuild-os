@@ -10,6 +10,7 @@ Item {
     property alias font: label.font
     property alias elide: label.elide
     property alias horizontalAlignment: label.horizontalAlignment
+    property alias lineHeight: label.lineHeight
     // Direction the old text leaves in (-1 up, 1 down).
     property int direction: -1
 
@@ -55,15 +56,13 @@ Item {
                 duration: 130
             }
         }
-        PropertyAction {
-            target: label
-            property: "text"
-            value: root.text
-        }
-        PropertyAction {
-            target: label
-            property: "anchors.verticalCenterOffset"
-            value: -8 * root.direction
+        // A script rather than PropertyActions: their values are taken when the animation
+        // was last started, which would show the text from one change before.
+        ScriptAction {
+            script: {
+                label.text = root.text;
+                label.anchors.verticalCenterOffset = -8 * root.direction;
+            }
         }
         ParallelAnimation {
             NumberAnimation {

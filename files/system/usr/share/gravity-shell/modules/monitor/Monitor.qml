@@ -4,9 +4,9 @@ import Quickshell.Wayland
 import qs.components
 import qs.services
 
-// System monitor, opened from the CPU/memory pill in the bar. Like the tray
-// menus it is the bar growing down under its pill, flowing into the bar in a curve on each
-// side: the three figures large, the last minute of CPU and memory use, every core, the
+// System monitor, opened from the CPU/memory pill in the bar. Like the tray menus it is the
+// bar growing into the screen beside its pill, flowing into the bar in a curve on each side:
+// the three figures large, the last minute of CPU and memory use, every core, the
 // temperatures, memory and GPU, and the busiest processes. Esc or a click outside closes.
 Scope {
     id: root
@@ -172,41 +172,13 @@ Scope {
                 }
             }
 
-            // Concave curves joining the panel's sides to the bar; they swell as it grows.
-            InvertedCorner {
-                size: Theme.barCorner * Math.min(1, card.height / Theme.barCorner)
-                x: card.x - size
-                y: Theme.barHeight
-                fill: Theme.surface
-                mirrored: true
-            }
-
-            InvertedCorner {
-                size: Theme.barCorner * Math.min(1, card.height / Theme.barCorner)
-                x: card.x + card.width
-                y: Theme.barHeight
-                fill: Theme.surface
-            }
-
-            Rectangle {
-                id: card
-
-                // Centred under the pill, kept clear of the screen edges.
-                width: 440
-                height: win.full * win.grow
-                x: Math.max(Theme.barCorner + Theme.gap, Math.min(Panels.monitorX - width / 2, win.width - Theme.barCorner - Theme.gap - width))
-                y: Theme.barHeight
-                // Square where it meets the bar.
-                bottomLeftRadius: Math.min(28, height / 2)
-                bottomRightRadius: Math.min(28, height / 2)
-                color: Theme.surface
-                clip: true
-
-                // Clicks on the card itself don't close it.
-                MouseArea {
-                    anchors.fill: parent
-                    acceptedButtons: Qt.AllButtons
-                }
+            // Centred on the pill, kept clear of the bar's ends.
+            BarSheet {
+                anchors.fill: parent
+                at: Panels.monitorAt
+                fullWidth: 440
+                fullHeight: win.full
+                grow: win.grow
 
                 Column {
                     id: content
@@ -219,8 +191,6 @@ Scope {
 
                     // --- the three figures ---------------------------------------------
                     Row {
-                        id: tiles
-
                         width: parent.width
                         spacing: 8
 

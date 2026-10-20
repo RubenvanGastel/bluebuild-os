@@ -3,16 +3,19 @@ import QtQuick.Shapes
 import Quickshell.Services.Pipewire
 import qs.services
 
-// Speaker glyph + level. The status pill around it scrolls the volume (setVolume).
+// Speaker glyph + level (under it, along a side). The status pill around it scrolls the
+// volume (setVolume).
 Item {
     id: root
+
+    property bool vertical: false
 
     readonly property PwNode sink: Pipewire.defaultAudioSink
     readonly property bool muted: sink?.audio?.muted ?? false
     readonly property real volume: sink?.audio?.volume ?? 0
 
     implicitWidth: row.implicitWidth
-    implicitHeight: 24
+    implicitHeight: vertical ? row.implicitHeight : 24
     visible: sink !== null
 
     PwObjectTracker {
@@ -26,18 +29,18 @@ Item {
         }
     }
 
-    Row {
+    Grid {
         id: row
 
         anchors.verticalCenter: parent.verticalCenter
-        spacing: 6
+        columns: root.vertical ? 1 : 2
+        spacing: root.vertical ? 3 : 6
+        horizontalItemAlignment: Grid.AlignHCenter
+        verticalItemAlignment: Grid.AlignVCenter
 
         Shape {
-            id: icon
-
             width: 18
             height: 16
-            anchors.verticalCenter: parent.verticalCenter
             preferredRendererType: Shape.CurveRenderer
 
             ShapePath {
@@ -94,11 +97,10 @@ Item {
         }
 
         Text {
-            anchors.verticalCenter: parent.verticalCenter
-            text: root.muted ? "muted" : Math.round(root.volume * 100) + "%"
+            text: root.muted ? (root.vertical ? "off" : "muted") : Math.round(root.volume * 100) + (root.vertical ? "" : "%")
             color: root.muted ? Theme.textDim : Theme.text
             font.family: Theme.font
-            font.pixelSize: 13
+            font.pixelSize: root.vertical ? 11 : 13
             font.weight: Font.Bold
         }
     }

@@ -12,7 +12,7 @@ Singleton {
 
     // Output the quick panel is open on; "" = closed.
     property string quick: ""
-    // Height the open quick panel takes below the bar, so notifications can go under it.
+    // Height the open quick panel takes below a top bar, so notifications can go under it.
     property real quickHeight: 0
 
     function toggleQuick(output: string): void {
@@ -27,17 +27,18 @@ Singleton {
         quick = "";
     }
 
-    // The open tray menu: output, the app's menu (QsMenuHandle) and where its right edge
-    // goes, in screen coordinates. trayOutput "" = closed.
+    // The open tray menu: output, the app's menu (QsMenuHandle) and where along the bar its
+    // far end (right, or bottom along a side) goes, in screen coordinates. trayOutput "" =
+    // closed.
     property string trayOutput: ""
     property var trayMenu: null
-    property real trayX: 0
+    property real trayAt: 0
 
-    function openTray(output: string, menu: var, x: real): void {
+    function openTray(output: string, menu: var, at: real): void {
         closeQuick();
         closeMonitor();
         trayMenu = menu;
-        trayX = x;
+        trayAt = at;
         trayOutput = output;
     }
 
@@ -45,14 +46,14 @@ Singleton {
         trayOutput = "";
     }
 
-    // The system monitor panel: output ("" = closed) and the screen x it centres on, under
-    // its pill in the bar (each bar tells where that is on its output).
+    // The system monitor panel: output ("" = closed) and where along the bar it centres,
+    // on its pill (each bar tells where that is on its output).
     property string monitor: ""
-    property real monitorX: 0
+    property real monitorAt: 0
     property var monitorAnchors: ({})
 
-    function setMonitorAnchor(output: string, x: real): void {
-        monitorAnchors[output] = x;
+    function setMonitorAnchor(output: string, at: real): void {
+        monitorAnchors[output] = at;
     }
 
     function toggleMonitor(output: string): void {
@@ -62,13 +63,21 @@ Singleton {
         }
         closeQuick();
         closeTray();
-        // Unknown (no bar there yet): at the right, kept clear of the screen edge.
-        monitorX = monitorAnchors[output] ?? 1e6;
+        // Unknown (no bar there yet, or the pill is hidden): at the far end, kept clear of
+        // the screen edge.
+        monitorAt = monitorAnchors[output] ?? 1e6;
         monitor = output;
     }
 
     function closeMonitor(): void {
         monitor = "";
+    }
+
+    // Asks the settings card to open, on a page ("" = the one it was on last).
+    signal settingsRequested(string page)
+
+    function openSettings(page: string): void {
+        settingsRequested(page);
     }
 
     IpcHandler {

@@ -1,7 +1,8 @@
 # Gravity shell
 
-A Quickshell desktop for niri inspired by Gravity Rush: floating workspaces, notifications that
-fall away and a lock screen, all coloured by the Hekseville palette or by your wallpaper.
+A Quickshell desktop for niri inspired by Gravity Rush: floating wallpapers, notifications that
+fall away and a lock screen, all coloured by an accent colour of your choice or by your
+wallpaper.
 
 Everything shares one Material 3 Expressive style: solid surfaces without borders, fully
 rounded pills, the accent colour for whatever is focused or selected, tonal fills for the
@@ -11,28 +12,48 @@ rest, and bold [Google Sans Flex](https://fonts.google.com/specimen/Google+Sans+
   with VA-API), on every screen. Videos also play live in the picker; for colours and the
   lock screen a still frame is taken with ffmpeg. `Super+Y` (or `gravity-shell wallpaper`)
   opens the picker: the wallpaper zooms out into a preview and three wallpapers rise from the
-  bottom and float in the gravity field. Left/Right (or the mouse wheel) scrolls them, Enter
+  bottom and float there. Left/Right (or the mouse wheel) scrolls them, Enter
   applies, Esc closes. It lists only your wallpaper folder: `Wallpapers` inside your Pictures
   folder (whatever it is called in your language, e.g. `~/Afbeeldingen/Wallpapers`), or the
   folder set as `wallpaperDir`. The folder is created the first time the picker opens.
   `gravity-shell wallpaper ~/pic.jpg` sets one directly.
-- **Colours**: the built-in Hekseville palette (indigo, violet and gold), or picked from the
-  wallpaper with [matugen](https://github.com/InioX/matugen). Switch in the picker, which also
-  offers matugen's scheme variants (tonal, vibrant, expressive, ...).
-- **Bar**: a solid Material 3 Expressive style bar along the top edge that curves into the
-  screen with inverted corners, with status in tonal pills and the clock in an accent pill.
-  The niri workspaces are numbered circles floating in it (the focused one filled with the
-  accent): they bob gently and swing one after another when gravity shifts (workspace
-  switches, notifications, the occasional "gravity storm").
-  It also holds the window title, the tray, volume, battery and a clock.
+- **Colours**: a Material You palette made by [matugen](https://github.com/InioX/matugen)
+  from one accent colour (GNOME's nine accents, or any other), or picked from the
+  wallpaper. The default is GNOME's blue, built in so it works without matugen. GNOME apps
+  get the nearest of their accents to match. Switch in the settings or the picker, which also
+  offer matugen's scheme variants (tonal, vibrant, expressive, ...).
+- **Bar**: a solid Material 3 Expressive style bar along the top edge (or the bottom, left
+  or right; along a side its contents stack) that curves into the screen with inverted
+  corners, with status in tonal pills and the clock in an accent pill.
+  The niri workspaces are numbered circles in it; switching stretches an accent pill from
+  the old one to the new one. It also holds the window title, the tray, volume, battery and
+  a clock.
 - **System monitor**: a pill in the bar with short bars for CPU and memory use. Click it
   (or `Super+M`) and the bar grows down into a panel with the last minute of CPU and memory
   use, every core, all temperature sensors and fans, memory and GPU use and the busiest
   processes.
-- **Quick panel**: click the volume/battery pill. Wi-Fi and Bluetooth tiles (the round icon
+- **Quick panel**: click the volume/battery pill. The cog opens the settings. Wi-Fi and Bluetooth tiles (the round icon
   switches them on or off, the rest of the tile unfolds the networks or devices to connect
   to, and asks for a Wi-Fi password in place), the audio output, volume and brightness
-  sliders and the power mode.
+  sliders, Light/Dark and the power mode.
+- **Light and dark**: the Light/Dark switch in the quick panel (or
+  `gravity-shell ipc call appearance toggle`) turns the shell, niri's borders and every app
+  light or dark. It sets GNOME's `color-scheme`, which GNOME (libadwaita) apps and, through
+  the desktop portal, browsers and Flatpaks follow, and switches GTK 3 apps between
+  `adw-gtk3` and `adw-gtk3-dark`. The shell's colours switch to their light variant.
+  Changing the setting elsewhere (GNOME Settings) is picked up too. In the settings it can
+  also go automatic: by the **wallpaper** (light when its average brightness is above 35%,
+  measured with ffmpeg) or by **sunrise and sunset** where you live (worked out on the
+  machine; the place is looked up once with Open-Meteo's place search). The quick panel's
+  Light/Dark buttons grey out then; clicking one goes back to choosing by hand.
+- **Settings** (`Super+Comma`, or the cog in the quick panel): the screen dims and a card
+  springs up with a sidebar of pages. *Appearance*: light or dark, built-in or wallpaper
+  colours and the scheme, the wallpaper and its folder. *Bar*: which edge it
+  runs along and what it shows. *Wi-Fi*: on or off, the network you're on with its addresses,
+  every network in range (join, with the password asked in place, or forget) and hidden
+  networks. *Bluetooth*: on or off, visible to other devices, your devices (connect, rename,
+  trust, forget) and devices nearby to pair. *Lock & clock*: idle lock time, 24-hour time and
+  the date. Changes apply at once. Ctrl+Tab goes through the pages, Esc closes.
 - **Session menu** (`Super+Shift+Q`): the screen dims and a card springs up with Lock,
   Suspend (locks first), Log out, Reboot, BIOS (reboot into the firmware setup; only when the
   machine supports it) and Power off. Left/Right or Tab picks one, Enter or a click runs it,
@@ -50,27 +71,42 @@ rest, and bold [Google Sans Flex](https://fonts.google.com/specimen/Google+Sans+
 
 ## Settings
 
-Optional `~/.config/gravity-shell/config.json` (live-reloaded). The picker writes it too,
-storing only settings that differ from the defaults:
+Optional `~/.config/gravity-shell/config.json` (live-reloaded). The settings card and the
+picker write it, storing only settings that differ from the defaults:
 
 ```json
 {
   "wallpaper": "/path/to/image.jpg",
   "wallpaperDir": "~/Somewhere/Else",
   "colors": "wallpaper",
+  "accent": "#3584e4",
   "colorScheme": "scheme-tonal-spot",
-  "ambientShifts": true,
+  "appearanceMode": "manual",
+  "locationName": "Eindhoven, North Brabant, Netherlands",
+  "latitude": 51.44,
+  "longitude": 5.48,
   "idleLockMinutes": 10,
-  "use24h": true
+  "use24h": true,
+  "showDate": true,
+  "barPosition": "top",
+  "barWorkspaces": true,
+  "barTitle": true,
+  "barClock": true,
+  "barStats": true,
+  "barTray": true,
+  "barStatus": true
 }
 ```
 
-`"colors"` is `"default"` or `"wallpaper"`. Generated colours are cached in
+`"colors"` is `"default"`, `"accent"` (made from `"accent"`, a `#rrggbb` colour) or
+`"wallpaper"`; `"appearanceMode"` is `"manual"`, `"wallpaper"` or `"sun"`; `"barPosition"` is `"top"`, `"bottom"`, `"left"`
+or `"right"`. Generated colours are cached in
 `~/.cache/gravity-shell/colors.json`. matugen can't read `.jxl` images, so with those the
 default colours are used. From a terminal:
 
 ```sh
-gravity-shell ipc call theme set wallpaper     # or: default
+gravity-shell ipc call theme set wallpaper     # or: accent, default
+gravity-shell ipc call theme accent "#e62d42"  # switches to accent colours
 gravity-shell ipc call theme scheme vibrant
 ```
 
@@ -80,7 +116,8 @@ gravity-shell ipc call theme scheme vibrant
 prefers that copy, and Quickshell reloads it live as you save.
 
 Keybinds use the IPC targets `volume` (increase, decrease, muteOutput, muteInput),
-`powerProfile` (cycle), `wallpaper` (toggle, set), `theme`, `lock`, `keybinds` (toggle) and `session`
+`powerProfile` (cycle), `wallpaper` (toggle, set), `theme`, `appearance` (toggle, set
+`light|dark`, auto `wallpaper|sun|manual`), `settings` (toggle, open `appearance|bar|wifi|bluetooth|general`), `lock`, `keybinds` (toggle) and `session`
 (toggle, run `lock|suspend|logout|reboot|firmware|poweroff`).
 
 Useful commands: `gravity-shell lock`, `gravity-shell wallpaper [image]`, `gravity-shell ipc show`, `gravity-shell log`.

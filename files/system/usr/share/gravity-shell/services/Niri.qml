@@ -14,10 +14,6 @@ Singleton {
     // id -> workspace / window objects, exactly as niri sends them.
     property var workspaces: ({})
     property var windows: ({})
-    property var focusedWindowId: null
-    property bool overviewOpen: false
-
-    readonly property var focusedWindow: focusedWindowId !== null ? (windows[focusedWindowId] ?? null) : null
 
     // Workspace ids on one output, in niri's top-to-bottom order.
     function workspaceIdsOn(output: string): var {
@@ -68,7 +64,6 @@ Singleton {
             const target = workspaces[id];
             if (!target)
                 return;
-            const prev = Object.values(workspaces).find(w => w.output === target.output && w.is_active);
             const map = {};
             for (const w of Object.values(workspaces)) {
                 const c = Object.assign({}, w);
@@ -79,47 +74,18 @@ Singleton {
                 map[c.id] = c;
             }
             workspaces = map;
-            // Moving down the strip feels like falling: the world swings up past you.
-            if (focused && prev && prev.id !== id)
-                Gravity.kick(0, target.idx > prev.idx ? -1 : 1, 1);
-        } else if (ev.WorkspaceActiveWindowChanged) {
-            const { workspace_id, active_window_id } = ev.WorkspaceActiveWindowChanged;
-            if (workspaces[workspace_id]) {
-                const c = Object.assign({}, workspaces[workspace_id], { active_window_id });
-                workspaces = Object.assign({}, workspaces, { [workspace_id]: c });
-            }
         } else if (ev.WindowsChanged) {
             const map = {};
-            let focusedId = null;
-            for (const w of ev.WindowsChanged.windows) {
+            for (const w of ev.WindowsChanged.windows)
                 map[w.id] = w;
-                if (w.is_focused)
-                    focusedId = w.id;
-            }
             windows = map;
-            focusedWindowId = focusedId;
         } else if (ev.WindowOpenedOrChanged) {
             const w = ev.WindowOpenedOrChanged.window;
             windows = Object.assign({}, windows, { [w.id]: w });
-            if (w.is_focused)
-                focusedWindowId = w.id;
         } else if (ev.WindowClosed) {
             const map = Object.assign({}, windows);
             delete map[ev.WindowClosed.id];
             windows = map;
-            if (focusedWindowId === ev.WindowClosed.id)
-                focusedWindowId = null;
-        } else if (ev.WindowFocusChanged) {
-            const id = ev.WindowFocusChanged.id;
-            const before = focusedWindow;
-            focusedWindowId = id;
-            // Scrolling sideways through columns nudges the field sideways.
-            const a = before?.layout?.pos_in_scrolling_layout;
-            const b = windows[id]?.layout?.pos_in_scrolling_layout;
-            if (a && b && a[0] !== b[0] && before.workspace_id === windows[id].workspace_id)
-                Gravity.kick(b[0] > a[0] ? -0.6 : 0.6, 0, 1);
-        } else if (ev.OverviewOpenedOrClosed) {
-            overviewOpen = ev.OverviewOpenedOrClosed.is_open;
         }
     }
 

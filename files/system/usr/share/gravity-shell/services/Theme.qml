@@ -5,40 +5,73 @@ import Quickshell
 import Quickshell.Io
 
 // Colours for the whole shell. Config.colors picks the palette:
-//   "default"    Hekseville at dusk: indigo, Kat's violet glow, warm gold lamplight.
-//   "wallpaper"  matugen derives a Material You scheme from the wallpaper and its roles
-//                are mapped onto the same names, so every widget follows along.
+//   "default"    the built-in one: Material You from GNOME's blue accent, so the shell
+//                matches GNOME apps out of the box. Needs no matugen.
+//   "accent"     matugen derives a Material You scheme from one colour (Config.accent).
+//   "wallpaper"  matugen derives one from the wallpaper.
+// matugen's roles are mapped onto the same names, so every widget follows along.
+// Appearance picks the light or dark variant (shownLight: while the wallpaper picker
+// previews a wallpaper, that one's).
 Singleton {
     id: root
 
-    // Default palette. The matugen role each name takes in "wallpaper" mode is noted.
-    readonly property var defaults: ({
-            night: "#0d0920",      // surface_container_lowest
-            deep: "#1a1340",       // surface_container_low
-            dusk: "#3a2868",       // surface_container_high
-            haze: "#6d4a8c",       // outline_variant
-            horizon: "#d98a5c",    // tertiary_container
-            nebula: "#7b5cff",     // inverse_primary
-            glow: "#b9a3ff",       // secondary
-            gold: "#f4c66d",       // primary (the accent)
-            goldInk: "#2b1d00",    // on_primary (text on the accent)
-            tonal: "#40306e",      // secondary_container (selected-but-quiet fills)
-            tonalInk: "#e6dbff",   // on_secondary_container
-            amber: "#ec9550",      // tertiary
-            rose: "#ff7eb0",       // error
-            cream: "#f7ecd6",      // on_surface
-            text: "#efe8ff",       // on_surface
-            textDim: "#a99ccc",    // on_surface_variant
-            panel: "#0f0a26"       // surface_container (the bar, cards, fields)
+    // Default palette: matugen's tonal spot scheme for GNOME's accent blue (#3584e4). The
+    // role each name takes is noted.
+    readonly property var darkDefaults: ({
+            night: "#0c0e13",      // surface_container_lowest
+            deep: "#191c20",       // surface_container_low
+            dusk: "#282a2f",       // surface_container_high
+            glow: "#bdc7dc",       // secondary
+            gold: "#a7c8ff",       // primary (the accent)
+            goldInk: "#04305f",    // on_primary (text on the accent)
+            tonal: "#3d4758",      // secondary_container (selected-but-quiet fills)
+            tonalInk: "#d9e3f8",   // on_secondary_container
+            amber: "#dbbce1",      // tertiary
+            rose: "#ffb4ab",       // error
+            text: "#e1e2e9",       // on_surface
+            textDim: "#c4c6cf",    // on_surface_variant
+            panel: "#1d2024"       // surface_container (the bar, cards, fields)
         })
+
+    readonly property var lightDefaults: ({
+            night: "#ffffff",
+            deep: "#f3f3fa",
+            dusk: "#e7e8ee",
+            glow: "#555f71",
+            gold: "#3e5f90",
+            goldInk: "#ffffff",
+            tonal: "#d9e3f8",
+            tonalInk: "#121c2b",
+            amber: "#6e5676",
+            rose: "#ba1a1a",
+            text: "#191c20",
+            textDim: "#43474e",
+            panel: "#ededf4"
+        })
+
+    // Accent colours to pick from for "accent" (any other colour works too): GNOME's own,
+    // with the name its accent-color setting has for each.
+    readonly property var accents: [
+        { value: "#3584e4", label: "Blue", gnome: "blue" },
+        { value: "#2190a4", label: "Teal", gnome: "teal" },
+        { value: "#3a944a", label: "Green", gnome: "green" },
+        { value: "#c88800", label: "Yellow", gnome: "yellow" },
+        { value: "#ed5b00", label: "Orange", gnome: "orange" },
+        { value: "#e62d42", label: "Red", gnome: "red" },
+        { value: "#d56199", label: "Pink", gnome: "pink" },
+        { value: "#9141ac", label: "Purple", gnome: "purple" },
+        { value: "#6f8396", label: "Slate", gnome: "slate" }
+    ]
+
+    // Light or dark as shown in the shell, which may be a preview; and as set for the apps.
+    readonly property bool light: Appearance.shownLight
+    readonly property bool appliedLight: Appearance.light
+    readonly property var defaults: light ? lightDefaults : darkDefaults
 
     readonly property var roles: ({
             night: "surface_container_lowest",
             deep: "surface_container_low",
             dusk: "surface_container_high",
-            haze: "outline_variant",
-            horizon: "tertiary_container",
-            nebula: "inverse_primary",
             glow: "secondary",
             gold: "primary",
             goldInk: "on_primary",
@@ -46,30 +79,42 @@ Singleton {
             tonalInk: "on_secondary_container",
             amber: "tertiary",
             rose: "error",
-            cream: "on_surface",
             text: "on_surface",
             textDim: "on_surface_variant",
             panel: "surface_container"
         })
 
+    // matugen's scheme variants for "accent" and "wallpaper" colours (Config.colorScheme).
+    readonly property var schemes: [
+        { id: "scheme-tonal-spot", label: "Tonal" },
+        { id: "scheme-vibrant", label: "Vibrant" },
+        { id: "scheme-expressive", label: "Expressive" },
+        { id: "scheme-content", label: "Content" },
+        { id: "scheme-fidelity", label: "Fidelity" },
+        { id: "scheme-fruit-salad", label: "Fruit salad" },
+        { id: "scheme-rainbow", label: "Rainbow" },
+        { id: "scheme-neutral", label: "Neutral" },
+        { id: "scheme-monochrome", label: "Mono" }
+    ]
+
     // While the wallpaper picker is open: the wallpaper it has selected, so the colours
     // preview that one before it is applied. Empty = Config.wallpaperPath.
     property string previewPath: ""
 
-    // Palette generated by matugen for the current wallpaper and scheme; {} until ready.
+    // Palette generated by matugen for the current colour or wallpaper and scheme; {} until
+    // ready.
     property var generated: ({})
-    // Which "wallpaper|scheme" `generated` belongs to.
+    // Which "source|scheme|mode" `generated` belongs to; the source is "color:#rrggbb" or
+    // "image:/path".
     property string generatedKey
-    readonly property bool fromWallpaper: Config.colors === "wallpaper" && generated.night !== undefined
-    readonly property var palette: fromWallpaper ? generated : defaults
+    readonly property bool generatedColors: Config.colors === "wallpaper" || Config.colors === "accent"
+    readonly property bool fromGenerated: generatedColors && generated.night !== undefined
+    readonly property var palette: fromGenerated ? generated : defaults
 
     readonly property color night: palette.night
     readonly property color deep: palette.deep
     readonly property color dusk: palette.dusk
-    readonly property color haze: palette.haze
-    readonly property color horizon: palette.horizon
 
-    readonly property color nebula: palette.nebula
     readonly property color glow: palette.glow
     readonly property color gold: palette.gold
     readonly property color goldInk: palette.goldInk
@@ -77,21 +122,30 @@ Singleton {
     readonly property color tonalInk: palette.tonalInk
     readonly property color amber: palette.amber
     readonly property color rose: palette.rose
-    readonly property color cream: palette.cream
 
     readonly property color text: palette.text
     readonly property color textDim: palette.textDim
     // Solid surface for the bar, notification cards and the password field.
     readonly property color surface: palette.panel
 
-    // Behind the lock screen text: the wallpaper is darkened with this.
+    // A hovered fill: a little lighter on dark surfaces, a little darker on light ones.
+    function hover(c: color, amount: real): color {
+        return light ? Qt.darker(c, 1 + (amount - 1) / 2) : Qt.lighter(c, amount);
+    }
+
+    // Behind the lock screen text: the wallpaper is darkened (lightened in light mode)
+    // with this.
     readonly property color scrim: Qt.alpha(night, 0.35)
 
     // Material 3 Expressive's typeface; falls back to the system sans if it's missing.
     readonly property string font: "Google Sans Flex"
 
-    // Height of the bar; notifications and other popups line up below it.
-    readonly property int barHeight: 42
+    // Thickness of the bar (its height, or its width along a side); popups line up
+    // against it.
+    readonly property int barSize: 42
+    // Screen edge the bar runs along, and whether that is a side (a vertical bar).
+    readonly property string barEdge: ["top", "bottom", "left", "right"].includes(Config.barPosition) ? Config.barPosition : "top"
+    readonly property bool barVertical: barEdge === "left" || barEdge === "right"
     // Radius of the inverted corners below the bar.
     readonly property int barCorner: 24
     // Gap between popups and the bar or the screen edge.
@@ -100,22 +154,25 @@ Singleton {
     readonly property int fast: 180
     readonly property int normal: 320
     readonly property int slow: 620
-    readonly property int verySlow: 1000
 
-    // Material "emphasized decelerate": things that arrive and settle.
-    readonly property var settle: [0.05, 0.7, 0.1, 1.0, 1.0, 1.0]
     // Emphasized: things that move from one place to another and stay on screen.
     readonly property var emphasized: [0.2, 0.0, 0.0, 1.0, 1.0, 1.0]
     // Emphasized accelerate: things that leave.
     readonly property var depart: [0.3, 0.0, 0.8, 0.15, 1.0, 1.0]
 
-    // Set when matugen is missing or could not read the image; the picker shows it.
+    // Set when matugen is missing or could not read the image or colour; the picker and the
+    // settings show it.
     property string error: ""
 
     readonly property string cacheDir: (Quickshell.env("XDG_CACHE_HOME") || Quickshell.env("HOME") + "/.cache") + "/gravity-shell"
-    // "wallpaper|scheme" of the applied wallpaper; only its palette goes in the cache.
-    readonly property string appliedKey: Config.wallpaperPath + "|" + Config.colorScheme
-    readonly property string wanted: Config.ready && Config.colors === "wallpaper" ? (previewPath || Config.wallpaperPath) + "|" + Config.colorScheme : ""
+    readonly property string mode: light ? "light" : "dark"
+    // What the colours are generated from: the accent, or the wallpaper (the one being
+    // previewed in the picker, for `wanted`).
+    readonly property string appliedSource: Config.colors === "accent" ? "color:" + Config.accent : "image:" + Config.wallpaperPath
+    readonly property string wantedSource: Config.colors === "accent" ? appliedSource : "image:" + (previewPath || Config.wallpaperPath)
+    // "source|scheme|mode" of the applied colours; only their palette goes in the cache.
+    readonly property string appliedKey: appliedSource + "|" + Config.colorScheme + "|" + (appliedLight ? "light" : "dark")
+    readonly property string wanted: Config.ready && Appearance.ready && generatedColors ? wantedSource + "|" + Config.colorScheme + "|" + mode : ""
 
     // Palettes generated this session by key, so browsing back and forth is instant.
     property var memo: ({})
@@ -162,10 +219,13 @@ Singleton {
             // One run at a time; onExited comes back here if the wallpaper changed meanwhile.
             if (matugen.running)
                 return;
-            const i = root.wanted.lastIndexOf("|");
+            const parts = root.wanted.split("|");
             matugen.key = root.wanted;
-            matugen.path = root.wanted.slice(0, i);
-            matugen.scheme = root.wanted.slice(i + 1);
+            matugen.mode = parts.pop();
+            matugen.scheme = parts.pop();
+            const source = parts.join("|");
+            matugen.color = source.startsWith("color:") ? source.slice(6) : "";
+            matugen.path = source.startsWith("image:") ? source.slice(6) : "";
             matugen.running = true;
         }
     }
@@ -176,18 +236,24 @@ Singleton {
         // What this run is for; set together just before it starts.
         property string key
         property string path
+        property string color
         property string scheme
+        property string mode
 
-        // Videos are read from their poster frame, taken here if it isn't cached yet.
+        // From a colour, or an image. Videos are read from their poster frame, taken here
+        // if it isn't cached yet.
         command: ["sh", "-c", `
+            if [ -n "$5" ]; then
+                exec matugen color hex "$5" --dry-run --json hex -m "$4" -t "$2"
+            fi
             mkdir -p "$0" "$(dirname "$1")" || exit 1
             if [ -n "$3" ] && [ ! -s "$1" ]; then
                 tmp="$1.$$.jpg"
                 ffmpeg -loglevel error -i "$3" -frames:v 1 -q:v 3 -y "$tmp"
                 [ -s "$tmp" ] && mv -f "$tmp" "$1"
             fi
-            exec matugen image "$1" --dry-run --json hex -m dark -t "$2"
-        `, root.cacheDir, Media.stillOf(path), scheme, Media.isVideo(path) ? path : ""]
+            exec matugen image "$1" --dry-run --json hex -m "$4" -t "$2"
+        `, root.cacheDir, path ? Media.stillOf(path) : "", scheme, Media.isVideo(path) ? path : "", mode, color]
         stdout: StdioCollector {
             id: out
         }
@@ -196,12 +262,12 @@ Singleton {
         }
         onExited: code => {
             if (code !== 0) {
-                root.error = code === 127 ? "matugen is not installed" : "matugen could not read this image";
+                root.error = code === 127 ? "matugen is not installed" : matugen.color ? "matugen could not read this colour" : "matugen could not read this image";
                 console.warn("gravity: matugen failed:", err.text.trim());
                 root.generated = {};
                 root.generatedKey = "";
             } else {
-                const palette = root.parse(out.text);
+                const palette = root.parse(out.text, matugen.mode);
                 if (palette) {
                     root.memo[matugen.key] = palette;
                     root.use(matugen.key, palette);
@@ -214,8 +280,8 @@ Singleton {
         }
     }
 
-    // matugen 3+ nests colours as colors.<role>.default; 2.x used colors.dark.<role>.
-    function parse(text: string): var {
+    // matugen 3+ nests colours as colors.<role>.default; 2.x used colors.<mode>.<role>.
+    function parse(text: string, mode: string): var {
         let data;
         try {
             data = JSON.parse(text.slice(text.indexOf("{")));
@@ -226,7 +292,7 @@ Singleton {
         const palette = {};
         for (const name in roles) {
             const role = roles[name];
-            const v = c[role]?.default ?? c[role]?.dark ?? c.dark?.[role];
+            const v = c[role]?.default ?? c[role]?.[mode] ?? c[mode]?.[role];
             if (typeof v !== "string")
                 return null;
             palette[name] = v;
@@ -237,7 +303,7 @@ Singleton {
     // niri's colours (included by its config), following the applied palette only, so
     // browsing in the picker doesn't recolour every window. A new wallpaper keeps the
     // previous palette until its own is ready, rather than flashing the defaults.
-    readonly property var niriPalette: Config.colors === "wallpaper" && appliedGenerated.gold !== undefined ? appliedGenerated : defaults
+    readonly property var niriPalette: generatedColors && appliedGenerated.gold !== undefined ? appliedGenerated : appliedLight ? lightDefaults : darkDefaults
     readonly property string niriConfig: `// Written by gravity-shell from its colours; edits are overwritten.
 layout {
     focus-ring {
@@ -257,12 +323,61 @@ overview {
 
     onNiriConfigChanged: niriWrite.restart()
 
+    // GNOME apps take one of a few named accents: the one nearest in hue to the shell's,
+    // or slate when that is nearly grey.
+    readonly property string gnomeAccent: {
+        const c = Qt.color(niriPalette.gold);
+        if (c.hslSaturation < 0.12 || c.hslHue < 0)
+            return "slate";
+        let best = "blue", bestDistance = 2;
+        for (const a of accents) {
+            const h = Qt.color(a.value).hslHue;
+            if (a.gnome === "slate")
+                continue;
+            const d = Math.min(Math.abs(h - c.hslHue), 1 - Math.abs(h - c.hslHue));
+            if (d < bestDistance) {
+                best = a.gnome;
+                bestDistance = d;
+            }
+        }
+        return best;
+    }
+
+    onGnomeAccentChanged: gnomeWrite.restart()
+
+    Timer {
+        id: gnomeWrite
+
+        interval: 200
+        onTriggered: {
+            if (!Config.ready || !Appearance.ready)
+                return;
+            gnomeProc.running = false;
+            gnomeProc.running = true;
+        }
+    }
+
+    Process {
+        id: gnomeProc
+
+        command: ["sh", "-c", '[ "$(gsettings get org.gnome.desktop.interface accent-color)" = "\'$0\'" ] || gsettings set org.gnome.desktop.interface accent-color "$0"', root.gnomeAccent]
+    }
+
+    Connections {
+        target: Appearance
+
+        function onReadyChanged(): void {
+            niriWrite.restart();
+            gnomeWrite.restart();
+        }
+    }
+
     Timer {
         id: niriWrite
 
         interval: 200
         onTriggered: {
-            if (!Config.ready)
+            if (!Config.ready || !Appearance.ready)
                 return;
             niriProc.running = false;
             niriProc.text = root.niriConfig;

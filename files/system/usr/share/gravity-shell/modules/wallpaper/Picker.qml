@@ -8,9 +8,9 @@ import qs.components
 import qs.modules.bar
 import qs.services
 
-// Wallpaper picker (`gravity-shell wallpaper`, Mod+Shift+W).
+// Wallpaper picker (`gravity-shell wallpaper`, Mod+Y).
 // The wallpaper zooms out into a preview, and three wallpapers rise from the bottom and
-// float in the gravity field. Left/Right scrolls them, Enter applies, Esc closes.
+// float there. Left/Right scrolls them, Enter applies, Esc closes.
 // Lists only the wallpaper folder (Config.wallpaperDir, by default <XDG Pictures>/Wallpapers)
 // and picks the colour source.
 Scope {
@@ -89,18 +89,6 @@ Scope {
     readonly property string userDir: Config.wallpaperDir.replace(/^~(?=$|\/)/, home)
     // Shown to the user, with ~ for the home folder.
     readonly property string prettyDir: dir.startsWith(home + "/") ? "~" + dir.slice(home.length) : dir
-
-    readonly property var schemes: [
-        { id: "scheme-tonal-spot", label: "Tonal" },
-        { id: "scheme-vibrant", label: "Vibrant" },
-        { id: "scheme-expressive", label: "Expressive" },
-        { id: "scheme-content", label: "Content" },
-        { id: "scheme-fidelity", label: "Fidelity" },
-        { id: "scheme-fruit-salad", label: "Fruit salad" },
-        { id: "scheme-rainbow", label: "Rainbow" },
-        { id: "scheme-neutral", label: "Neutral" },
-        { id: "scheme-monochrome", label: "Mono" }
-    ]
 
     function toggle(): void {
         if (open) {
@@ -196,7 +184,8 @@ Scope {
         }
     }
 
-    // `gravity-shell ipc call theme set wallpaper|default`, `... theme scheme vibrant`
+    // `gravity-shell ipc call theme set wallpaper|accent|default`, `... theme scheme vibrant`,
+    // `... theme accent "#3584e4"`
     IpcHandler {
         target: "theme"
 
@@ -208,8 +197,13 @@ Scope {
             Config.setColorScheme(name.startsWith("scheme-") ? name : "scheme-" + name);
         }
 
+        // Switches to accent colours from this one (#rrggbb).
+        function accent(hex: string): void {
+            Config.setAccent(hex);
+        }
+
         function get(): string {
-            return Config.colors === "wallpaper" ? Config.colorScheme : "default";
+            return Config.colors === "default" ? "default" : Config.colors + " " + Config.colorScheme;
         }
     }
 
@@ -226,7 +220,7 @@ Scope {
         radius: height / 2
         opacity: enabled ? 1 : 0.4
         // Like the bar: accent pill when selected, tonal otherwise.
-        color: selected ? Theme.gold : chipMouse.containsMouse ? Qt.lighter(Theme.tonal, 1.25) : Theme.tonal
+        color: selected ? Theme.gold : chipMouse.containsMouse ? Theme.hover(Theme.tonal, 1.25) : Theme.tonal
 
         Behavior on color {
             ColorAnimation {
@@ -279,16 +273,21 @@ Scope {
             property real zoom: 0
             property real rise: 0
 
-            // Scene time for the floating cards. They ignore the gravity field, so
-            // workspace switches and the like don't jolt them while browsing.
+            // Scene time for the floating cards.
             property real t: 0
 
             readonly property string selected: root.shownFiles[carousel.currentIndex] ?? Config.wallpaperPath
 
-            // Colours follow the selected wallpaper while browsing; back to the applied one
-            // when the picker closes.
+            // Colours (and light or dark, when the wallpaper picks it) follow the selected
+            // wallpaper while browsing; back to the applied one when the picker closes.
             Binding {
                 target: Theme
+                property: "previewPath"
+                value: win.selected
+                when: root.open
+            }
+            Binding {
+                target: Appearance
                 property: "previewPath"
                 value: win.selected
                 when: root.open
@@ -660,7 +659,7 @@ Scope {
                         // with the wallpaper, like a small copy of the desktop. Just a
                         // picture: clicks go to the preview.
                         BarSurface {
-                            width: parent.width
+                            anchors.fill: parent
                             output: win.screen?.name ?? ""
                             barWindow: win
                             enabled: false
@@ -705,8 +704,14 @@ Scope {
 
                         Chip {
                             label: "Default colours"
-                            selected: Config.colors !== "wallpaper"
+                            selected: Config.colors === "default"
                             onClicked: Config.setColors("default")
+                        }
+
+                        Chip {
+                            label: "Accent colour"
+                            selected: Config.colors === "accent"
+                            onClicked: Config.setColors("accent")
                         }
 
                         Chip {
@@ -716,7 +721,7 @@ Scope {
                         }
 
                         Rectangle {
-                            visible: Config.colors === "wallpaper"
+                            visible: Config.colors !== "default"
                             width: 1
                             height: 20
                             anchors.verticalCenter: parent.verticalCenter
@@ -724,7 +729,7 @@ Scope {
                         }
 
                         Repeater {
-                            model: Config.colors === "wallpaper" ? root.schemes : []
+                            model: Config.colors !== "default" ? Theme.schemes : []
 
                             Chip {
                                 required property var modelData
@@ -738,7 +743,7 @@ Scope {
 
                     Text {
                         anchors.horizontalCenter: parent.horizontalCenter
-                        visible: Config.colors === "wallpaper" && Theme.error !== ""
+                        visible: Config.colors !== "default" && Theme.error !== ""
                         text: Theme.error + ", using the default colours"
                         color: Theme.rose
                         font.family: Theme.font

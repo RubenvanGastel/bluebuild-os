@@ -381,6 +381,7 @@ binds {
     Mod+Shift+Q hotkey-overlay-title="Session Menu" { spawn "gravity-shell" "ipc" "call" "session" "toggle"; }
     Mod+Y hotkey-overlay-title="Wallpaper Menu" { spawn "gravity-shell" "wallpaper"; }
     Mod+F1 hotkey-overlay-title="Keybind Cheatsheet" { spawn "gravity-shell" "ipc" "call" "keybinds" "toggle"; }
+    Mod+Comma hotkey-overlay-title="Settings" { spawn "gravity-shell" "ipc" "call" "settings" "toggle"; }
 
     // System & session
     Mod+Alt+L hotkey-overlay-title="Lock Screen" { spawn "gravity-shell" "lock"; }

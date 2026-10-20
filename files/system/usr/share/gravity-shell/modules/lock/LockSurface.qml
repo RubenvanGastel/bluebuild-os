@@ -54,8 +54,6 @@ WlSessionLockSurface {
     // --- background ---------------------------------------------------------------
     // Both layers zoom in slightly as they blur; that also hides the blur's soft edge.
     Item {
-        id: backdrop
-
         anchors.fill: parent
         scale: 1 + surface.show * 0.05
 

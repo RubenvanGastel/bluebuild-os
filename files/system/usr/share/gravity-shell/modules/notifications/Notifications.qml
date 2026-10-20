@@ -17,12 +17,7 @@ Scope {
         imageSupported: true
         bodyMarkupSupported: true
 
-        onNotification: n => {
-            n.tracked = true;
-            // A small nudge of the gravity field for every arrival.
-            if (!Gravity.hold)
-                Gravity.kick(-0.25, 0.15, 0.6);
-        }
+        onNotification: n => n.tracked = true
     }
 
     // Shown on the focused output only (niri), otherwise on the first screen.
@@ -36,12 +31,13 @@ Scope {
             top: true
             right: true
         }
-        // Right under the bar, tucked into its curved corner: the cards sit Theme.gap below
-        // the bar and from the screen edge. The window starts at the bar and reaches a bit
-        // further left and down than the cards, for their shadow and the slide-in.
-        // Ignore the bar's reserved space, so the margin below is exact.
+        // In the top right corner, tucked into the bar's curved corner when it is at the top
+        // or the right: the cards sit Theme.gap from the bar and the screen edges. The window
+        // starts at the bar and reaches a bit further left and down than the cards, for their
+        // shadow and the slide-in. Ignore the bar's reserved space, so the margins are exact.
         exclusionMode: ExclusionMode.Ignore
-        margins.top: Theme.barHeight
+        margins.top: Theme.barEdge === "top" ? Theme.barSize : 0
+        margins.right: Theme.barEdge === "right" ? Theme.barSize : 0
         implicitWidth: cardWidth + Theme.gap + 40
         implicitHeight: Math.max(1, stack.implicitHeight + below + Theme.gap + 40)
         exclusiveZone: 0

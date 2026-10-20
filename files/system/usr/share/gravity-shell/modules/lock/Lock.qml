@@ -41,7 +41,6 @@ Scope {
         buffer = "";
         message = "";
         captures = {};
-        Gravity.hold = true;
         phase = "capturing";
         captureTimeout.restart();
     }
@@ -100,8 +99,6 @@ Scope {
                 mask: Region {}
 
                 ScreencopyView {
-                    id: copy
-
                     anchors.fill: parent
                     captureSource: grabber.modelData
                     live: false
@@ -172,7 +169,6 @@ Scope {
             root.phase = "idle";
             root.buffer = "";
             root.captures = {};
-            Gravity.hold = false;
         }
     }
 

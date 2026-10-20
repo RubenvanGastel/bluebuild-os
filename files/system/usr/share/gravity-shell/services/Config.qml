@@ -19,17 +19,37 @@ Singleton {
     // The folder the picker lists. Empty = "Wallpapers" in your XDG Pictures folder
     // (whatever it is called in your language, e.g. ~/Afbeeldingen/Wallpapers).
     property alias wallpaperDir: adapter.wallpaperDir
-    // "default": the built-in Gravity palette. "wallpaper": colours picked from the
-    // wallpaper with matugen.
+    // "default": the built-in palette (GNOME blue). "accent": generated from `accent` with
+    // matugen. "wallpaper": picked from the wallpaper with matugen.
     property alias colors: adapter.colors
-    // matugen scheme for "wallpaper" colours, e.g. scheme-tonal-spot, scheme-vibrant,
+    // Seed colour for "accent" colours, as #rrggbb.
+    property alias accent: adapter.accent
+    // matugen scheme for "accent" and "wallpaper" colours, e.g. scheme-tonal-spot, scheme-vibrant,
     // scheme-expressive, scheme-content, scheme-fidelity, scheme-monochrome.
     property alias colorScheme: adapter.colorScheme
-    // Random gravity shifts every minute or so (the bar sways).
-    property alias ambientShifts: adapter.ambientShifts
+    // Who picks light or dark: "manual", "wallpaper" (by its brightness) or "sun" (light
+    // from sunrise to sunset at the location below). See Appearance.qml.
+    property alias appearanceMode: adapter.appearanceMode
+    // Where you are, for sunrise and sunset: a place name to show, and its coordinates.
+    // Empty name = not set.
+    property alias locationName: adapter.locationName
+    property alias latitude: adapter.latitude
+    property alias longitude: adapter.longitude
     // 0 disables auto-lock.
     property alias idleLockMinutes: adapter.idleLockMinutes
     property alias use24h: adapter.use24h
+    // The date beside the time in the bar.
+    property alias showDate: adapter.showDate
+    // Screen edge the bar runs along: "top", "bottom", "left" or "right".
+    property alias barPosition: adapter.barPosition
+    // What the bar shows. With the status pill (volume and battery) hidden, the quick
+    // panel still opens with `gravity-shell ipc call quickPanel toggle`.
+    property alias barWorkspaces: adapter.barWorkspaces
+    property alias barTitle: adapter.barTitle
+    property alias barClock: adapter.barClock
+    property alias barStats: adapter.barStats
+    property alias barTray: adapter.barTray
+    property alias barStatus: adapter.barStatus
 
     // False until the config file has been read (or found missing).
     property bool ready: false
@@ -42,12 +62,37 @@ Singleton {
     }
 
     function setColors(mode: string): void {
-        adapter.colors = mode === "wallpaper" ? "wallpaper" : "default";
+        adapter.colors = mode === "wallpaper" || mode === "accent" ? mode : "default";
+        save();
+    }
+
+    // Switches to "accent" colours from this one (#rrggbb, or rrggbb).
+    function setAccent(hex: string): void {
+        const c = hex.trim().replace(/^#?/, "#").toLowerCase();
+        if (!/^#[0-9a-f]{6}$/.test(c))
+            return;
+        adapter.accent = c;
+        adapter.colors = "accent";
         save();
     }
 
     function setColorScheme(scheme: string): void {
         adapter.colorScheme = scheme;
+        save();
+    }
+
+    function setLocation(name: string, lat: real, lon: real): void {
+        adapter.locationName = name;
+        adapter.latitude = lat;
+        adapter.longitude = lon;
+        save();
+    }
+
+    // Any setting by name, as the settings card does.
+    function set(key: string, value: var): void {
+        if (!(key in defaults) || adapter[key] === value)
+            return;
+        adapter[key] = value;
         save();
     }
 
@@ -61,10 +106,22 @@ Singleton {
             wallpaper: "",
             wallpaperDir: "",
             colors: "default",
+            accent: "#3584e4",
             colorScheme: "scheme-tonal-spot",
-            ambientShifts: true,
+            appearanceMode: "manual",
+            locationName: "",
+            latitude: 0,
+            longitude: 0,
             idleLockMinutes: 10,
-            use24h: true
+            use24h: true,
+            showDate: true,
+            barPosition: "top",
+            barWorkspaces: true,
+            barTitle: true,
+            barClock: true,
+            barStats: true,
+            barTray: true,
+            barStatus: true
         })
 
     // The config folder may not exist yet on a fresh account.
@@ -99,10 +156,22 @@ Singleton {
             property string wallpaper: root.defaults.wallpaper
             property string wallpaperDir: root.defaults.wallpaperDir
             property string colors: root.defaults.colors
+            property string accent: root.defaults.accent
             property string colorScheme: root.defaults.colorScheme
-            property bool ambientShifts: root.defaults.ambientShifts
+            property string appearanceMode: root.defaults.appearanceMode
+            property string locationName: root.defaults.locationName
+            property real latitude: root.defaults.latitude
+            property real longitude: root.defaults.longitude
             property int idleLockMinutes: root.defaults.idleLockMinutes
             property bool use24h: root.defaults.use24h
+            property bool showDate: root.defaults.showDate
+            property string barPosition: root.defaults.barPosition
+            property bool barWorkspaces: root.defaults.barWorkspaces
+            property bool barTitle: root.defaults.barTitle
+            property bool barClock: root.defaults.barClock
+            property bool barStats: root.defaults.barStats
+            property bool barTray: root.defaults.barTray
+            property bool barStatus: root.defaults.barStatus
         }
     }
 }

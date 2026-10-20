@@ -1,14 +1,15 @@
 import QtQuick
-import Quickshell
 import Quickshell.Wayland
 import qs.services
 import qs.components
 
-// What the bar looks like: a solid Material 3 Expressive style strip with inverted corners
-// curving down into the screen at both ends: the workspaces floating on the left, the clock
-// and date in an accent pill in the middle, and at the right end the system monitor, the
-// tray, and volume and battery in a tonal pill that opens the quick panel. Used by the bar window, and by the
-// wallpaper picker, which draws an identical live copy it can slide off the screen.
+// What the bar looks like: a solid Material 3 Expressive style strip along one screen edge
+// (Theme.barEdge) with inverted corners curving into the screen at both ends: the workspaces
+// floating at the start, the clock and date in an accent pill in the middle, and at the far
+// end the system monitor, the tray, and volume and battery in a tonal pill that opens the
+// quick panel. Along a side everything stacks vertically. Config.bar* hide parts of it.
+// Fill the area the bar is drawn in with it: the bar window, or the wallpaper picker, which
+// draws an identical live copy of the screen it can slide away.
 Item {
     id: root
 
@@ -19,13 +20,18 @@ Item {
     // The strip itself, without the corners (for input masks).
     readonly property Item strip: bar
 
-    implicitHeight: Theme.barHeight + Theme.barCorner
+    readonly property string edge: Theme.barEdge
+    readonly property bool vertical: Theme.barVertical
+    // Size of the bar window: the strip and the corners curving away from it.
+    readonly property int depth: Theme.barSize + Theme.barCorner
 
     Rectangle {
         id: bar
 
-        width: parent.width
-        height: Theme.barHeight
+        x: root.edge === "right" ? root.width - width : 0
+        y: root.edge === "bottom" ? root.height - height : 0
+        width: root.vertical ? Theme.barSize : root.width
+        height: root.vertical ? root.height : Theme.barSize
         color: Theme.surface
 
         Behavior on color {
@@ -37,18 +43,21 @@ Item {
         Workspaces {
             id: workspaces
 
-            anchors.left: parent.left
-            anchors.leftMargin: 16
-            anchors.verticalCenter: parent.verticalCenter
+            visible: Config.barWorkspaces && hasWorkspaces
+            vertical: root.vertical
+            x: root.vertical ? (parent.width - width) / 2 : 16
+            y: root.vertical ? 16 : (parent.height - height) / 2
             output: root.output
         }
 
-        // Focused window title, between the workspaces and the clock.
+        // Focused window title, between the workspaces and the clock. Not along a side.
         FloatText {
-            anchors.left: workspaces.right
-            anchors.leftMargin: 16
+            readonly property real from: workspaces.visible ? workspaces.x + workspaces.width + 16 : 16
+
+            visible: Config.barTitle && !root.vertical
+            x: from
             anchors.verticalCenter: parent.verticalCenter
-            width: Math.max(0, Math.min(implicitWidth, clockPill.x - x - 16))
+            width: Math.max(0, Math.min(implicitWidth, (clockPill.visible ? clockPill.x : end.x) - from - 16))
             height: parent.height
             color: Theme.text
             font.pixelSize: 14
@@ -59,49 +68,58 @@ Item {
         Pill {
             id: clockPill
 
+            visible: Config.barClock
+            vertical: root.vertical
             anchors.centerIn: parent
             color: Theme.gold
 
             Clock {
                 color: Theme.goldInk
+                vertical: root.vertical
             }
         }
 
-        Row {
-            id: right
+        Grid {
+            id: end
 
-            anchors.right: parent.right
-            anchors.rightMargin: 6
-            anchors.verticalCenter: parent.verticalCenter
+            x: root.vertical ? (parent.width - width) / 2 : parent.width - width - 6
+            y: root.vertical ? parent.height - height - 6 : (parent.height - height) / 2
+            columns: root.vertical ? 1 : 100
             spacing: 12
+            horizontalItemAlignment: Grid.AlignHCenter
+            verticalItemAlignment: Grid.AlignVCenter
 
             // CPU and memory bars. Click for the monitor panel under it.
             Item {
                 id: stats
 
                 readonly property bool active: Panels.monitor === root.output
-                // Middle of the pill on the screen, where the panel opens from Mod+M too.
-                // (Not from the wallpaper picker's copy of the bar.)
-                readonly property real centre: right.x + x + width / 2
+                // Middle of the pill along the bar, where the panel opens from Mod+M too
+                // (at the far end while it's hidden). Not from the wallpaper picker's copy
+                // of the bar.
+                readonly property real centre: !Config.barStats ? 1e6 : root.vertical ? end.y + y + height / 2 : end.x + x + width / 2
 
                 onCentreChanged: if (root.enabled)
                     Panels.setMonitorAnchor(root.output, centre)
                 Component.onCompleted: if (root.enabled)
                     Panels.setMonitorAnchor(root.output, centre)
 
-                anchors.verticalCenter: parent.verticalCenter
+                visible: Config.barStats
                 implicitWidth: statsPill.implicitWidth
                 implicitHeight: statsPill.implicitHeight
 
                 Pill {
                     id: statsPill
 
+                    vertical: root.vertical
                     anchors.fill: parent
-                    color: statsMouse.containsMouse && !stats.active ? Qt.lighter(Theme.dusk, 1.2) : Theme.dusk
+                    color: statsMouse.containsMouse && !stats.active ? Theme.hover(Theme.dusk, 1.2) : Theme.dusk
                     border.width: stats.active ? 2 : 0
                     border.color: Theme.gold
 
-                    SysStats {}
+                    SysStats {
+                        vertical: root.vertical
+                    }
                 }
 
                 MouseArea {
@@ -115,40 +133,45 @@ Item {
             }
 
             Tray {
-                anchors.verticalCenter: parent.verticalCenter
+                visible: Config.barTray
+                vertical: root.vertical
                 barWindow: root.barWindow
             }
 
-            // Volume and battery at the far right. Click for the quick panel; scroll
-            // for the volume.
+            // Volume and battery at the far end. Click for the quick panel; scroll for the
+            // volume.
             Item {
                 id: status
 
                 readonly property bool active: Panels.quick === root.output
 
-                anchors.verticalCenter: parent.verticalCenter
+                visible: Config.barStatus
                 implicitWidth: statusPill.implicitWidth
                 implicitHeight: statusPill.implicitHeight
 
                 Pill {
                     id: statusPill
 
+                    vertical: root.vertical
                     anchors.fill: parent
-                    color: statusMouse.containsMouse && !status.active ? Qt.lighter(Theme.dusk, 1.2) : Theme.dusk
+                    color: statusMouse.containsMouse && !status.active ? Theme.hover(Theme.dusk, 1.2) : Theme.dusk
                     border.width: status.active ? 2 : 0
                     border.color: Theme.gold
 
-                    Row {
-                        spacing: 14
+                    Grid {
+                        columns: root.vertical ? 1 : 2
+                        spacing: root.vertical ? 10 : 14
+                        horizontalItemAlignment: Grid.AlignHCenter
+                        verticalItemAlignment: Grid.AlignVCenter
 
                         Volume {
                             id: volume
 
-                            anchors.verticalCenter: parent.verticalCenter
+                            vertical: root.vertical
                         }
 
                         Battery {
-                            anchors.verticalCenter: parent.verticalCenter
+                            vertical: root.vertical
                         }
                     }
                 }
@@ -166,28 +189,31 @@ Item {
         }
     }
 
-    InvertedCorner {
-        x: 0
-        y: bar.height
+    // Curving into the screen at both ends of the bar.
+    EdgeCorner {
+        u: 0
+        v: Theme.barSize
         size: Theme.barCorner
         fill: bar.color
     }
 
-    InvertedCorner {
-        x: root.width - Theme.barCorner
-        y: bar.height
+    EdgeCorner {
+        u: (root.vertical ? root.height : root.width) - size
+        v: Theme.barSize
         size: Theme.barCorner
+        high: true
         fill: bar.color
-        mirrored: true
     }
 
-    // A fully rounded tonal container around its content.
+    // A fully rounded tonal container around its content: as tall as the bar is thick
+    // allows, along a side as wide.
     component Pill: Rectangle {
+        property bool vertical: false
         default property alias content: inner.data
 
-        implicitWidth: inner.childrenRect.width + 28
-        implicitHeight: 32
-        radius: height / 2
+        implicitWidth: vertical ? 34 : inner.childrenRect.width + 28
+        implicitHeight: vertical ? inner.childrenRect.height + 22 : 32
+        radius: (vertical ? width : height) / 2
 
         Behavior on color {
             ColorAnimation {

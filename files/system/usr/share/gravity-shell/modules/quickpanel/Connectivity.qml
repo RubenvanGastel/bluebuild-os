@@ -269,7 +269,7 @@ Column {
         height: 64
         // Squares off a little while on, like an M3 Expressive toggle button.
         radius: active ? 20 : height / 2
-        color: active ? Theme.gold : bodyMouse.containsMouse && available ? Qt.lighter(Theme.tonal, 1.25) : Theme.tonal
+        color: active ? Theme.gold : bodyMouse.containsMouse && available ? Theme.hover(Theme.tonal, 1.25) : Theme.tonal
         opacity: available ? 1 : 0.5
 
         Behavior on radius {
@@ -308,7 +308,7 @@ Column {
             width: 44
             height: 44
             radius: 22
-            color: tile.active ? (knobMouse.containsMouse ? Qt.alpha(Theme.goldInk, 0.22) : Qt.alpha(Theme.goldInk, 0.12)) : (knobMouse.containsMouse ? Qt.lighter(Theme.dusk, 1.3) : Theme.dusk)
+            color: tile.active ? (knobMouse.containsMouse ? Qt.alpha(Theme.goldInk, 0.22) : Qt.alpha(Theme.goldInk, 0.12)) : (knobMouse.containsMouse ? Theme.hover(Theme.dusk, 1.3) : Theme.dusk)
             scale: knobMouse.pressed ? 0.9 : 1
 
             Behavior on color {
@@ -503,7 +503,7 @@ Column {
                 width: 28
                 height: 28
                 radius: 14
-                color: actionMouse.containsMouse ? Qt.lighter(Theme.tonal, 1.4) : "transparent"
+                color: actionMouse.containsMouse ? Theme.hover(Theme.tonal, 1.4) : "transparent"
 
                 Text {
                     anchors.centerIn: parent

@@ -2,9 +2,10 @@ import QtQuick
 import Quickshell
 import qs.services
 
-// niri workspaces on this output as numbered circles. They hold still; switching moves a
-// gold pill from the old workspace to the new one, its leading edge first and the
-// trailing edge catching up, so it stretches toward where you're going and settles.
+// niri workspaces on this output as numbered circles, in a row (or a column, along a side).
+// They hold still; switching moves a gold pill from the old workspace to the new one, its
+// leading edge first and the trailing edge catching up, so it stretches toward where
+// you're going and settles.
 //   focused   accent pill behind it
 //   active    (on another screen) full size, accent outline
 //   occupied  tonal fill
@@ -13,19 +14,21 @@ Item {
     id: root
 
     required property string output
+    property bool vertical: false
+    readonly property bool hasWorkspaces: Object.keys(Niri.workspaces).length > 0
 
     // The focused workspace's circle on this output, or null when focus is elsewhere.
     property Item focusedDot: null
 
-    implicitWidth: row.implicitWidth
-    implicitHeight: 26
-    visible: Object.keys(Niri.workspaces).length > 0
+    implicitWidth: vertical ? 26 : row.implicitWidth
+    implicitHeight: vertical ? row.implicitHeight : 26
+    visible: hasWorkspaces
 
     // --- the focus pill -------------------------------------------------------------
     Rectangle {
         id: pill
 
-        // Its two edges, animated separately.
+        // Its two edges along the row, animated separately.
         property real edgeL: 0
         property real edgeR: 0
         property bool placed: false
@@ -33,7 +36,8 @@ Item {
         function moveTo(dot: Item): void {
             if (!dot)
                 return;
-            const l = dot.x, r = dot.x + dot.width;
+            const l = root.vertical ? dot.y : dot.x;
+            const r = l + (root.vertical ? dot.height : dot.width);
             leftAnim.stop();
             rightAnim.stop();
             if (!placed) {
@@ -52,11 +56,11 @@ Item {
             rightAnim.start();
         }
 
-        x: edgeL
-        width: edgeR - edgeL
-        height: 26
-        radius: height / 2
-        anchors.verticalCenter: parent.verticalCenter
+        x: root.vertical ? 0 : edgeL
+        y: root.vertical ? edgeL : 0
+        width: root.vertical ? 26 : edgeR - edgeL
+        height: root.vertical ? edgeR - edgeL : 26
+        radius: 13
         color: Theme.gold
         opacity: root.focusedDot ? 1 : 0
 
@@ -90,10 +94,10 @@ Item {
     onFocusedDotChanged: pill.moveTo(focusedDot)
 
     // --- the circles ----------------------------------------------------------------
-    Row {
+    Grid {
         id: row
 
-        anchors.verticalCenter: parent.verticalCenter
+        columns: root.vertical ? 1 : 100
         spacing: 4
 
         Repeater {
@@ -128,11 +132,12 @@ Item {
                 // Workspaces added or removed shift the circles: keep the pill under its own.
                 onXChanged: if (root.focusedDot === dot)
                     pill.moveTo(dot)
+                onYChanged: if (root.focusedDot === dot)
+                    pill.moveTo(dot)
 
                 width: 26
                 height: 26
                 radius: width / 2
-                anchors.verticalCenter: parent.verticalCenter
                 opacity: enter
                 // The others are a size smaller than the active one.
                 scale: (active ? 1 : mouse.containsMouse ? 0.92 : 0.82) * (0.6 + 0.4 * enter)
