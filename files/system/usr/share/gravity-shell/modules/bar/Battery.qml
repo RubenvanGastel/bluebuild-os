@@ -19,8 +19,6 @@ Item {
 
     implicitWidth: row.implicitWidth
     implicitHeight: vertical ? row.implicitHeight : 24
-    onChargingChanged: if (!charging)
-        fill.opacity = 1
 
     visible: (dev?.isLaptopBattery ?? false) && (dev?.isPresent ?? false)
 
@@ -89,8 +87,6 @@ Item {
                 border.width: 1.4
 
                 Rectangle {
-                    id: fill
-
                     x: 2.2
                     y: 2.2
                     height: parent.height - 4.4
@@ -102,22 +98,6 @@ Item {
                         NumberAnimation {
                             duration: Theme.slow
                             easing.type: Easing.OutCubic
-                        }
-                    }
-
-                    // Gentle shimmer while charging.
-                    SequentialAnimation on opacity {
-                        running: root.charging
-                        loops: Animation.Infinite
-                        NumberAnimation {
-                            to: 0.55
-                            duration: 900
-                            easing.type: Easing.InOutSine
-                        }
-                        NumberAnimation {
-                            to: 1
-                            duration: 900
-                            easing.type: Easing.InOutSine
                         }
                     }
                 }

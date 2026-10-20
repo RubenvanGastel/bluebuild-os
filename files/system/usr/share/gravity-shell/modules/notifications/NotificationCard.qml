@@ -29,6 +29,13 @@ Item {
     opacity: 0
     rotation: 3
 
+    // While tilted it is drawn flat into a texture with room around it for the shadow, which
+    // is then tilted with smooth filtering: tilted directly, its straight edges would be
+    // jagged steps. Upright it is drawn directly, so the text stays crisp.
+    layer.enabled: rotation !== 0
+    layer.smooth: true
+    layer.sourceRect: Qt.rect(-24, -24, width + 48, height + 48)
+
     Component.onCompleted: arrive.start()
 
     ParallelAnimation {

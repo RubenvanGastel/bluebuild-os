@@ -45,8 +45,9 @@ Column {
             subtitle: modelData.detail
             onClicked: {
                 Config.setLocation([modelData.name, modelData.detail].filter(s => s).join(", "), modelData.latitude, modelData.longitude);
-                root.results = [];
                 field.input.text = "";
+                // Last: this destroys the row this handler belongs to.
+                root.results = [];
             }
         }
     }

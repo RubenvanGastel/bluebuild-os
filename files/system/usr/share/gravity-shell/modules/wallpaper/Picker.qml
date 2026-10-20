@@ -890,26 +890,37 @@ Scope {
                             color: Qt.rgba(0, 0, 0, 0.5)
                         }
 
-                        ClippingRectangle {
-                            id: cardFrame
-
+                        // Drawn flat into a texture with a transparent rim, which is then
+                        // tilted with smooth filtering: tilted directly, the card's straight
+                        // edges would be jagged steps that crawl as it bobs.
+                        Item {
                             anchors.fill: parent
-                            radius: 20
-                            color: Theme.deep
-                            border.width: card.middle ? 3 : 0
-                            border.color: Theme.gold
+                            anchors.margins: -2
+                            layer.enabled: true
+                            layer.smooth: true
 
-                            // The highlighted card and the one under the pointer play their
-                            // video; one hovered before is paused; the others show their
-                            // poster.
-                            FadeImage {
+                            ClippingRectangle {
+                                id: cardFrame
+
                                 anchors.fill: parent
-                                source: card.modelData
-                                sourceSize: Qt.size(480, 300)
-                                cache: true
-                                duration: Theme.fast
-                                live: (card.middle || card.seen) && root.shown && win.settled
-                                playing: root.open && (card.middle || cardMouse.containsMouse)
+                                anchors.margins: 2
+                                radius: 20
+                                color: Theme.deep
+                                border.width: card.middle ? 3 : 0
+                                border.color: Theme.gold
+
+                                // The highlighted card and the one under the pointer play
+                                // their video; one hovered before is paused; the others
+                                // show their poster.
+                                FadeImage {
+                                    anchors.fill: parent
+                                    source: card.modelData
+                                    sourceSize: Qt.size(480, 300)
+                                    cache: true
+                                    duration: Theme.fast
+                                    live: (card.middle || card.seen) && root.shown && win.settled
+                                    playing: root.open && (card.middle || cardMouse.containsMouse)
+                                }
                             }
                         }
 
