@@ -46,6 +46,9 @@ rest, and bold [Google Sans Flex](https://fonts.google.com/specimen/Google+Sans+
   measured with ffmpeg) or by **sunrise and sunset** where you live (worked out on the
   machine; the place is looked up once with Open-Meteo's place search). The quick panel's
   Light/Dark buttons grey out then; clicking one goes back to choosing by hand.
+  A GNOME session on the same account keeps its own light or dark, GTK theme and accent:
+  `/usr/libexec/gravity-theme-session` swaps them when you switch sessions (the values are
+  kept in `~/.local/state/gravity-shell`).
 - **Settings** (`Super+Comma`, or the cog in the quick panel): the screen dims and a card
   springs up with a sidebar of pages. *Appearance*: light or dark, built-in or wallpaper
   colours and the scheme, the wallpaper and its folder. *Bar*: which edge it

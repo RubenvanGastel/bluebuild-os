@@ -2,9 +2,6 @@
 
 [org.gnome.desktop.interface]
 icon-theme='MoreWaita'
-# Dark by default, like the Gravity shell; its Light/Dark switch changes both
-color-scheme='prefer-dark'
-gtk-theme='adw-gtk3-dark'
 
 [org.gnome.shell]
 enabled-extensions=['hotedge@jonathan.jdoda.ca', 'appindicatorsupport@rgcjonas.gmail.com', 'AlphabeticalAppGrid@stuarthayhurst']

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=GNOME theme after Gravity
+Comment=Puts back GNOME's own light or dark, GTK theme and accent colour after a niri session
+Exec=/usr/libexec/gravity-theme-session gnome
+OnlyShowIn=GNOME;
+NoDisplay=true
+X-GNOME-Autostart-enabled=true

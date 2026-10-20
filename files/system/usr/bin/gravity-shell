@@ -19,7 +19,11 @@ else
 fi
 
 case "${1:-}" in
-    "") exec qs -p "$dir" ;;
+    "")
+        # niri's own light or dark, GTK theme and accent; GNOME keeps its own.
+        /usr/libexec/gravity-theme-session niri || true
+        exec qs -p "$dir"
+        ;;
     lock) exec qs -p "$dir" ipc call lock lock ;;
     wallpaper)
         if [ -n "${2:-}" ]; then
