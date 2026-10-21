@@ -28,7 +28,7 @@ The gravity and niri images have no GNOME. Each recipe is put together from modu
 ### Desktops
 
 - **GNOME** with the [MoreWaita](https://github.com/somepaulo/MoreWaita) icon theme and the [Hot Edge](https://extensions.gnome.org/extension/4222/hot-edge/), [AppIndicator](https://extensions.gnome.org/extension/615/appindicator-support/) and [Alphabetical App Grid](https://extensions.gnome.org/extension/4269/alphabetical-app-grid/) extensions turned on.
-- **Gravity shell** (gravity images): [niri](https://github.com/niri-wm/niri), a scrollable-tiling Wayland compositor, with my own [Quickshell](https://quickshell.org) desktop inspired by Gravity Rush: an animated wallpaper, a bar, notifications and a lock screen ([details](files/gravity/usr/share/gravity-shell/README.md)). `fuzzel` is the app launcher.
+- **Gravity shell** (gravity images): [niri](https://github.com/niri-wm/niri), a scrollable-tiling Wayland compositor, with my own [Quickshell](https://quickshell.org) desktop inspired by Gravity Rush: an animated wallpaper, a bar, notifications and a lock screen ([details](files/gravity/usr/share/gravity-shell/README.md)). `fuzzel` is the app launcher. Coming from the niri image? Run `ujust gravity-niri-config` to move the Dux `~/.config/niri` aside (keeping a backup) so niri uses the Gravity config in `/etc/niri`.
 - **Dux Shell** (niri images), formerly [DankMaterialShell](https://duxlabs.dev): niri with the Dux Shell bar, launcher (Mod+Space), notifications, lock screen and settings (Mod+Comma). On your first login `/etc/niri` is copied to `~/.config/niri`, because Dux Shell keeps its colours and keybinds in `~/.config/niri/dms/`. Run `ujust dux-greeter-sync` once to give the login screen your theme and wallpaper. Already have your own `~/.config/niri`, e.g. from the gravity image? `ujust dux-niri-config` swaps it for the Dux one (keeping a backup).
 - The gravity and niri images log in with **Dux Greeter** (greetd).
 - A **Miku Plymouth** boot animation.
@@ -86,10 +86,10 @@ recipes/
   *-modules.yml         module lists the recipes are put together from (see above)
 files/
   gschema-overrides/    default GNOME settings
-  scripts/              build scripts (Plymouth theme, zsh, greetd, Dux setup)
+  scripts/              build scripts (Plymouth theme, zsh, greetd, Dux and Gravity setup)
   shared/               copied into every image root (/)
   niri-base/            copied into the gravity and niri images (greetd config)
-  gravity/              copied into the gravity images (Gravity shell, its niri config)
+  gravity/              copied into the gravity images (Gravity shell, its niri config, ujust recipes)
   dux/                  copied into the niri images (Dux Shell niri config, ujust recipes)
 ```
 

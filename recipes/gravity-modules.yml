@@ -15,9 +15,14 @@ modules:
       google-fonts:
         - Google Sans Flex
 
-  # The Gravity shell (/usr/share/gravity-shell), its niri config (/etc/niri) and the
-  # fuzzel theme. After dnf, so our files win over files that packages ship.
+  # The Gravity shell (/usr/share/gravity-shell), its niri config (/etc/niri), the
+  # fuzzel theme and ujust gravity-niri-config. After dnf, so our files win over files
+  # that packages ship.
   - type: files
     files:
       - source: gravity
         destination: / # copies files/gravity/* into the image root
+
+  - type: script
+    scripts:
+      - setup-gravity.sh
