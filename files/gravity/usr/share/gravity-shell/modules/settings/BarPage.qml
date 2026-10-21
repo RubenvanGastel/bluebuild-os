@@ -58,7 +58,14 @@ Column {
         }
 
         Toggle {
-            label: "Volume and battery"
+            label: "Battery"
+            description: "Only on laptops; opens the battery panel."
+            checked: Config.barBattery
+            onToggled: on => Config.set("barBattery", on)
+        }
+
+        Toggle {
+            label: "Network, Bluetooth and volume"
             description: "Opens the quick panel. Without it, the quick panel still opens with gravity-shell ipc call quickPanel toggle."
             checked: Config.barStatus
             onToggled: on => Config.set("barStatus", on)

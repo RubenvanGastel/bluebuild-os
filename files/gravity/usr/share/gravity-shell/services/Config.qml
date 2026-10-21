@@ -42,13 +42,15 @@ Singleton {
     property alias showDate: adapter.showDate
     // Screen edge the bar runs along: "top", "bottom", "left" or "right".
     property alias barPosition: adapter.barPosition
-    // What the bar shows. With the status pill (volume and battery) hidden, the quick
-    // panel still opens with `gravity-shell ipc call quickPanel toggle`.
+    // What the bar shows. With the status pill (network, Bluetooth and volume) hidden, the
+    // quick panel still opens with `gravity-shell ipc call quickPanel toggle`. The battery
+    // pill only shows on laptops.
     property alias barWorkspaces: adapter.barWorkspaces
     property alias barTitle: adapter.barTitle
     property alias barClock: adapter.barClock
     property alias barStats: adapter.barStats
     property alias barTray: adapter.barTray
+    property alias barBattery: adapter.barBattery
     property alias barStatus: adapter.barStatus
 
     // False until the config file has been read (or found missing).
@@ -121,6 +123,7 @@ Singleton {
             barClock: true,
             barStats: true,
             barTray: true,
+            barBattery: true,
             barStatus: true
         })
 
@@ -171,6 +174,7 @@ Singleton {
             property bool barClock: root.defaults.barClock
             property bool barStats: root.defaults.barStats
             property bool barTray: root.defaults.barTray
+            property bool barBattery: root.defaults.barBattery
             property bool barStatus: root.defaults.barStatus
         }
     }

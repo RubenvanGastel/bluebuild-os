@@ -6,8 +6,8 @@ import qs.components
 // What the bar looks like: a solid Material 3 Expressive style strip along one screen edge
 // (Theme.barEdge) with inverted corners curving into the screen at both ends: the workspaces
 // floating at the start, the clock and date in an accent pill in the middle, and at the far
-// end the system monitor, the tray, and volume and battery in a tonal pill that opens the
-// quick panel. Along a side everything stacks vertically. Config.bar* hide parts of it.
+// end the system monitor, the tray, the battery, and network, Bluetooth and volume in a
+// tonal pill that opens the quick panel. Along a side everything stacks vertically. Config.bar* hide parts of it.
 // Fill the area the bar is drawn in with it: the bar window, or the wallpaper picker, which
 // draws an identical live copy of the screen it can slide away.
 Item {
@@ -138,8 +138,51 @@ Item {
                 barWindow: root.barWindow
             }
 
-            // Volume and battery at the far end. Click for the quick panel; scroll for the
-            // volume.
+            // Battery level, on laptops. Click for the battery panel under it.
+            Item {
+                id: power
+
+                readonly property bool active: Panels.battery === root.output
+                // Middle of the pill along the bar, where the panel opens; as the monitor's.
+                readonly property real centre: !visible ? 1e6 : root.vertical ? end.y + y + height / 2 : end.x + x + width / 2
+
+                onCentreChanged: if (root.enabled)
+                    Panels.setBatteryAnchor(root.output, centre)
+                Component.onCompleted: if (root.enabled)
+                    Panels.setBatteryAnchor(root.output, centre)
+
+                visible: Config.barBattery && battery.visible
+                implicitWidth: powerPill.implicitWidth
+                implicitHeight: powerPill.implicitHeight
+
+                Pill {
+                    id: powerPill
+
+                    vertical: root.vertical
+                    anchors.fill: parent
+                    color: powerMouse.containsMouse && !power.active ? Theme.hover(Theme.dusk, 1.2) : Theme.dusk
+                    border.width: power.active ? 2 : 0
+                    border.color: Theme.gold
+
+                    Battery {
+                        id: battery
+
+                        vertical: root.vertical
+                    }
+                }
+
+                MouseArea {
+                    id: powerMouse
+
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: Panels.toggleBattery(root.output)
+                }
+            }
+
+            // Network, Bluetooth and volume at the far end. Click for the quick panel; scroll
+            // for the volume.
             Item {
                 id: status
 
@@ -159,19 +202,17 @@ Item {
                     border.color: Theme.gold
 
                     Grid {
-                        columns: root.vertical ? 1 : 2
-                        spacing: root.vertical ? 10 : 14
+                        columns: root.vertical ? 1 : 3
+                        spacing: root.vertical ? 10 : 12
                         horizontalItemAlignment: Grid.AlignHCenter
                         verticalItemAlignment: Grid.AlignVCenter
 
+                        Network {}
+
+                        BluetoothStatus {}
+
                         Volume {
                             id: volume
-
-                            vertical: root.vertical
-                        }
-
-                        Battery {
-                            vertical: root.vertical
                         }
                     }
                 }

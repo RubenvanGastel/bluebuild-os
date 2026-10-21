@@ -6,7 +6,7 @@ import Quickshell.Io
 
 // Which popup panels are open.
 // `gravity-shell ipc call quickPanel toggle` opens the quick panel on the focused screen,
-// `... monitor toggle` the system monitor.
+// `... monitor toggle` the system monitor, `... battery toggle` the battery panel.
 Singleton {
     id: root
 
@@ -20,6 +20,7 @@ Singleton {
         if (quick !== "") {
             closeTray();
             closeMonitor();
+            closeBattery();
         }
     }
 
@@ -37,6 +38,7 @@ Singleton {
     function openTray(output: string, menu: var, at: real): void {
         closeQuick();
         closeMonitor();
+        closeBattery();
         trayMenu = menu;
         trayAt = at;
         trayOutput = output;
@@ -63,6 +65,7 @@ Singleton {
         }
         closeQuick();
         closeTray();
+        closeBattery();
         // Unknown (no bar there yet, or the pill is hidden): at the far end, kept clear of
         // the screen edge.
         monitorAt = monitorAnchors[output] ?? 1e6;
@@ -71,6 +74,32 @@ Singleton {
 
     function closeMonitor(): void {
         monitor = "";
+    }
+
+    // The battery panel, as the system monitor: output ("" = closed) and where along the
+    // bar it centres, on the battery pill.
+    property string battery: ""
+    property real batteryAt: 0
+    property var batteryAnchors: ({})
+
+    function setBatteryAnchor(output: string, at: real): void {
+        batteryAnchors[output] = at;
+    }
+
+    function toggleBattery(output: string): void {
+        if (battery === output) {
+            closeBattery();
+            return;
+        }
+        closeQuick();
+        closeTray();
+        closeMonitor();
+        batteryAt = batteryAnchors[output] ?? 1e6;
+        battery = output;
+    }
+
+    function closeBattery(): void {
+        battery = "";
     }
 
     // Asks the settings card to open, on a page ("" = the one it was on last).
@@ -99,6 +128,15 @@ Singleton {
 
         function toggle(): void {
             root.toggleMonitor(Object.values(Niri.workspaces).find(w => w.is_focused)?.output ?? Quickshell.screens[0]?.name ?? "");
+        }
+    }
+
+    // `gravity-shell ipc call battery toggle`, on the focused screen.
+    IpcHandler {
+        target: "battery"
+
+        function toggle(): void {
+            root.toggleBattery(Object.values(Niri.workspaces).find(w => w.is_focused)?.output ?? Quickshell.screens[0]?.name ?? "");
         }
     }
 }

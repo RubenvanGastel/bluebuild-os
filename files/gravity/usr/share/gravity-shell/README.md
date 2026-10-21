@@ -28,13 +28,17 @@ rest, and bold [Google Sans Flex](https://fonts.google.com/specimen/Google+Sans+
   or right; along a side its contents stack) that curves into the screen with inverted
   corners, with status in tonal pills and the clock in an accent pill.
   The niri workspaces are numbered circles in it; switching stretches an accent pill from
-  the old one to the new one. It also holds the window title, the tray, volume, battery and
-  a clock.
+  the old one to the new one. It also holds the window title, the tray, a battery pill (on
+  laptops), a status pill (network, Bluetooth and a volume icon) and a clock.
 - **System monitor**: a pill in the bar with short bars for CPU and memory use. Click it
   (or `Super+M`) and the bar grows down into a panel with the last minute of CPU and memory
   use, every core, all temperature sensors and fans, memory and GPU use and the busiest
   processes.
-- **Quick panel**: click the volume/battery pill. The cog opens the settings. Wi-Fi and Bluetooth tiles (the round icon
+- **Battery panel**: click the battery pill (laptops). The bar grows into a panel with the
+  level, the power going in or out, energy left, battery health and charge cycles, the
+  charge over the last 12 hours (from UPower's history), the power mode and the battery's
+  make and charging mode. Also `gravity-shell ipc call battery toggle`.
+- **Quick panel**: click the status pill. The cog opens the settings. Wi-Fi and Bluetooth tiles (the round icon
   switches them on or off, the rest of the tile unfolds the networks or devices to connect
   to, and asks for a Wi-Fi password in place), the audio output, volume and brightness
   sliders, Light/Dark and the power mode.
@@ -97,6 +101,7 @@ picker write it, storing only settings that differ from the defaults:
   "barClock": true,
   "barStats": true,
   "barTray": true,
+  "barBattery": true,
   "barStatus": true
 }
 ```

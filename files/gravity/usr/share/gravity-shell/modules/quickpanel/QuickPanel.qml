@@ -6,7 +6,7 @@ import Quickshell.Services.UPower
 import qs.components
 import qs.services
 
-// Quick panel, opened from the volume/battery pill at the far end of the bar (or
+// Quick panel, opened from the status pill at the far end of the bar (or
 // `gravity-shell ipc call quickPanel toggle`). The bar grows into it there (at the right,
 // or the bottom along a side), joined to it, with the battery state, Wi-Fi and Bluetooth,
 // volume (and output device) and brightness sliders, light or dark mode (Appearance) and
