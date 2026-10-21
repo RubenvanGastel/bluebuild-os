@@ -1,0 +1,44 @@
+# yaml-language-server: $schema=https://schema.blue-build.org/module-list-v1.json
+# Dux Shell (formerly DankMaterialShell) on niri: used by both niri images, after
+# niri-base-modules.yml.
+modules:
+  - type: dnf
+    repos:
+      copr:
+        # Dux Shell 2.0 is still published to the old AvengeMedia COPRs; Dux Labs'
+        # own duxlabs/* COPRs only have 1.6 until DMS 2.0.1 moves installs there.
+        - avengemedia/dms # dms (Dux Shell) and dms-cli
+        - avengemedia/danklinux # dgop, danksearch
+    install:
+      packages:
+        # Dux Shell: bar, launcher, notifications, lock screen, settings (command: dms)
+        - dms
+        - dgop # system monitor backend (Dux GOP)
+        - danksearch # file search in the launcher (Dux Search)
+        - cava # audio visualiser in the media widget
+        - cliphist # clipboard history (Mod+V)
+        - qt6-qtmultimedia # sounds and video in the shell
+        - qt6ct # Qt app theming from Dux Shell
+        - material-symbols-fonts # Dux Shell icons
+        - rsms-inter-vf-fonts # Dux Shell's default UI font
+        - fira-code-fonts # Dux Shell's default monospace font
+    remove:
+      packages:
+        - fuzzel # niri pulls it in; Dux Shell has its own launcher (Mod+Space)
+
+  # niri config with the Dux Shell keybinds (/etc/niri), copied to ~/.config/niri on first
+  # login; ujust dux-greeter-sync and dux-niri-config. After dnf, so our files win.
+  - type: files
+    files:
+      - source: dux
+        destination: / # copies files/dux/* into the image root
+
+  - type: systemd
+    user:
+      enabled:
+        - dux-niri-config.service # first login: copy /etc/niri to ~/.config/niri
+        - dms.service # Dux Shell, started with the niri session
+
+  - type: script
+    scripts:
+      - setup-dux.sh

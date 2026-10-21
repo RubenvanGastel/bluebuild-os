@@ -1,0 +1,15 @@
+# yaml-language-server: $schema=https://schema.blue-build.org/recipe-v1.json
+# niri + Dux Shell (formerly DankMaterialShell), no GNOME, for laptops WITH NVIDIA graphics
+# Published to ghcr.io/rubenvangastel/niri-nvidia
+name: niri-nvidia
+description: My niri + Dux Shell image (NVIDIA graphics)
+
+# Universal Blue's image without a desktop environment, with NVIDIA drivers (open kernel
+# modules, RTX 20xx / GTX 16xx and newer) preinstalled and signed for Secure Boot.
+base-image: ghcr.io/ublue-os/base-nvidia
+image-version: latest
+
+modules:
+  - from-file: niri-base-modules.yml
+  - from-file: dux-modules.yml
+  - from-file: shared-modules.yml # keep last: ends with signing and the initramfs

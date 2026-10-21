@@ -1,0 +1,13 @@
+[Unit]
+Description=Copy the image's niri config for Dux Shell to ~/.config/niri
+# Dux Shell keeps its colours, layout and keybinds in ~/.config/niri/dms/, which the
+# config only picks up when it lives in ~/.config/niri. Runs before niri reads it.
+ConditionPathExists=!%h/.config/niri/config.kdl
+Before=niri.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/dux-niri-config
+
+[Install]
+WantedBy=niri.service

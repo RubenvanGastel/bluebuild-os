@@ -1,0 +1,42 @@
+# yaml-language-server: $schema=https://schema.blue-build.org/module-list-v1.json
+# GNOME modules used by both GNOME images (gnome and gnome-nvidia).
+# Modules for all images (terminal, zsh, flatpaks, ...) are in shared-modules.yml.
+modules:
+  # Native RPM packages
+  - type: dnf
+    repos:
+      copr:
+        - rivenirvana/morewaita-icon-theme # official MoreWaita COPR
+    install:
+      packages:
+        - morewaita-icon-theme
+    remove:
+      packages:
+        - gnome-system-monitor # replaced by the Resources flatpak
+        # Replaced by the Bazaar flatpak (app store used by Bluefin/Aurora/Bazzite)
+        - gnome-software
+        - gnome-tour # first-login welcome tour
+        - yelp # GNOME Help
+        - gnome-classic-session # GNOME Classic entry in GDM (still a Wayland session in GNOME 50)
+        - ptyxis # GNOME's default terminal ("Terminal"); Ghostty replaces it
+
+  # GNOME extensions from extensions.gnome.org (by name)
+  - type: gnome-extensions
+    install:
+      - Hot Edge
+      - AppIndicator and KStatusNotifierItem Support # tray icons (Steam, Vesktop, ...)
+      - Alphabetical App Grid # keeps the app grid sorted A-Z
+
+  # Default settings: MoreWaita icons, extensions enabled, Zen in the dash, Compose on Right Alt
+  # (system-wide extensions are installed disabled; enabling them here is required)
+  - type: gschema-overrides
+    include:
+      - zz1-custom.gschema.override
+
+  # GNOME-only flatpaks; the rest are in shared-modules.yml
+  - type: default-flatpaks
+    configurations:
+      - notify: true
+        scope: system
+        install:
+          - page.tesk.Refine # advanced GNOME settings (replaces GNOME Tweaks)

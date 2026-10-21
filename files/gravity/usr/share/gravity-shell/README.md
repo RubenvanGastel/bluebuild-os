@@ -43,15 +43,12 @@ rest, and bold [Google Sans Flex](https://fonts.google.com/specimen/Google+Sans+
   light or dark. It sets GNOME's `color-scheme`, which GNOME (libadwaita) apps and, through
   the desktop portal, browsers and Flatpaks follow, and switches GTK 3 apps between
   `adw-gtk3` and `adw-gtk3-dark`. The shell's colours switch to their light variant.
-  Changing the setting elsewhere (GNOME Settings) is picked up too. In the settings it can
+  Changing the setting elsewhere (e.g. with gsettings) is picked up too. In the settings it can
   also go automatic: by the **wallpaper** (light when its average brightness is above 35%,
   measured with ffmpeg) or by **time of day**: light between sunrise and sunset where you
   live (worked out on the machine; the place is looked up once with Open-Meteo's place
   search). The quick panel's Light/Dark buttons grey out then; clicking one goes back to
   choosing by hand.
-  A GNOME session on the same account keeps its own light or dark, GTK theme and accent:
-  `/usr/libexec/gravity-theme-session` swaps them when you switch sessions (the values are
-  kept in `~/.local/state/gravity-shell`).
 - **Settings** (`Super+Comma`, or the cog in the quick panel): the screen dims and a card
   springs up with a sidebar of pages. *Appearance*: light or dark, built-in or wallpaper
   colours and the scheme, the wallpaper and its folder. *Bar*: which edge it

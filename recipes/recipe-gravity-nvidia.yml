@@ -1,0 +1,15 @@
+# yaml-language-server: $schema=https://schema.blue-build.org/recipe-v1.json
+# niri + the Gravity shell, no GNOME, for laptops WITH NVIDIA graphics
+# Published to ghcr.io/rubenvangastel/gravity-nvidia
+name: gravity-nvidia
+description: My niri + Gravity shell image (NVIDIA graphics)
+
+# Universal Blue's image without a desktop environment, with NVIDIA drivers (open kernel
+# modules, RTX 20xx / GTX 16xx and newer) preinstalled and signed for Secure Boot.
+base-image: ghcr.io/ublue-os/base-nvidia
+image-version: latest
+
+modules:
+  - from-file: niri-base-modules.yml
+  - from-file: gravity-modules.yml
+  - from-file: shared-modules.yml # keep last: ends with signing and the initramfs

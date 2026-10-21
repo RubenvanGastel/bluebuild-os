@@ -20,8 +20,13 @@ fi
 
 case "${1:-}" in
     "")
-        # niri's own light or dark, GTK theme and accent; GNOME keeps its own.
-        /usr/libexec/gravity-theme-session niri || true
+        # The shell's first start: dark, its default. It sets the GTK theme and accent itself.
+        # (theme-owner is the marker older images wrote, so existing users keep their choice.)
+        state="${XDG_STATE_HOME:-$HOME/.local/state}/gravity-shell"
+        if [ ! -e "$state/theme-owner" ]; then
+            gsettings set org.gnome.desktop.interface color-scheme prefer-dark || true
+            mkdir -p "$state" && echo niri >"$state/theme-owner"
+        fi
         exec qs -p "$dir"
         ;;
     lock) exec qs -p "$dir" ipc call lock lock ;;

@@ -1,0 +1,7 @@
+# greetd starts Dux Greeter (dms-greeter) in its own small niri session on VT 1.
+[terminal]
+vt = 1
+
+[default_session]
+user = "greeter"
+command = "/usr/bin/dms-greeter --command niri"

@@ -1,0 +1,14 @@
+# yaml-language-server: $schema=https://schema.blue-build.org/recipe-v1.json
+# niri + Dux Shell (formerly DankMaterialShell), no GNOME, for laptops WITHOUT NVIDIA
+# Published to ghcr.io/rubenvangastel/niri
+name: niri
+description: My niri + Dux Shell image (Intel/AMD graphics)
+
+# Universal Blue's image without a desktop environment
+base-image: ghcr.io/ublue-os/base-main
+image-version: latest
+
+modules:
+  - from-file: niri-base-modules.yml
+  - from-file: dux-modules.yml
+  - from-file: shared-modules.yml # keep last: ends with signing and the initramfs

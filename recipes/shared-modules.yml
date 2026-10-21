@@ -1,0 +1,78 @@
+# yaml-language-server: $schema=https://schema.blue-build.org/module-list-v1.json
+# Modules used by ALL images (gnome, gravity and niri, with their NVIDIA versions). Each
+# recipe lists this file after its own modules, so signing and the initramfs rebuild stay last.
+# Edit this file to change terminal tools and apps on all your laptops at once.
+modules:
+  - type: dnf
+    repos:
+      copr:
+        - scottames/ghostty
+    install:
+      packages:
+        - plymouth-plugin-script
+        - eza # modern ls with icons (aliased in /etc/profile.d/eza.sh)
+        - fastfetch # system info in the terminal
+        - zsh # default login shell; image defaults in /etc/zshrc.d
+        - zsh-autosuggestions # fish-style suggestions from history
+        - zsh-syntax-highlighting
+        - ghostty # terminal (cursor shaders set in /etc/ghostty/config)
+    remove:
+      packages:
+        # System monitors from the base images; replaced by the Resources flatpak
+        - htop
+        - nvtop
+        # Zen Browser (flatpak) replaces it; it's the default in /etc/xdg/mimeapps.list
+        - firefox
+        - firefox-langpacks
+
+  # Nerd Font icon glyphs for eza; terminals fall back to it automatically,
+  # so no need to change the terminal font
+  - type: fonts
+    fonts:
+      nerd-fonts:
+        - NerdFontsSymbolsOnly
+
+  # Ghostty defaults (/etc/ghostty, cursor shaders in /usr/share/ghostty-cursor-shaders),
+  # zsh defaults (/etc/zshrc.d), Zen as default browser, ujust recipes
+  - type: files
+    files:
+      - source: shared
+        destination: / # copies files/shared/* into the image root
+
+  # Miku Plymouth boot animation (from files/scripts/)
+  - type: script
+    scripts:
+      - install-miku-plymouth.sh
+      - rebuild-font-cache.sh # makes the Nerd Font visible (stale cache otherwise)
+      - setup-zsh.sh # zsh for new users, /etc/zshrc loads /etc/zshrc.d
+
+  # Flatpaks (installed on first boot, kept up to date)
+  - type: default-flatpaks
+    configurations:
+      - notify: true
+        scope: system
+        repo:
+          url: https://dl.flathub.org/repo/flathub.flatpakrepo
+          name: flathub
+          title: Flathub
+        install:
+          - com.valvesoftware.Steam
+          - app.zen_browser.zen
+          - dev.vencord.Vesktop
+          - com.github.tchx84.Flatseal
+          - net.nokyan.Resources # GNOME Circle system monitor (replaces System Monitor, htop, nvtop)
+          - it.mijorus.gearlever # manage AppImages (adds them to the app grid, updates them)
+          - com.ranfdev.DistroShelf # GUI for distrobox containers (distrobox ships in the base image)
+          - io.github.kolunmi.Bazaar # Flathub app store (replaces GNOME Software)
+          - com.usebottles.bottles # run Windows apps via Wine prefixes
+          # Basic apps (the base images ship no apps as flatpaks)
+          - org.gnome.Loupe # image viewer
+          - org.gnome.Papers # PDF/document viewer
+          - org.gnome.TextEditor
+          - org.gnome.Calculator
+          - io.github.diegopvlk.Cine # video player (built on mpv)
+
+  - type: signing # sets up container signing so you can rebase to the signed image
+
+  # Rebuild initramfs so the Plymouth theme is included at boot (keep this last)
+  - type: initramfs

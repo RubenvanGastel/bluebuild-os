@@ -1,0 +1,8 @@
+#!/usr/bin/bash
+# Copies /etc/niri (config.kdl and the Dux Shell files in dms/) to ~/.config/niri.
+# Only runs when ~/.config/niri/config.kdl doesn't exist; existing files are kept.
+set -euo pipefail
+
+dest="${XDG_CONFIG_HOME:-$HOME/.config}/niri"
+mkdir -p "$dest"
+cp -rn /etc/niri/. "$dest/"

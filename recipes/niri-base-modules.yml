@@ -1,0 +1,54 @@
+# yaml-language-server: $schema=https://schema.blue-build.org/module-list-v1.json
+# niri without GNOME: used by the gravity and niri images (and their NVIDIA versions),
+# which build on Universal Blue's base images (no desktop environment). The shell itself
+# comes from gravity-modules.yml or dux-modules.yml.
+modules:
+  - type: dnf
+    repos:
+      copr:
+        # Quickshell and Dux Greeter (dms-greeter); Dux Shell 2.0 is still published to the
+        # old AvengeMedia COPRs, Dux Labs' duxlabs/* COPRs only have 1.6 until DMS 2.0.1.
+        - avengemedia/danklinux
+    install:
+      packages:
+        - niri
+        - xwayland-satellite
+        - quickshell
+        - matugen # wallpaper colours
+        # Login screen: greetd with Dux Greeter (config in /etc/greetd/config.toml)
+        - greetd
+        - dms-greeter
+        # Desktop basics a GNOME image would bring along (PipeWire, bluez and
+        # NetworkManager are already in the base image)
+        - xdg-desktop-portal-gnome # screencasting and file dialogs in niri
+        - xdg-desktop-portal-gtk
+        - nautilus # file manager (Mod+E), also the file dialog of the GNOME portal
+        - gnome-keyring
+        - gnome-keyring-pam # greetd unlocks the keyring at login (see setup-greetd.sh)
+        - adw-gtk3-theme # GTK 3 apps in the libadwaita look, light and dark
+        - tuned-ppd # power modes (power-saver, balanced, performance) for the shell
+        - xdg-user-dirs # Afbeeldingen, Documenten, ... in a new home folder
+
+  # niri pulls these in as recommended packages, but the shell is the bar and lock screen
+  # and Mod+T opens Ghostty. Separate step so it runs after the install above.
+  - type: dnf
+    remove:
+      packages:
+        - alacritty
+        - waybar
+        - swaylock
+
+  # greetd config (/etc/greetd). After dnf, so our files win.
+  - type: files
+    files:
+      - source: niri-base
+        destination: / # copies files/niri-base/* into the image root
+
+  - type: systemd
+    system:
+      enabled:
+        - greetd.service
+
+  - type: script
+    scripts:
+      - setup-greetd.sh

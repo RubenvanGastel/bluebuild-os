@@ -24,8 +24,12 @@ jobs:
       fail-fast: false
       matrix:
         recipe:
-          - recipe.yml        # Intel/AMD laptops
-          - recipe-nvidia.yml # NVIDIA laptops
+          - recipe-gnome.yml          # GNOME, Intel/AMD
+          - recipe-gnome-nvidia.yml   # GNOME, NVIDIA
+          - recipe-gravity.yml        # niri + Gravity shell, Intel/AMD
+          - recipe-gravity-nvidia.yml # niri + Gravity shell, NVIDIA
+          - recipe-niri.yml           # niri + Dux Shell, Intel/AMD
+          - recipe-niri-nvidia.yml    # niri + Dux Shell, NVIDIA
     steps:
       - name: Build Custom Image
         uses: blue-build/github-action@v1

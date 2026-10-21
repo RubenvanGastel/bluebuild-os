@@ -1,0 +1,23 @@
+# yaml-language-server: $schema=https://schema.blue-build.org/module-list-v1.json
+# The Gravity shell (Quickshell) on niri: used by both gravity images, after niri-base-modules.yml.
+modules:
+  - type: dnf
+    install:
+      packages:
+        - qt6-qtimageformats # lets Quickshell show .webp/.tiff wallpapers
+        - qt6-qtmultimedia # video wallpapers (frames are taken with ffmpeg)
+        - playerctl # media keys in niri
+        - fuzzel # app launcher (Mod+Space)
+
+  # Material 3 Expressive typeface used by the Gravity shell
+  - type: fonts
+    fonts:
+      google-fonts:
+        - Google Sans Flex
+
+  # The Gravity shell (/usr/share/gravity-shell), its niri config (/etc/niri) and the
+  # fuzzel theme. After dnf, so our files win over files that packages ship.
+  - type: files
+    files:
+      - source: gravity
+        destination: / # copies files/gravity/* into the image root

@@ -1,0 +1,12 @@
+# yaml-language-server: $schema=https://schema.blue-build.org/recipe-v1.json
+# GNOME, for laptops WITHOUT NVIDIA (Intel / AMD graphics)
+# Published to ghcr.io/rubenvangastel/gnome
+name: gnome
+description: My GNOME image (Intel/AMD graphics)
+
+base-image: ghcr.io/ublue-os/silverblue-main
+image-version: latest
+
+modules:
+  - from-file: gnome-modules.yml
+  - from-file: shared-modules.yml # keep last: ends with signing and the initramfs
