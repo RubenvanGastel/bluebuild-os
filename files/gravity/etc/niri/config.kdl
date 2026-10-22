@@ -45,6 +45,9 @@ input {
         // accel-profile "flat"
         // scroll-method "two-finger"
         // disabled-on-external-mouse
+        // Gravity: as on GNOME, click with two fingers for a right click (three for a
+        // middle click) instead of in the touchpad's bottom-right corner.
+        click-method "clickfinger"
     }
 
     mouse {
@@ -283,7 +286,15 @@ spawn-at-startup "gravity-shell"
 
 hotkey-overlay {
     // Uncomment this line to disable the "Important Hotkeys" pop-up at startup.
-    // skip-at-startup
+    // Gravity: off, the shell has a keybind cheatsheet (Mod+F1).
+    skip-at-startup
+}
+
+// Gravity: no hot corner (the top-left corner opening the overview); Mod+Tab does that.
+gestures {
+    hot-corners {
+        off
+    }
 }
 
 // Uncomment this line to ask the clients to omit their client-side decorations if possible.

@@ -40,6 +40,12 @@ input {
         numlock
     }
 
+    // Dux: as on GNOME, click with two fingers for a right click (three for a middle
+    // click). The rest of the touchpad settings are in dms/input.kdl.
+    touchpad {
+        click-method "clickfinger"
+    }
+
     trackpoint {
         // off
         // natural-scroll
