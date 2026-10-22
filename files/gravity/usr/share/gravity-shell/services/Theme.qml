@@ -547,9 +547,11 @@ overview {
 
     // GTK's whole palette: libadwaita's (and adw-gtk3's) named colours, in gravity.css next
     // to gtk.css for GTK 3 and 4. GTK 4 also gets them as CSS variables, which libadwaita
-    // 1.6 and later read.
+    // 1.6 and later read. Windows and their header bars take the shell's surface (the bar
+    // and its cards), content a step towards the background, and cards a step away from it.
     function gtkCss(vars: bool): string {
         const p = niriPalette;
+        const raised = appliedLight ? p.night : p.dusk;
         const shade = appliedLight ? "rgba(0, 0, 0, 0.07)" : "rgba(0, 0, 0, 0.36)";
         const colors = [
             ["accent_color", p.gold], ["accent_bg_color", p.gold], ["accent_fg_color", p.goldInk],
@@ -557,14 +559,14 @@ overview {
             ["error_color", p.rose], ["error_bg_color", p.rose], ["error_fg_color", p.night],
             ["success_color", ansiNormal[1]], ["success_bg_color", ansiNormal[1]], ["success_fg_color", p.night],
             ["warning_color", ansiNormal[2]], ["warning_bg_color", ansiNormal[2]], ["warning_fg_color", p.night],
-            ["window_bg_color", p.deep], ["window_fg_color", p.text],
-            ["view_bg_color", p.night], ["view_fg_color", p.text],
-            ["headerbar_bg_color", p.panel], ["headerbar_fg_color", p.text], ["headerbar_backdrop_color", p.deep],
-            ["sidebar_bg_color", p.panel], ["sidebar_fg_color", p.text], ["sidebar_backdrop_color", p.deep],
+            ["window_bg_color", p.panel], ["window_fg_color", p.text],
+            ["view_bg_color", p.deep], ["view_fg_color", p.text],
+            ["headerbar_bg_color", p.panel], ["headerbar_fg_color", p.text], ["headerbar_backdrop_color", p.panel],
+            ["sidebar_bg_color", p.panel], ["sidebar_fg_color", p.text], ["sidebar_backdrop_color", p.panel],
             ["secondary_sidebar_bg_color", p.deep], ["secondary_sidebar_fg_color", p.text], ["secondary_sidebar_backdrop_color", p.deep],
-            ["card_bg_color", p.panel], ["card_fg_color", p.text],
+            ["card_bg_color", raised], ["card_fg_color", p.text],
             ["dialog_bg_color", p.panel], ["dialog_fg_color", p.text],
-            ["popover_bg_color", p.dusk], ["popover_fg_color", p.text],
+            ["popover_bg_color", raised], ["popover_fg_color", p.text],
             ["thumbnail_bg_color", p.dusk], ["thumbnail_fg_color", p.text]
         ].map(([name, c]) => [name, hex(c)]).concat([
             ["headerbar_shade_color", shade], ["sidebar_shade_color", shade], ["secondary_sidebar_shade_color", shade],
@@ -625,7 +627,8 @@ overview {
     }
 
     // Qt: a qt6ct colour scheme (QT_QPA_PLATFORMTHEME=qt6ct, see environment.d), in
-    // QPalette's role order. KDE apps also read KDE's colours from kdeglobals.
+    // QPalette's role order. KDE apps also read KDE's colours from kdeglobals. Laid out
+    // like GTK's: windows in the shell's surface, content a step below.
     readonly property string qtScheme: {
         const p = niriPalette;
         const roles = c => [
@@ -638,14 +641,14 @@ overview {
             c.text,                       // Text
             p.night,                      // BrightText
             c.text,                       // ButtonText
-            p.night,                      // Base
-            p.deep,                       // Window
+            p.deep,                       // Base
+            p.panel,                      // Window
             "#000000",                    // Shadow
             c.highlight,                  // Highlight
             c.highlightInk,               // HighlightedText
             p.gold,                       // Link
             p.amber,                      // LinkVisited
-            p.panel,                      // AlternateBase
+            p.dusk,                       // AlternateBase
             "#000000",                    // NoRole
             p.dusk,                       // ToolTipBase
             p.text,                       // ToolTipText
@@ -683,9 +686,9 @@ DecorationFocus=${rgb(p.gold)}
 DecorationHover=${rgb(p.gold)}
 `;
         return [
-            group("View", p.night, p.panel, p.text),
-            group("Window", p.deep, p.panel, p.text),
-            group("Header", p.deep, p.panel, p.text),
+            group("View", p.deep, p.panel, p.text),
+            group("Window", p.panel, p.deep, p.text),
+            group("Header", p.panel, p.deep, p.text),
             group("Button", p.dusk, p.panel, p.text),
             group("Tooltip", p.dusk, p.panel, p.text),
             group("Complementary", p.dusk, p.panel, p.text),
@@ -760,7 +763,8 @@ DecorationHover=${rgb(p.gold)}
     }
 
     // Ghostty: the "gravity" theme, which /etc/ghostty/gravity picks. Off: a theme that sets
-    // nothing, so Ghostty's own colours.
+    // nothing, so Ghostty's own colours. Its background is the shell's surface, so a
+    // terminal reads as one with the bar and frame around it.
     readonly property string ghosttyTheme: {
         if (!Config.themeGhostty)
             return "# Written by gravity-shell; its colours are turned off in its settings.\n";
@@ -768,7 +772,7 @@ DecorationHover=${rgb(p.gold)}
         const greys = appliedLight ? [p.text, mix(p.dusk, p.textDim, 0.5), p.textDim, p.dusk] : [p.dusk, p.textDim, mix(p.dusk, p.textDim, 0.5), p.text];
         const palette = [greys[0], ...ansiNormal, greys[1], greys[2], ...ansiBright, greys[3]];
         return `# Written by gravity-shell from its colours; edits are overwritten.
-background = ${hex(p.night)}
+background = ${hex(p.panel)}
 foreground = ${hex(p.text)}
 cursor-color = ${hex(p.gold)}
 cursor-text = ${hex(p.goldInk)}
