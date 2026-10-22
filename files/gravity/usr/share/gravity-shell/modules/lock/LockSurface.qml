@@ -171,10 +171,9 @@ WlSessionLockSurface {
         }
 
         // --- password pill ------------------------------------------------------------
-        // Material 3 Expressive: every character pops in as a random shape; while PAM checks
-        // the password they wobble and the loading indicator morphs at the end of the pill;
-        // a wrong one flashes the outline red and drops the shapes; the right one turns the
-        // pill to the accent.
+        // Dots pop in as you type and shrink away when deleted; while the password is
+        // checked a wave runs through them; a wrong one flashes red, shakes the pill and
+        // clears the dots; the right one turns the pill to the accent.
         Item {
             id: entry
 
@@ -184,16 +183,14 @@ WlSessionLockSurface {
 
             anchors.horizontalCenter: parent.horizontalCenter
             y: surface.height * 0.64 + (1 - surface.show) * 50
-            width: grow.value
+            width: Math.max(surface.height * 0.3, dots.width + height * 1.2)
             height: Math.round(surface.height * 0.06)
 
-            // Grows with the shapes, on the expressive spring.
-            Spring {
-                id: grow
-
-                spec: "defaultSpatial"
-                to: Math.max(surface.height * 0.3, surface.lock.buffer.length * passwordShapes.shapeSize * 1.45 + entry.height * 2)
-                Component.onCompleted: snap(to)
+            Behavior on width {
+                SpringAnimation {
+                    spring: 5
+                    damping: 0.35
+                }
             }
 
             NumberAnimation {
@@ -229,7 +226,7 @@ WlSessionLockSurface {
                 font.family: Theme.font
                 font.pixelSize: Math.round(surface.height * 0.017)
                 font.weight: Font.Bold
-                opacity: surface.lock.buffer.length === 0 && !entry.checking && !passwordShapes.failing ? 1 : 0
+                opacity: surface.lock.buffer.length === 0 && !entry.checking ? 1 : 0
 
                 Behavior on opacity {
                     NumberAnimation {
@@ -238,43 +235,54 @@ WlSessionLockSurface {
                 }
             }
 
-            PasswordShapes {
-                id: passwordShapes
+            PasswordDots {
+                id: dots
 
-                anchors.fill: parent
-                anchors.leftMargin: entry.height * 0.5
-                anchors.rightMargin: entry.height * 0.5
+                anchors.centerIn: parent
                 count: surface.lock.buffer.length
                 checking: entry.checking
-                granted: surface.leaving
-                shapeSize: Math.round(surface.height * 0.019)
+                dotSize: Math.round(surface.height * 0.012)
+                color: surface.leaving ? Theme.goldInk : Theme.gold
             }
 
             Connections {
                 target: surface.lock
 
                 function onFailed(): void {
-                    passwordShapes.fail();
+                    shake.restart();
                     errorFade.restart();
                 }
             }
 
-            // While PAM checks: the loading indicator, springing in at the end of the pill.
-            Spring {
-                id: loaderIn
+            // Wrong password: a short shake.
+            SequentialAnimation {
+                id: shake
 
-                spec: "fastSpatial"
-                to: entry.checking ? 1 : 0
-            }
-
-            LoadingIndicator {
-                anchors.verticalCenter: parent.verticalCenter
-                anchors.right: parent.right
-                anchors.rightMargin: (entry.height - size) / 2
-                size: entry.height * 0.8
-                color: Theme.gold
-                scale: Math.max(0, loaderIn.value)
-                visible: loaderIn.value > 0.01
+                NumberAnimation {
+                    target: entry
+                    property: "anchors.horizontalCenterOffset"
+                    to: -14
+                    duration: 50
+                }
+                NumberAnimation {
+                    target: entry
+                    property: "anchors.horizontalCenterOffset"
+                    to: 12
+                    duration: 70
+                }
+                NumberAnimation {
+                    target: entry
+                    property: "anchors.horizontalCenterOffset"
+                    to: -7
+                    duration: 70
+                }
+                NumberAnimation {
+                    target: entry
+                    property: "anchors.horizontalCenterOffset"
+                    to: 0
+                    duration: 110
+                    easing.type: Easing.OutBack
+                }
             }
         }
 

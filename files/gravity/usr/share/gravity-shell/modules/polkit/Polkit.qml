@@ -10,9 +10,8 @@ import qs.services
 // Polkit agent: when an app asks for an administrator password (mounting a disk, installing
 // updates, changing a system setting, `pkexec`, ...), the screen dims and a card springs up
 // from below, as the session menu does, on the focused screen. Material 3 Expressive, like
-// the lock screen: the password goes in a pill where every character pops in as a random
-// shape, the loading indicator morphs while it is checked, and the buttons are a connected
-// group. Enter authenticates, Esc or a click outside cancels.
+// the lock screen: the password goes in a pill of dots, the loading indicator morphs while
+// it is checked, and the buttons are a connected group. Enter authenticates, Esc or a click outside cancels.
 // `gravity-shell ipc call polkit cancel` cancels the open request.
 Scope {
     id: root
@@ -343,8 +342,8 @@ Scope {
                     }
 
                     // --- password pill ----------------------------------------------------
-                    // As the lock screen's: every character pops in as a random Material 3
-                    // Expressive shape.
+                    // As the lock screen's: dots drop in as you type, a wave runs through them
+                    // while the password is checked, and a wrong one shakes the pill.
                     Item {
                         id: entry
 
@@ -353,6 +352,41 @@ Scope {
 
                         width: parent.width
                         height: 56
+
+                        transform: Translate {
+                            id: shakeMove
+                        }
+
+                        // Wrong password: a short shake.
+                        SequentialAnimation {
+                            id: shake
+
+                            NumberAnimation {
+                                target: shakeMove
+                                property: "x"
+                                to: -14
+                                duration: 50
+                            }
+                            NumberAnimation {
+                                target: shakeMove
+                                property: "x"
+                                to: 12
+                                duration: 70
+                            }
+                            NumberAnimation {
+                                target: shakeMove
+                                property: "x"
+                                to: -7
+                                duration: 70
+                            }
+                            NumberAnimation {
+                                target: shakeMove
+                                property: "x"
+                                to: 0
+                                duration: 110
+                                easing.type: Easing.OutBack
+                            }
+                        }
 
                         NumberAnimation {
                             id: errorFade
@@ -371,7 +405,7 @@ Scope {
 
                             function onFailedChanged(): void {
                                 if (root.flow?.failed) {
-                                    passwordShapes.fail();
+                                    shake.restart();
                                     errorFade.restart();
                                     input.text = "";
                                 }
@@ -404,7 +438,7 @@ Scope {
                             font.family: Theme.font
                             font.pixelSize: 15
                             font.weight: Font.Bold
-                            opacity: input.text.length === 0 && !card.checking && !passwordShapes.failing ? 1 : 0
+                            opacity: input.text.length === 0 && !card.checking ? 1 : 0
 
                             Behavior on opacity {
                                 NumberAnimation {
@@ -447,16 +481,13 @@ Scope {
                             }
                         }
 
-                        PasswordShapes {
-                            id: passwordShapes
-
-                            anchors.fill: parent
-                            anchors.leftMargin: 28
-                            anchors.rightMargin: 28
+                        PasswordDots {
+                            anchors.centerIn: parent
                             visible: !root.flow?.responseVisible
                             count: input.text.length
                             checking: card.checking
-                            granted: root.granted
+                            dotSize: 12
+                            color: root.granted ? Theme.goldInk : Theme.gold
                         }
                     }
 
