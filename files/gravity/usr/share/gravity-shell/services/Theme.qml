@@ -228,6 +228,16 @@ Singleton {
     // Screen edge the bar runs along, and whether that is a side (a vertical bar).
     readonly property string barEdge: ["top", "bottom", "left", "right"].includes(Config.barPosition) ? Config.barPosition : "top"
     readonly property bool barVertical: barEdge === "left" || barEdge === "right"
+    // "edge": against the screen edge, curving into the screen. "floating": a fully rounded
+    // bar Theme.gap from the edge, with panels as separate cards under it. "frame": as
+    // "edge", with a thin border around the rest of the screen and rounded inner corners.
+    readonly property string barStyle: ["edge", "floating", "frame"].includes(Config.barStyle) ? Config.barStyle : "edge"
+    // From the screen edge to the bar's outer side, and to its inner side (where windows
+    // and panels start).
+    readonly property int barInset: barStyle === "floating" ? gap : 0
+    readonly property int barOuter: barInset + barSize
+    // Thickness of the frame along the other three edges (0 without one).
+    readonly property int frameSize: barStyle === "frame" ? 10 : 0
     // Radius of the inverted corners below the bar.
     readonly property int barCorner: 24
     // Gap between popups and the bar or the screen edge.

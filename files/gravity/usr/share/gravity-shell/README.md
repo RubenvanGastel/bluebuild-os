@@ -26,7 +26,10 @@ rest, and bold [Google Sans Flex](https://fonts.google.com/specimen/Google+Sans+
   offer matugen's scheme variants (tonal, vibrant, expressive, ...).
 - **Bar**: a solid Material 3 Expressive style bar along the top edge (or the bottom, left
   or right; along a side its contents stack) that curves into the screen with inverted
-  corners, with status in tonal pills and the clock in an accent pill.
+  corners, with status in tonal pills and the clock in an accent pill. Two other styles:
+  **floating**, a fully rounded bar a little away from the edge with the panels as separate
+  cards under it, and **frame**, a thin border around the rest of the screen whose inner
+  corners are rounded, so windows sit in a rounded frame.
   The niri workspaces are numbered circles in it; switching stretches an accent pill from
   the old one to the new one. It also holds the window title, the tray, a battery pill (on
   laptops), a status pill (network, Bluetooth and a volume icon) and a clock.
@@ -56,7 +59,7 @@ rest, and bold [Google Sans Flex](https://fonts.google.com/specimen/Google+Sans+
 - **Settings** (`Super+Comma`, or the cog in the quick panel): the screen dims and a card
   springs up with a sidebar of pages. *Appearance*: light or dark, built-in or wallpaper
   colours and the scheme, the wallpaper and its folder. *Bar*: which edge it
-  runs along and what it shows. *Wi-Fi*: on or off, the network you're on with its addresses,
+  runs along, its style and what it shows. *Wi-Fi*: on or off, the network you're on with its addresses,
   every network in range (join, with the password asked in place, or forget) and hidden
   networks. *Bluetooth*: on or off, visible to other devices, your devices (connect, rename,
   trust, forget) and devices nearby to pair. *Lock & clock*: idle lock time, 24-hour time and
@@ -99,6 +102,7 @@ picker write it, storing only settings that differ from the defaults:
   "use24h": true,
   "showDate": true,
   "barPosition": "top",
+  "barStyle": "edge",
   "barWorkspaces": true,
   "barTitle": true,
   "barClock": true,
@@ -111,7 +115,7 @@ picker write it, storing only settings that differ from the defaults:
 
 `"colors"` is `"default"`, `"accent"` (made from `"accent"`, a `#rrggbb` colour) or
 `"wallpaper"`; `"appearanceMode"` is `"manual"`, `"wallpaper"` or `"sun"`; `"barPosition"` is `"top"`, `"bottom"`, `"left"`
-or `"right"`. Generated colours are cached in
+or `"right"`; `"barStyle"` is `"edge"`, `"floating"` or `"frame"`. Generated colours are cached in
 `~/.cache/gravity-shell/colors.json`. matugen can't read `.jxl` images, so with those the
 default colours are used. From a terminal:
 

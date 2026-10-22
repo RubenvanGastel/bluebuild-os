@@ -36,8 +36,8 @@ Scope {
         // starts at the bar and reaches a bit further left and down than the cards, for their
         // shadow and the slide-in. Ignore the bar's reserved space, so the margins are exact.
         exclusionMode: ExclusionMode.Ignore
-        margins.top: Theme.barEdge === "top" ? Theme.barSize : 0
-        margins.right: Theme.barEdge === "right" ? Theme.barSize : 0
+        margins.top: Theme.barEdge === "top" ? Theme.barOuter : Theme.frameSize
+        margins.right: Theme.barEdge === "right" ? Theme.barOuter : Theme.frameSize
         implicitWidth: cardWidth + Theme.gap + 40
         implicitHeight: Math.max(1, stack.implicitHeight + below + Theme.gap + 40)
         exclusiveZone: 0

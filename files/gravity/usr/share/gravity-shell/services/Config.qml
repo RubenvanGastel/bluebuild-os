@@ -42,6 +42,8 @@ Singleton {
     property alias showDate: adapter.showDate
     // Screen edge the bar runs along: "top", "bottom", "left" or "right".
     property alias barPosition: adapter.barPosition
+    // "edge", "floating" or "frame" (Theme.barStyle).
+    property alias barStyle: adapter.barStyle
     // What the bar shows. With the status pill (network, Bluetooth and volume) hidden, the
     // quick panel still opens with `gravity-shell ipc call quickPanel toggle`. The battery
     // pill only shows on laptops.
@@ -118,6 +120,7 @@ Singleton {
             use24h: true,
             showDate: true,
             barPosition: "top",
+            barStyle: "edge",
             barWorkspaces: true,
             barTitle: true,
             barClock: true,
@@ -169,6 +172,7 @@ Singleton {
             property bool use24h: root.defaults.use24h
             property bool showDate: root.defaults.showDate
             property string barPosition: root.defaults.barPosition
+            property string barStyle: root.defaults.barStyle
             property bool barWorkspaces: root.defaults.barWorkspaces
             property bool barTitle: root.defaults.barTitle
             property bool barClock: root.defaults.barClock

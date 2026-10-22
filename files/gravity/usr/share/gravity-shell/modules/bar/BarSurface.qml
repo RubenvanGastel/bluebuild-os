@@ -8,6 +8,8 @@ import qs.components
 // floating at the start, the clock and date in an accent pill in the middle, and at the far
 // end the system monitor, the tray, the battery, and network, Bluetooth and volume in a
 // tonal pill that opens the quick panel. Along a side everything stacks vertically. Config.bar* hide parts of it.
+// Theme.barStyle "floating" makes it a fully rounded bar inset from the edge, "frame" adds a
+// thin border around the rest of the screen with the corners curving in at all four.
 // Fill the area the bar is drawn in with it: the bar window, or the wallpaper picker, which
 // draws an identical live copy of the screen it can slide away.
 Item {
@@ -22,16 +24,25 @@ Item {
 
     readonly property string edge: Theme.barEdge
     readonly property bool vertical: Theme.barVertical
-    // Size of the bar window: the strip and the corners curving away from it.
-    readonly property int depth: Theme.barSize + Theme.barCorner
+    readonly property bool floating: Theme.barStyle === "floating"
+    readonly property bool frame: Theme.barStyle === "frame"
+    readonly property real inset: Theme.barInset
+    readonly property real frameSize: Theme.frameSize
+    // Along the bar and across the screen from its edge.
+    readonly property real length: vertical ? height : width
+    readonly property real across: vertical ? width : height
+    // Size of the bar window: the strip and the corners curving away from it (the whole
+    // screen with the frame).
+    readonly property int depth: frame ? Theme.barSize : inset + Theme.barSize + (floating ? 0 : Theme.barCorner)
 
     Rectangle {
         id: bar
 
-        x: root.edge === "right" ? root.width - width : 0
-        y: root.edge === "bottom" ? root.height - height : 0
-        width: root.vertical ? Theme.barSize : root.width
-        height: root.vertical ? root.height : Theme.barSize
+        x: root.edge === "right" ? root.width - width - root.inset : root.inset
+        y: root.edge === "bottom" ? root.height - height - root.inset : root.inset
+        width: root.vertical ? Theme.barSize : root.width - 2 * root.inset
+        height: root.vertical ? root.height - 2 * root.inset : Theme.barSize
+        radius: root.floating ? Theme.barSize / 2 : 0
         color: Theme.surface
 
         Behavior on color {
@@ -97,7 +108,7 @@ Item {
                 // Middle of the pill along the bar, where the panel opens from Mod+M too
                 // (at the far end while it's hidden). Not from the wallpaper picker's copy
                 // of the bar.
-                readonly property real centre: !Config.barStats ? 1e6 : root.vertical ? end.y + y + height / 2 : end.x + x + width / 2
+                readonly property real centre: !Config.barStats ? 1e6 : root.vertical ? bar.y + end.y + y + height / 2 : bar.x + end.x + x + width / 2
 
                 onCentreChanged: if (root.enabled)
                     Panels.setMonitorAnchor(root.output, centre)
@@ -144,7 +155,7 @@ Item {
 
                 readonly property bool active: Panels.battery === root.output
                 // Middle of the pill along the bar, where the panel opens; as the monitor's.
-                readonly property real centre: !visible ? 1e6 : root.vertical ? end.y + y + height / 2 : end.x + x + width / 2
+                readonly property real centre: !visible ? 1e6 : root.vertical ? bar.y + end.y + y + height / 2 : bar.x + end.x + x + width / 2
 
                 onCentreChanged: if (root.enabled)
                     Panels.setBatteryAnchor(root.output, centre)
@@ -230,20 +241,87 @@ Item {
         }
     }
 
-    // Curving into the screen at both ends of the bar.
+    // Curving into the screen at both ends of the bar (into the frame with one).
     EdgeCorner {
-        u: 0
+        visible: !root.floating
+        u: root.frameSize
         v: Theme.barSize
         size: Theme.barCorner
         fill: bar.color
     }
 
     EdgeCorner {
-        u: (root.vertical ? root.height : root.width) - size
+        visible: !root.floating
+        u: root.length - root.frameSize - size
         v: Theme.barSize
         size: Theme.barCorner
         high: true
         fill: bar.color
+    }
+
+    // The frame: along both ends of the bar and the far edge, curving in at the far corners.
+    Band {
+        u: 0
+        v: Theme.barSize
+        along: root.frameSize
+        thickness: root.across - Theme.barSize
+    }
+
+    Band {
+        u: root.length - root.frameSize
+        v: Theme.barSize
+        along: root.frameSize
+        thickness: root.across - Theme.barSize
+    }
+
+    Band {
+        u: root.frameSize
+        v: root.across - root.frameSize
+        along: root.length - 2 * root.frameSize
+        thickness: root.frameSize
+    }
+
+    EdgeCorner {
+        visible: root.frame
+        u: root.frameSize
+        v: root.across - root.frameSize - size
+        size: Theme.barCorner
+        near: false
+        fill: bar.color
+    }
+
+    EdgeCorner {
+        visible: root.frame
+        u: root.length - root.frameSize - size
+        v: root.across - root.frameSize - size
+        size: Theme.barCorner
+        near: false
+        high: true
+        fill: bar.color
+    }
+
+    // A strip of the frame in the bar's terms (as EdgeCorner): `along` from `u`, `thickness`
+    // from `v` away from the bar's edge. Its parent must cover the whole screen.
+    component Band: Rectangle {
+        property real u
+        property real v
+        property real along
+        property real thickness
+
+        readonly property string edge: Theme.barEdge
+
+        visible: Theme.barStyle === "frame"
+        x: edge === "left" ? v : edge === "right" ? parent.width - v - thickness : u
+        y: edge === "top" ? v : edge === "bottom" ? parent.height - v - thickness : u
+        width: Theme.barVertical ? thickness : along
+        height: Theme.barVertical ? along : thickness
+        color: Theme.surface
+
+        Behavior on color {
+            ColorAnimation {
+                duration: Theme.normal
+            }
+        }
     }
 
     // A fully rounded tonal container around its content: as tall as the bar is thick

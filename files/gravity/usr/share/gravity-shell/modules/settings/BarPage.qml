@@ -22,6 +22,18 @@ Column {
         onChosen: v => Config.set("barPosition", v)
     }
 
+    Choice {
+        label: "Style"
+        description: Theme.barStyle === "floating" ? "A rounded bar away from the edge; panels open as cards under it." : Theme.barStyle === "frame" ? "A thin border around the rest of the screen, rounded on the inside." : "Against the screen edge, curving into the screen at both ends."
+        options: [
+            { value: "edge", label: "Edge", icon: "\u{f1513}" },
+            { value: "floating", label: "Floating", icon: "\u{f0e5a}" },
+            { value: "frame", label: "Frame", icon: "\u{f05af}" }
+        ]
+        value: Theme.barStyle
+        onChosen: v => Config.set("barStyle", v)
+    }
+
     Section {
         title: "Show in the bar"
 
