@@ -23,6 +23,19 @@ modules:
         - xdg-desktop-portal-gnome # screencasting and file dialogs in niri
         - xdg-desktop-portal-gtk
         - nautilus # file manager (Mod+E), also the file dialog of the GNOME portal
+        # Nautilus backends Silverblue ships: network shares (smb://, nfs://), phones
+        # (Android over MTP, iPhone), cameras, and opening archives as folders
+        - gvfs-smb
+        - wsdd # lets Nautilus find Windows 10/11 PCs under Network (WS-Discovery)
+        - gvfs-nfs
+        - gvfs-mtp
+        - gvfs-afc
+        - gvfs-gphoto2
+        - gvfs-archive
+        - nautilus-python # Ghostty's "Open in Ghostty" in Nautilus' right-click menu
+        - file-roller # archive manager: double-click a .zip/.7z/.tar to open it
+        - gnome-disk-utility # Disks: format USB sticks, SMART, disk images
+        - bolt # authorizes Thunderbolt/USB4 docks and devices (boltctl)
         - gnome-keyring
         - gnome-keyring-pam # greetd unlocks the keyring at login (see setup-greetd.sh)
         - adw-gtk3-theme # GTK 3 apps in the libadwaita look, light and dark
