@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Effects
 import Quickshell
 import Quickshell.Wayland
+import qs.components
 import qs.services
 
 // The lock screen. It starts as an exact copy of the desktop (captured just before
@@ -170,34 +171,29 @@ WlSessionLockSurface {
         }
 
         // --- password pill ------------------------------------------------------------
-        // Dots drop in as you type and fall away when deleted; while the password is
-        // checked a wave runs through them; a wrong one flashes red, shakes the pill and
-        // drops every dot; the right one turns the pill to the accent.
+        // Material 3 Expressive: every character pops in as a random shape; while PAM checks
+        // the password they wobble and the loading indicator morphs at the end of the pill;
+        // a wrong one flashes the outline red and drops the shapes; the right one turns the
+        // pill to the accent.
         Item {
             id: entry
 
-            readonly property real dotSize: Math.round(surface.height * 0.012)
             readonly property bool checking: surface.lock.pamActive
             // 1 right after a wrong password, fading to 0.
             property real error: 0
-            // Scene time, for the checking wave.
-            property real t: 0
 
             anchors.horizontalCenter: parent.horizontalCenter
             y: surface.height * 0.64 + (1 - surface.show) * 50
-            width: Math.max(surface.height * 0.3, dotsView.contentWidth + height * 1.2)
+            width: grow.value
             height: Math.round(surface.height * 0.06)
 
-            Behavior on width {
-                SpringAnimation {
-                    spring: 5
-                    damping: 0.35
-                }
-            }
+            // Grows with the shapes, on the expressive spring.
+            Spring {
+                id: grow
 
-            FrameAnimation {
-                running: entry.checking
-                onTriggered: entry.t += frameTime
+                spec: "defaultSpatial"
+                to: Math.max(surface.height * 0.3, surface.lock.buffer.length * passwordShapes.shapeSize * 1.45 + entry.height * 2)
+                Component.onCompleted: snap(to)
             }
 
             NumberAnimation {
@@ -233,7 +229,7 @@ WlSessionLockSurface {
                 font.family: Theme.font
                 font.pixelSize: Math.round(surface.height * 0.017)
                 font.weight: Font.Bold
-                opacity: surface.lock.buffer.length === 0 && !entry.checking ? 1 : 0
+                opacity: surface.lock.buffer.length === 0 && !entry.checking && !passwordShapes.failing ? 1 : 0
 
                 Behavior on opacity {
                     NumberAnimation {
@@ -242,140 +238,43 @@ WlSessionLockSurface {
                 }
             }
 
-            ListModel {
-                id: dots
-            }
+            PasswordShapes {
+                id: passwordShapes
 
-            // One model entry per typed character.
-            function sync(): void {
-                const n = surface.lock.buffer.length;
-                while (dots.count < n)
-                    dots.append({});
-                while (dots.count > n)
-                    dots.remove(dots.count - 1);
+                anchors.fill: parent
+                anchors.leftMargin: entry.height * 0.5
+                anchors.rightMargin: entry.height * 0.5
+                count: surface.lock.buffer.length
+                checking: entry.checking
+                granted: surface.leaving
+                shapeSize: Math.round(surface.height * 0.019)
             }
 
             Connections {
                 target: surface.lock
 
-                function onBufferChanged(): void {
-                    entry.sync();
-                }
-
                 function onFailed(): void {
-                    shake.restart();
+                    passwordShapes.fail();
                     errorFade.restart();
                 }
             }
 
-            ListView {
-                id: dotsView
+            // While PAM checks: the loading indicator, springing in at the end of the pill.
+            Spring {
+                id: loaderIn
 
-                anchors.centerIn: parent
-                width: contentWidth
-                height: entry.dotSize * 3
-                orientation: ListView.Horizontal
-                interactive: false
-                spacing: entry.dotSize * 0.6
-                model: dots
-
-                delegate: Item {
-                    id: dot
-
-                    required property int index
-
-                    // Vertical offset used by the add/remove transitions.
-                    property real drop: 0
-
-                    width: entry.dotSize
-                    height: dotsView.height
-
-                    Rectangle {
-                        width: entry.dotSize
-                        height: entry.dotSize
-                        radius: width / 2
-                        anchors.verticalCenter: parent.verticalCenter
-                        color: surface.leaving ? Theme.goldInk : Theme.gold
-
-                        transform: Translate {
-                            // The checking wave: each dot hops a little after the one before.
-                            y: dot.drop - (entry.checking ? Math.max(0, Math.sin(entry.t * 7 - dot.index * 0.7)) * entry.dotSize * 0.9 : 0)
-                        }
-                    }
-                }
-
-                // A new dot drops in from above with a bounce.
-                add: Transition {
-                    NumberAnimation {
-                        property: "drop"
-                        from: -entry.dotSize * 2.2
-                        to: 0
-                        duration: 420
-                        easing.type: Easing.OutBack
-                        easing.overshoot: 2.2
-                    }
-                    NumberAnimation {
-                        property: "opacity"
-                        from: 0
-                        to: 1
-                        duration: 140
-                    }
-                }
-
-                // Deleted dots fall out of the pill.
-                remove: Transition {
-                    NumberAnimation {
-                        property: "drop"
-                        to: entry.dotSize * 3
-                        duration: 300
-                        easing.type: Easing.InQuad
-                    }
-                    NumberAnimation {
-                        property: "opacity"
-                        to: 0
-                        duration: 300
-                        easing.type: Easing.InQuad
-                    }
-                }
-
-                displaced: Transition {
-                    NumberAnimation {
-                        property: "x"
-                        duration: Theme.fast
-                        easing.type: Easing.OutCubic
-                    }
-                }
+                spec: "fastSpatial"
+                to: entry.checking ? 1 : 0
             }
 
-            // Wrong password: a short shake.
-            SequentialAnimation {
-                id: shake
-
-                NumberAnimation {
-                    target: entry
-                    property: "anchors.horizontalCenterOffset"
-                    to: -14
-                    duration: 50
-                }
-                NumberAnimation {
-                    target: entry
-                    property: "anchors.horizontalCenterOffset"
-                    to: 12
-                    duration: 70
-                }
-                NumberAnimation {
-                    target: entry
-                    property: "anchors.horizontalCenterOffset"
-                    to: -7
-                    duration: 70
-                }
-                NumberAnimation {
-                    target: entry
-                    property: "anchors.horizontalCenterOffset"
-                    to: 0
-                    duration: 110
-                    easing.type: Easing.OutBack
-                }
+            LoadingIndicator {
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.right: parent.right
+                anchors.rightMargin: (entry.height - size) / 2
+                size: entry.height * 0.8
+                color: Theme.gold
+                scale: Math.max(0, loaderIn.value)
+                visible: loaderIn.value > 0.01
             }
         }
 

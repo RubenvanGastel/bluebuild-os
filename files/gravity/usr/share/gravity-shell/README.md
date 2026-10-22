@@ -74,7 +74,12 @@ rest, and bold [Google Sans Flex](https://fonts.google.com/specimen/Google+Sans+
 - **Notifications**: solid rounded cards drift in from the right, with the first action as an
   accent pill and the others tonal; when they expire they fall away.
 - **Lock screen** (`Super+Alt+L`, or after 10 idle minutes): your wallpaper blurs in behind a
-  bold clock, the date in a tonal pill and a password pill.
+  bold clock, the date in a tonal pill and a password pill in Material 3 Expressive style:
+  every character pops in as a random shape from its shape library, the loading indicator
+  morphs while the password is checked, and a wrong one drops the shapes.
+- **Password prompt for apps** (polkit): when an app or `pkexec` needs an administrator
+  password, a card springs up with the same password pill, the request's message and a
+  Cancel/Authenticate button group.
 
 ## Settings
 
@@ -125,7 +130,7 @@ prefers that copy, and Quickshell reloads it live as you save.
 
 Keybinds use the IPC targets `volume` (increase, decrease, muteOutput, muteInput),
 `powerProfile` (cycle), `wallpaper` (toggle, set), `theme`, `appearance` (toggle, set
-`light|dark`, auto `wallpaper|sun|manual`), `settings` (toggle, open `appearance|bar|wifi|bluetooth|general`), `lock`, `keybinds` (toggle) and `session`
-(toggle, run `lock|suspend|logout|reboot|firmware|poweroff`).
+`light|dark`, auto `wallpaper|sun|manual`), `settings` (toggle, open `appearance|bar|wifi|bluetooth|general`), `lock`, `keybinds` (toggle), `session`
+(toggle, run `lock|suspend|logout|reboot|firmware|poweroff`) and `polkit` (cancel).
 
 Useful commands: `gravity-shell lock`, `gravity-shell wallpaper [image]`, `gravity-shell ipc show`, `gravity-shell log`.
