@@ -179,6 +179,60 @@ Scope {
             root.lock()
     }
 
+    // Lock before the machine sleeps, however it is suspended (lid, power key, systemctl).
+    // logind holds off sleeping while this delay inhibitor is held (at most
+    // InhibitDelayMaxSec, 5 s); it is let go once the lock screen is up, and taken again
+    // on wake-up.
+    property bool preparingSleep: false
+
+    function releaseSleep(): void {
+        if (preparingSleep && sessionLock.secure)
+            sleepInhibitor.running = false;
+    }
+
+    Connections {
+        target: sessionLock
+
+        function onSecureChanged(): void {
+            root.releaseSleep();
+        }
+    }
+
+    Process {
+        id: sleepInhibitor
+
+        running: true
+        command: ["systemd-inhibit", "--what=sleep", "--mode=delay", "--who=Gravity shell", "--why=Lock the screen first", "sleep", "infinity"]
+    }
+
+    Process {
+        id: sleepWatch
+
+        running: true
+        command: ["gdbus", "monitor", "--system", "--dest", "org.freedesktop.login1", "--object-path", "/org/freedesktop/login1"]
+        stdout: SplitParser {
+            onRead: line => {
+                if (!line.includes(".PrepareForSleep "))
+                    return;
+                root.preparingSleep = line.includes("true");
+                if (root.preparingSleep) {
+                    root.lock();
+                    root.releaseSleep();
+                } else {
+                    sleepInhibitor.running = true;
+                }
+            }
+        }
+        onExited: sleepWatchRestart.start()
+    }
+
+    Timer {
+        id: sleepWatchRestart
+
+        interval: 1000
+        onTriggered: sleepWatch.running = true
+    }
+
     // `gravity-shell lock` (bound to Super+Alt+L in niri).
     IpcHandler {
         target: "lock"

@@ -37,8 +37,8 @@ Scope {
 
     readonly property var allActions: [
         { id: "lock", doing: "Locking", label: "Lock", icon: "\u{f033e}", command: ["gravity-shell", "lock"] },
-        // Locks first, so the session is locked when it wakes up.
-        { id: "suspend", doing: "Suspending", label: "Suspend", icon: "\u{f0904}", command: ["sh", "-c", "gravity-shell lock; sleep 1; systemctl suspend"] },
+        // The lock module locks before any suspend, so the session is locked when it wakes up.
+        { id: "suspend", doing: "Suspending", label: "Suspend", icon: "\u{f0904}", command: ["systemctl", "suspend"] },
         { id: "logout", doing: "Logging out", label: "Log out", icon: "\u{f0343}", command: ["niri", "msg", "action", "quit", "--skip-confirmation"] },
         { id: "reboot", doing: "Rebooting", label: "Reboot", icon: "\u{f0709}", command: ["systemctl", "reboot"] },
         { id: "firmware", doing: "Rebooting into the BIOS", label: "BIOS", icon: "\u{f061a}", command: ["systemctl", "reboot", "--firmware-setup"] },

@@ -76,7 +76,7 @@ rest, and bold [Google Sans Flex](https://fonts.google.com/specimen/Google+Sans+
   outside closes.
 - **Notifications**: solid rounded cards drift in from the right, with the first action as an
   accent pill and the others tonal; when they expire they fall away.
-- **Lock screen** (`Super+Alt+L`, or after 10 idle minutes): your wallpaper blurs in behind a
+- **Lock screen** (`Super+Alt+L`, after 10 idle minutes, and before every suspend): your wallpaper blurs in behind a
   bold clock, the date in a tonal pill and a password pill.
 - **Password prompt for apps** (polkit): when an app or `pkexec` needs an administrator
   password, a card springs up with the same password pill, the request's message and a
