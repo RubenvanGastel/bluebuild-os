@@ -54,7 +54,7 @@ Singleton {
     property alias barTray: adapter.barTray
     property alias barBattery: adapter.barBattery
     property alias barStatus: adapter.barStatus
-    // Whether apps take the shell's colours: GTK/GNOME apps (the nearest GNOME accent), Qt
+    // Whether apps take the shell's colours: GTK/GNOME apps (gtk.css and the nearest GNOME accent), Qt
     // and KDE apps (qt6ct's palette and KDE's colours) and Ghostty. Off returns each to its
     // own colours.
     property alias themeGtk: adapter.themeGtk

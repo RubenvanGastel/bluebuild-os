@@ -525,7 +525,8 @@ overview {
         }
     }
 
-    // GTK: the GNOME accent (off: GNOME's own, blue). Light or dark is Appearance's.
+    // GTK: the GNOME accent (off: GNOME's own, blue), and the palette below. Light or dark
+    // is Appearance's.
     Timer {
         id: gnomeWrite
 
@@ -542,6 +543,85 @@ overview {
         id: gnomeProc
 
         command: ["sh", "-c", Config.themeGtk ? '[ "$(gsettings get org.gnome.desktop.interface accent-color)" = "\'$0\'" ] || gsettings set org.gnome.desktop.interface accent-color "$0"' : "gsettings reset org.gnome.desktop.interface accent-color", root.gnomeAccent]
+    }
+
+    // GTK's whole palette: libadwaita's (and adw-gtk3's) named colours, in gravity.css next
+    // to gtk.css for GTK 3 and 4. GTK 4 also gets them as CSS variables, which libadwaita
+    // 1.6 and later read.
+    function gtkCss(vars: bool): string {
+        const p = niriPalette;
+        const shade = appliedLight ? "rgba(0, 0, 0, 0.07)" : "rgba(0, 0, 0, 0.36)";
+        const colors = [
+            ["accent_color", p.gold], ["accent_bg_color", p.gold], ["accent_fg_color", p.goldInk],
+            ["destructive_color", p.rose], ["destructive_bg_color", p.rose], ["destructive_fg_color", p.night],
+            ["error_color", p.rose], ["error_bg_color", p.rose], ["error_fg_color", p.night],
+            ["success_color", ansiNormal[1]], ["success_bg_color", ansiNormal[1]], ["success_fg_color", p.night],
+            ["warning_color", ansiNormal[2]], ["warning_bg_color", ansiNormal[2]], ["warning_fg_color", p.night],
+            ["window_bg_color", p.deep], ["window_fg_color", p.text],
+            ["view_bg_color", p.night], ["view_fg_color", p.text],
+            ["headerbar_bg_color", p.panel], ["headerbar_fg_color", p.text], ["headerbar_backdrop_color", p.deep],
+            ["sidebar_bg_color", p.panel], ["sidebar_fg_color", p.text], ["sidebar_backdrop_color", p.deep],
+            ["secondary_sidebar_bg_color", p.deep], ["secondary_sidebar_fg_color", p.text], ["secondary_sidebar_backdrop_color", p.deep],
+            ["card_bg_color", p.panel], ["card_fg_color", p.text],
+            ["dialog_bg_color", p.panel], ["dialog_fg_color", p.text],
+            ["popover_bg_color", p.dusk], ["popover_fg_color", p.text],
+            ["thumbnail_bg_color", p.dusk], ["thumbnail_fg_color", p.text]
+        ].map(([name, c]) => [name, hex(c)]).concat([
+            ["headerbar_shade_color", shade], ["sidebar_shade_color", shade], ["secondary_sidebar_shade_color", shade],
+            ["card_shade_color", shade], ["popover_shade_color", shade], ["shade_color", shade]
+        ]);
+        let css = "/* Written by gravity-shell from its colours; edits are overwritten. */\n";
+        css += colors.map(([name, c]) => `@define-color ${name} ${c};`).join("\n") + "\n";
+        if (vars)
+            css += ":root {\n" + colors.map(([name, c]) => `    --${name.replace(/_/g, "-")}: ${c};`).join("\n") + "\n}\n";
+        return css;
+    }
+
+    readonly property string gtkState: Config.themeGtk ? gtkCss(true) : "off"
+
+    onGtkStateChanged: gtkWrite.restart()
+
+    Timer {
+        id: gtkWrite
+
+        interval: 200
+        onTriggered: {
+            if (!Config.ready || !Appearance.ready)
+                return;
+            gtkProc.running = false;
+            gtkProc.running = true;
+        }
+    }
+
+    // On: gravity.css is written and gtk.css imports it first, so your own rules there still
+    // win. Off: the import comes out again (and gtk.css with it, if that was all it held).
+    // Apps read it when they start.
+    Process {
+        id: gtkProc
+
+        command: ["sh", "-c", `
+            line='@import url("gravity.css");'
+            for v in 3.0 4.0; do
+                dir="$0/gtk-$v" css="$0/gtk-$v/gtk.css"
+                if [ "$1" = on ]; then
+                    [ "$v" = 4.0 ] && text="$3" || text="$2"
+                    mkdir -p "$dir" && printf "%s" "$text" > "$dir/gravity.css.tmp" && mv -f "$dir/gravity.css.tmp" "$dir/gravity.css" || exit 1
+                    if ! grep -qxF "$line" "$css" 2>/dev/null; then
+                        { echo "$line"; if [ -f "$css" ]; then cat "$css"; fi; } > "$css.tmp" && mv -f "$css.tmp" "$css" || exit 1
+                    fi
+                else
+                    rm -f "$dir/gravity.css"
+                    if grep -qxF "$line" "$css" 2>/dev/null; then
+                        grep -vxF "$line" "$css" > "$css.tmp"
+                        if grep -q '[^[:space:]]' "$css.tmp"; then mv -f "$css.tmp" "$css"; else rm -f "$css.tmp" "$css"; fi
+                    fi
+                fi
+            done
+        `, root.configHome, Config.themeGtk ? "on" : "off", root.gtkCss(false), root.gtkCss(true)]
+        onExited: code => {
+            if (code !== 0)
+                console.warn("gravity: could not write GTK colours");
+        }
     }
 
     // Qt: a qt6ct colour scheme (QT_QPA_PLATFORMTHEME=qt6ct, see environment.d), in
@@ -732,6 +812,7 @@ ${palette.map((c, i) => `palette = ${i}=${hex(c)}`).join("\n")}
         function onReadyChanged(): void {
             niriWrite.restart();
             gnomeWrite.restart();
+            gtkWrite.restart();
             qtWrite.restart();
             ghosttyWrite.restart();
         }

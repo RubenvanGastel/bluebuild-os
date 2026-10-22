@@ -187,7 +187,7 @@ Column {
 
         Toggle {
             label: "GTK"
-            description: "GNOME and GTK apps take the nearest GNOME accent. Off: GNOME's blue."
+            description: "GNOME and GTK apps get the whole palette, and the nearest GNOME accent for the rest. Open apps take it when they restart."
             checked: Config.themeGtk
             onToggled: on => Config.set("themeGtk", on)
         }
