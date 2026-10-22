@@ -335,7 +335,10 @@ Singleton {
                 ffmpeg -loglevel error -i "$3" -frames:v 1 -q:v 3 -y "$tmp"
                 [ -s "$tmp" ] && mv -f "$tmp" "$1"
             fi
-            exec matugen image "$1" --dry-run --json hex -m "$4" -t "$2"
+            # matugen 4 asks which colour to use when an image has several, and fails
+            # without a terminal; index 0 is the one matugen 3 picked. Older ones lack the flag.
+            matugen image "$1" --dry-run --json hex -m "$4" -t "$2" --source-color-index 0 2>/dev/null ||
+                exec matugen image "$1" --dry-run --json hex -m "$4" -t "$2"
         `, root.cacheDir, path ? Media.stillOf(path) : "", scheme, Media.isVideo(path) ? path : "", mode, color]
         stdout: StdioCollector {
             id: out
@@ -363,7 +366,8 @@ Singleton {
         }
     }
 
-    // matugen 3+ nests colours as colors.<role>.default; 2.x used colors.<mode>.<role>.
+    // matugen 3+ nests colours as colors.<role>.default (4 as {color: hex} there); 2.x used
+    // colors.<mode>.<role>.
     function parse(text: string, mode: string): var {
         let data;
         try {
@@ -375,7 +379,9 @@ Singleton {
         const palette = {};
         for (const name in roles) {
             const role = roles[name];
-            const v = c[role]?.default ?? c[role]?.[mode] ?? c[mode]?.[role];
+            let v = c[role]?.default ?? c[role]?.[mode] ?? c[mode]?.[role];
+            if (typeof v === "object")
+                v = v?.color;
             if (typeof v !== "string")
                 return null;
             palette[name] = v;
