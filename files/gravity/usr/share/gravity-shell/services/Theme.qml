@@ -496,6 +496,36 @@ overview {
 
     onGnomeAccentChanged: gnomeWrite.restart()
 
+    // --- colours for apps ------------------------------------------------------------------
+    // Each from the applied palette (like niri's), and each can be turned off in the
+    // settings (Config.themeGtk, themeQt, themeGhostty), which returns it to its own colours.
+
+    readonly property string configHome: Quickshell.env("XDG_CONFIG_HOME") || Quickshell.env("HOME") + "/.config"
+
+    function mix(a: color, b: color, t: real): color {
+        return Qt.rgba(a.r + (b.r - a.r) * t, a.g + (b.g - a.g) * t, a.b + (b.b - a.b) * t, 1);
+    }
+
+    function hex(c: color): string {
+        return Qt.color(c).toString();
+    }
+
+    // Material has no greens or yellows, so terminal colours (and KDE's positive and
+    // neutral) keep their usual hues, at a lightness that reads on the background.
+    // Red, green, yellow, blue, magenta, cyan.
+    readonly property var ansiHues: [0, 125, 48, 215, 300, 185].map(h => h / 360)
+    readonly property var ansiNormal: ansiHues.map(h => Qt.hsla(h, 0.6, appliedLight ? 0.38 : 0.68, 1))
+    readonly property var ansiBright: ansiHues.map(h => Qt.hsla(h, 0.75, appliedLight ? 0.3 : 0.78, 1))
+
+    Connections {
+        target: Config
+
+        function onThemeGtkChanged(): void {
+            gnomeWrite.restart();
+        }
+    }
+
+    // GTK: the GNOME accent (off: GNOME's own, blue). Light or dark is Appearance's.
     Timer {
         id: gnomeWrite
 
@@ -511,7 +541,189 @@ overview {
     Process {
         id: gnomeProc
 
-        command: ["sh", "-c", '[ "$(gsettings get org.gnome.desktop.interface accent-color)" = "\'$0\'" ] || gsettings set org.gnome.desktop.interface accent-color "$0"', root.gnomeAccent]
+        command: ["sh", "-c", Config.themeGtk ? '[ "$(gsettings get org.gnome.desktop.interface accent-color)" = "\'$0\'" ] || gsettings set org.gnome.desktop.interface accent-color "$0"' : "gsettings reset org.gnome.desktop.interface accent-color", root.gnomeAccent]
+    }
+
+    // Qt: a qt6ct colour scheme (QT_QPA_PLATFORMTHEME=qt6ct, see environment.d), in
+    // QPalette's role order. KDE apps also read KDE's colours from kdeglobals.
+    readonly property string qtScheme: {
+        const p = niriPalette;
+        const roles = c => [
+            c.text,                       // WindowText
+            p.dusk,                       // Button
+            mix(p.dusk, p.text, 0.2),     // Light
+            mix(p.dusk, p.text, 0.1),     // Midlight
+            mix(p.dusk, p.night, 0.7),    // Dark
+            mix(p.dusk, p.night, 0.4),    // Mid
+            c.text,                       // Text
+            p.night,                      // BrightText
+            c.text,                       // ButtonText
+            p.night,                      // Base
+            p.deep,                       // Window
+            "#000000",                    // Shadow
+            c.highlight,                  // Highlight
+            c.highlightInk,               // HighlightedText
+            p.gold,                       // Link
+            p.amber,                      // LinkVisited
+            p.panel,                      // AlternateBase
+            "#000000",                    // NoRole
+            p.dusk,                       // ToolTipBase
+            p.text,                       // ToolTipText
+            p.textDim,                    // PlaceholderText
+            c.highlight                   // Accent
+        ].map(hex).join(", ");
+        const active = { text: p.text, highlight: p.gold, highlightInk: p.goldInk };
+        const disabled = { text: mix(p.textDim, p.deep, 0.5), highlight: p.dusk, highlightInk: p.textDim };
+        return `# Written by gravity-shell from its colours; edits are overwritten.
+[ColorScheme]
+active_colors=${roles(active)}
+disabled_colors=${roles(disabled)}
+inactive_colors=${roles(active)}
+`;
+    }
+
+    readonly property string kdeColors: {
+        const p = niriPalette;
+        const rgb = c => {
+            const q = Qt.color(c);
+            return [q.r, q.g, q.b].map(v => Math.round(v * 255)).join(",");
+        };
+        const group = (name, bg, alt, fg) => `[Colors:${name}]
+BackgroundNormal=${rgb(bg)}
+BackgroundAlternate=${rgb(alt)}
+ForegroundNormal=${rgb(fg)}
+ForegroundInactive=${rgb(mix(fg, bg, 0.3))}
+ForegroundActive=${rgb(p.gold)}
+ForegroundLink=${rgb(p.gold)}
+ForegroundVisited=${rgb(p.amber)}
+ForegroundNegative=${rgb(p.rose)}
+ForegroundNeutral=${rgb(ansiNormal[2])}
+ForegroundPositive=${rgb(ansiNormal[1])}
+DecorationFocus=${rgb(p.gold)}
+DecorationHover=${rgb(p.gold)}
+`;
+        return [
+            group("View", p.night, p.panel, p.text),
+            group("Window", p.deep, p.panel, p.text),
+            group("Header", p.deep, p.panel, p.text),
+            group("Button", p.dusk, p.panel, p.text),
+            group("Tooltip", p.dusk, p.panel, p.text),
+            group("Complementary", p.dusk, p.panel, p.text),
+            group("Selection", p.gold, p.gold, p.goldInk)
+        ].join("\n");
+    }
+
+    readonly property string qtState: Config.themeQt ? qtScheme + kdeColors : "off"
+
+    onQtStateChanged: qtWrite.restart()
+
+    Timer {
+        id: qtWrite
+
+        interval: 200
+        onTriggered: {
+            if (!Config.ready || !Appearance.ready)
+                return;
+            qtProc.running = false;
+            qtProc.running = true;
+        }
+    }
+
+    // On: the scheme goes in qt6ct/colors/gravity.conf and qt6ct.conf uses it as its
+    // palette; KDE's colour groups replace any in kdeglobals. Off: qt6ct's custom palette is
+    // turned off and the colour groups are taken out again. Only those keys and groups
+    // change, so the rest of both files (fonts, icons, style) stays yours.
+    Process {
+        id: qtProc
+
+        command: ["sh", "-c", `
+            dir="$0/qt6ct" conf="$0/qt6ct/qt6ct.conf" scheme="$0/qt6ct/colors/gravity.conf" kde="$0/kdeglobals"
+            if [ "$1" = on ]; then
+                mkdir -p "$dir/colors" && printf "%s" "$2" > "$scheme.tmp" && mv -f "$scheme.tmp" "$scheme" || exit 1
+                [ -f "$conf" ] || : > "$conf"
+            fi
+            if [ -f "$conf" ]; then
+                awk -v on="$1" -v path="$scheme" '
+                    function put() {
+                        if (done) return
+                        if (on == "on") print "color_scheme_path=" path
+                        print "custom_palette=" (on == "on" ? "true" : "false")
+                        done = 1
+                    }
+                    /^\\[/ { print; sec = $0; if (sec == "[Appearance]") put(); next }
+                    sec == "[Appearance]" && /^custom_palette=/ { next }
+                    sec == "[Appearance]" && on == "on" && /^color_scheme_path=/ { next }
+                    { print }
+                    END { if (!done) { print "[Appearance]"; put() } }
+                ' "$conf" > "$conf.new" || exit 1
+                # Rewritten in place, not moved, so qt6ct's watch on the file stays.
+                cmp -s "$conf.new" "$conf" || cat "$conf.new" > "$conf"
+                rm -f "$conf.new"
+            fi
+            if [ -f "$kde" ] || [ "$1" = on ]; then
+                {
+                    # Without the colour groups, and blank lines only between what is left.
+                    if [ -f "$kde" ]; then
+                        awk '/^\\[/ { skip = /^\\[Colors:/ } !skip { if ($0 == "") { blank++; next } if (n++) while (blank) { print ""; blank-- } blank = 0; print }' "$kde"
+                    fi
+                    if [ "$1" = on ]; then
+                        [ -s "$kde" ] && echo
+                        printf "%s" "$3"
+                    fi
+                } > "$kde.tmp" && mv -f "$kde.tmp" "$kde"
+            fi
+        `, root.configHome, Config.themeQt ? "on" : "off", root.qtScheme, root.kdeColors]
+        onExited: code => {
+            if (code !== 0)
+                console.warn("gravity: could not write Qt colours");
+        }
+    }
+
+    // Ghostty: the "gravity" theme, which /etc/ghostty/gravity picks. Off: a theme that sets
+    // nothing, so Ghostty's own colours.
+    readonly property string ghosttyTheme: {
+        if (!Config.themeGhostty)
+            return "# Written by gravity-shell; its colours are turned off in its settings.\n";
+        const p = niriPalette;
+        const greys = appliedLight ? [p.text, mix(p.dusk, p.textDim, 0.5), p.textDim, p.dusk] : [p.dusk, p.textDim, mix(p.dusk, p.textDim, 0.5), p.text];
+        const palette = [greys[0], ...ansiNormal, greys[1], greys[2], ...ansiBright, greys[3]];
+        return `# Written by gravity-shell from its colours; edits are overwritten.
+background = ${hex(p.night)}
+foreground = ${hex(p.text)}
+cursor-color = ${hex(p.gold)}
+cursor-text = ${hex(p.goldInk)}
+selection-background = ${hex(p.tonal)}
+selection-foreground = ${hex(p.tonalInk)}
+${palette.map((c, i) => `palette = ${i}=${hex(c)}`).join("\n")}
+`;
+    }
+
+    onGhosttyThemeChanged: ghosttyWrite.restart()
+
+    Timer {
+        id: ghosttyWrite
+
+        interval: 200
+        onTriggered: {
+            if (!Config.ready || !Appearance.ready)
+                return;
+            ghosttyProc.running = false;
+            ghosttyProc.text = root.ghosttyTheme;
+            ghosttyProc.running = true;
+        }
+    }
+
+    // Moved into place like niri's colours; SIGUSR2 makes running Ghostty reload its config.
+    Process {
+        id: ghosttyProc
+
+        property string text
+
+        command: ["sh", "-c", 'mkdir -p "$0" && printf "%s" "$1" > "$0/gravity.tmp" && mv -f "$0/gravity.tmp" "$0/gravity" && { pkill -USR2 -x ghostty || true; }', root.configHome + "/ghostty/themes", text]
+        onExited: code => {
+            if (code !== 0)
+                console.warn("gravity: could not write ghostty colours");
+        }
     }
 
     Connections {
@@ -520,6 +732,8 @@ overview {
         function onReadyChanged(): void {
             niriWrite.restart();
             gnomeWrite.restart();
+            qtWrite.restart();
+            ghosttyWrite.restart();
         }
     }
 

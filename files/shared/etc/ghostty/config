@@ -8,3 +8,6 @@ custom-shader = /usr/share/ghostty-cursor-shaders/ripple_cursor.glsl
 # Keep shaders animating when the window is unfocused (otherwise the line
 # cursor effects freeze when it turns into a hollow block)
 custom-shader-animation = always
+
+# Per-image extras, if the image has them (Gravity: colours that follow the shell)
+config-file = ?gravity

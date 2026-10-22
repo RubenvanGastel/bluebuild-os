@@ -8,6 +8,7 @@ modules:
         - qt6-qtmultimedia # video wallpapers (frames are taken with ffmpeg)
         - playerctl # media keys in niri
         - fuzzel # app launcher (Mod+Space)
+        - qt6ct # Qt apps take the shell's colours (QT_QPA_PLATFORMTHEME in environment.d)
 
   # Material 3 Expressive typeface used by the Gravity shell
   - type: fonts

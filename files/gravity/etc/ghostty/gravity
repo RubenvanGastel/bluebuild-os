@@ -1,0 +1,3 @@
+# Colours from the Gravity shell, which writes ~/.config/ghostty/themes/gravity from
+# its palette (light or dark, accent or wallpaper) and tells Ghostty to reload.
+theme = gravity

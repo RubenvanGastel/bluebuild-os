@@ -3,7 +3,7 @@ import Quickshell
 import qs.services
 
 // Light or dark, the colours (the default, an accent colour or the wallpaper's, and
-// matugen's scheme), and the wallpaper and its folder.
+// matugen's scheme), which apps take them, and the wallpaper and its folder.
 Column {
     id: root
 
@@ -178,6 +178,36 @@ Column {
             placeholder: "Wallpapers in your Pictures folder"
             text: Config.wallpaperDir
             onAccepted: t => Config.set("wallpaperDir", t.trim())
+        }
+    }
+
+    // Which apps take the shell's colours; off returns each to its own.
+    Section {
+        title: "Toolkits"
+
+        Toggle {
+            label: "GTK"
+            description: "GNOME and GTK apps take the nearest GNOME accent. Off: GNOME's blue."
+            checked: Config.themeGtk
+            onToggled: on => Config.set("themeGtk", on)
+        }
+
+        Toggle {
+            label: "Qt & KDE"
+            description: "Qt apps get the whole palette through qt6ct, KDE apps through their colour scheme. Open apps take it when they restart."
+            checked: Config.themeQt
+            onToggled: on => Config.set("themeQt", on)
+        }
+    }
+
+    Section {
+        title: "Apps"
+
+        Toggle {
+            label: "Ghostty"
+            description: "Background, text, cursor and terminal colours. Open windows change at once."
+            checked: Config.themeGhostty
+            onToggled: on => Config.set("themeGhostty", on)
         }
     }
 }

@@ -54,6 +54,12 @@ Singleton {
     property alias barTray: adapter.barTray
     property alias barBattery: adapter.barBattery
     property alias barStatus: adapter.barStatus
+    // Whether apps take the shell's colours: GTK/GNOME apps (the nearest GNOME accent), Qt
+    // and KDE apps (qt6ct's palette and KDE's colours) and Ghostty. Off returns each to its
+    // own colours.
+    property alias themeGtk: adapter.themeGtk
+    property alias themeQt: adapter.themeQt
+    property alias themeGhostty: adapter.themeGhostty
 
     // False until the config file has been read (or found missing).
     property bool ready: false
@@ -127,7 +133,10 @@ Singleton {
             barStats: true,
             barTray: true,
             barBattery: true,
-            barStatus: true
+            barStatus: true,
+            themeGtk: true,
+            themeQt: true,
+            themeGhostty: true
         })
 
     // The config folder may not exist yet on a fresh account.
@@ -180,6 +189,9 @@ Singleton {
             property bool barTray: root.defaults.barTray
             property bool barBattery: root.defaults.barBattery
             property bool barStatus: root.defaults.barStatus
+            property bool themeGtk: root.defaults.themeGtk
+            property bool themeQt: root.defaults.themeQt
+            property bool themeGhostty: root.defaults.themeGhostty
         }
     }
 }
