@@ -101,5 +101,22 @@ Singleton {
         }
     }
 
+    // Qt checks every hardware decoder when the first video player is made, which holds
+    // the shell up for a second or more (seconds while the NVIDIA GPU is asleep). An empty
+    // player shortly after startup does that up front, instead of when the picker opens.
+    Loader {
+        id: warmUp
+
+        active: false
+        source: "../components/VideoLayer.qml"
+        onLoaded: Qt.callLater(() => active = false)
+    }
+
+    Timer {
+        interval: 3000
+        running: true
+        onTriggered: warmUp.active = true
+    }
+
     Component.onCompleted: ensureFrame(Config.wallpaperPath)
 }

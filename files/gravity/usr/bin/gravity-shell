@@ -18,6 +18,19 @@ else
     dir=/usr/share/gravity-shell
 fi
 
+# Video wallpapers: decode with VA-API first. On hybrid laptops that is the GPU drawing the
+# screen; Qt would otherwise pick CUDA on the NVIDIA one, and copy every frame across.
+export QT_FFMPEG_DECODING_HW_DEVICE_TYPES="${QT_FFMPEG_DECODING_HW_DEVICE_TYPES:-vaapi,cuda}"
+# Qt also opens CUDA just to see if it works, which keeps the NVIDIA GPU awake for as long
+# as the shell runs (some 5 W on battery). With another GPU around, hide CUDA from the
+# shell. Not on NVIDIA-only machines: their VA-API driver itself runs on CUDA.
+for vendor in /sys/class/drm/renderD*/device/vendor; do
+    if [ "$(cat "$vendor" 2>/dev/null)" != 0x10de ] && [ -e "$vendor" ]; then
+        export CUDA_VISIBLE_DEVICES="${CUDA_VISIBLE_DEVICES-}"
+        break
+    fi
+done
+
 case "${1:-}" in
     "")
         # The shell's first start: dark, its default. It sets the GTK theme and accent itself.
