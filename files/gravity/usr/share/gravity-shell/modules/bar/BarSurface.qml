@@ -151,7 +151,7 @@ Item {
                 Component.onCompleted: if (root.enabled)
                     Panels.setBatteryAnchor(root.output, centre)
 
-                visible: Config.barBattery && battery.visible
+                visible: Config.barBattery && battery.available
                 implicitWidth: powerPill.implicitWidth
                 implicitHeight: powerPill.implicitHeight
 

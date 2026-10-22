@@ -20,7 +20,11 @@ Item {
     implicitWidth: row.implicitWidth
     implicitHeight: vertical ? row.implicitHeight : 24
 
-    visible: (dev?.isLaptopBattery ?? false) && (dev?.isPresent ?? false)
+    // Whether there is a battery at all. Read this rather than `visible`, which is false
+    // while a parent is hidden.
+    readonly property bool available: (dev?.isLaptopBattery ?? false) && (dev?.isPresent ?? false)
+
+    visible: available
 
     Grid {
         id: row
