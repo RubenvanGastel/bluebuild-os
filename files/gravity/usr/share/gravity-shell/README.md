@@ -31,7 +31,7 @@ rest, and bold [Google Sans Flex](https://fonts.google.com/specimen/Google+Sans+
   cards under it, and **frame**, a thin border around the rest of the screen whose inner
   corners are rounded, so windows sit in a rounded frame.
   The niri workspaces are numbered circles in it; switching stretches an accent pill from
-  the old one to the new one. It also holds the window title, the tray, a battery pill (on
+  the old one to the new one. It also holds the window title, the tray, a visualiser beside the clock, a battery pill (on
   laptops), a status pill (network, Bluetooth and a volume icon) and a clock.
 - **System monitor**: a pill in the bar with short bars for CPU and memory use. Click it
   (or `Super+M`) and the bar grows down into a panel with the last minute of CPU and memory
@@ -41,6 +41,11 @@ rest, and bold [Google Sans Flex](https://fonts.google.com/specimen/Google+Sans+
   level, the power going in or out, energy left, battery health and charge cycles, the
   charge over the last 12 hours (from UPower's history), the power mode and the battery's
   make and charging mode. Also `gravity-shell ipc call battery toggle`.
+- **Media panel**: while a media player is around, a pill beside the clock shows a few bars
+  of the music's spectrum (from cava). Click it (or `gravity-shell ipc call media toggle`)
+  and the bar grows into a panel with the album art, title, artist and album, a large
+  visualiser, a seek bar, shuffle, previous, play/pause, next and repeat, and with several
+  players, which one to follow. The visualisers' frame rate is under Settings > Bar.
 - **Quick panel**: click the status pill. The cog opens the settings. Wi-Fi and Bluetooth tiles (the round icon
   switches them on or off, the rest of the tile unfolds the networks or devices to connect
   to, and asks for a Wi-Fi password in place), the audio output, volume and brightness

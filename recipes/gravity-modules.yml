@@ -7,6 +7,7 @@ modules:
         - qt6-qtimageformats # lets Quickshell show .webp/.tiff wallpapers
         - qt6-qtmultimedia # video wallpapers (frames are taken with ffmpeg)
         - playerctl # media keys in niri
+        - cava # audio visualiser beside the clock and in the media panel
         - fuzzel # app launcher (Mod+Space)
         - qt6ct # Qt apps take the shell's colours (QT_QPA_PLATFORMTHEME in environment.d)
 

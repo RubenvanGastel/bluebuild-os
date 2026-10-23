@@ -57,6 +57,13 @@ Column {
         }
 
         Toggle {
+            label: "Visualiser"
+            description: "Beside the clock while a media player is open; opens the media panel."
+            checked: Config.barMedia
+            onToggled: on => Config.set("barMedia", on)
+        }
+
+        Toggle {
             label: "System monitor"
             description: "CPU and memory; opens the monitor panel (also Mod+M)."
             checked: Config.barStats
@@ -82,5 +89,21 @@ Column {
             checked: Config.barStatus
             onToggled: on => Config.set("barStatus", on)
         }
+    }
+
+    Choice {
+        label: "Visualiser frame rate"
+        description: "Frames a second for the visualisers in the bar and the media panel. Higher is smoother and uses a little more CPU."
+        options: [
+            { value: 30, label: "30" },
+            { value: 60, label: "60" },
+            { value: 90, label: "90" },
+            { value: 120, label: "120" },
+            { value: 144, label: "144" },
+            { value: 165, label: "165" },
+            { value: 240, label: "240" }
+        ]
+        value: Config.cavaFps
+        onChosen: v => Config.set("cavaFps", v)
     }
 }

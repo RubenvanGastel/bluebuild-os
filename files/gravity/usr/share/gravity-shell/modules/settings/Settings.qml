@@ -36,6 +36,7 @@ Scope {
         Panels.closeTray();
         Panels.closeMonitor();
         Panels.closeBattery();
+        Panels.closeMedia();
         targetScreen = Quickshell.screens.find(s => s.name === (Object.values(Niri.workspaces).find(w => w.is_focused)?.output ?? "")) ?? Quickshell.screens[0];
         shown = true;
         open = true;

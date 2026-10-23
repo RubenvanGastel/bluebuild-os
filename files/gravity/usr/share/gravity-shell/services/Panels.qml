@@ -6,7 +6,8 @@ import Quickshell.Io
 
 // Which popup panels are open.
 // `gravity-shell ipc call quickPanel toggle` opens the quick panel on the focused screen,
-// `... monitor toggle` the system monitor, `... battery toggle` the battery panel.
+// `... monitor toggle` the system monitor, `... battery toggle` the battery panel, `... media
+// toggle` the media panel.
 Singleton {
     id: root
 
@@ -21,6 +22,7 @@ Singleton {
             closeTray();
             closeMonitor();
             closeBattery();
+            closeMedia();
         }
     }
 
@@ -39,6 +41,7 @@ Singleton {
         closeQuick();
         closeMonitor();
         closeBattery();
+        closeMedia();
         trayMenu = menu;
         trayAt = at;
         trayOutput = output;
@@ -66,6 +69,7 @@ Singleton {
         closeQuick();
         closeTray();
         closeBattery();
+        closeMedia();
         // Unknown (no bar there yet, or the pill is hidden): at the far end, kept clear of
         // the screen edge.
         monitorAt = monitorAnchors[output] ?? 1e6;
@@ -94,12 +98,50 @@ Singleton {
         closeQuick();
         closeTray();
         closeMonitor();
+        closeMedia();
         batteryAt = batteryAnchors[output] ?? 1e6;
         battery = output;
     }
 
     function closeBattery(): void {
         battery = "";
+    }
+
+    // The media panel, as the system monitor: output ("" = closed) and where along the bar
+    // it centres, on the visualiser pill beside the clock.
+    property string media: ""
+    property real mediaAt: 0
+    property var mediaAnchors: ({})
+
+    function setMediaAnchor(output: string, at: real): void {
+        mediaAnchors[output] = at;
+    }
+
+    function toggleMedia(output: string): void {
+        if (media === output) {
+            closeMedia();
+            return;
+        }
+        closeQuick();
+        closeTray();
+        closeMonitor();
+        closeBattery();
+        // Without the pill: just past the middle of the bar, where it would be.
+        mediaAt = mediaAnchors[output] ?? -1;
+        media = output;
+    }
+
+    function closeMedia(): void {
+        media = "";
+    }
+
+    // `gravity-shell ipc call media toggle`, on the focused screen.
+    IpcHandler {
+        target: "media"
+
+        function toggle(): void {
+            root.toggleMedia(Object.values(Niri.workspaces).find(w => w.is_focused)?.output ?? Quickshell.screens[0]?.name ?? "");
+        }
     }
 
     // Asks the settings card to open, on a page ("" = the one it was on last).

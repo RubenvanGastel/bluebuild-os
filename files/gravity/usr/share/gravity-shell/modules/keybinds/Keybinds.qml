@@ -81,6 +81,7 @@ Scope {
         Panels.closeTray();
         Panels.closeMonitor();
         Panels.closeBattery();
+        Panels.closeMedia();
         targetScreen = Quickshell.screens.find(s => s.name === (Object.values(Niri.workspaces).find(w => w.is_focused)?.output ?? "")) ?? Quickshell.screens[0];
         // Re-read, so edits to the config show up; until then the last read stays.
         reader.running = true;

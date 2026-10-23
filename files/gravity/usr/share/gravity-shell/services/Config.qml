@@ -50,6 +50,11 @@ Singleton {
     property alias barWorkspaces: adapter.barWorkspaces
     property alias barTitle: adapter.barTitle
     property alias barClock: adapter.barClock
+    // The audio visualiser beside the clock, while a media player is around; it opens the
+    // media panel.
+    property alias barMedia: adapter.barMedia
+    // Frames a second of the visualisers (cava's framerate).
+    property alias cavaFps: adapter.cavaFps
     property alias barStats: adapter.barStats
     property alias barTray: adapter.barTray
     property alias barBattery: adapter.barBattery
@@ -132,6 +137,8 @@ Singleton {
             barWorkspaces: true,
             barTitle: true,
             barClock: true,
+            barMedia: true,
+            cavaFps: 60,
             barStats: true,
             barTray: true,
             barBattery: true,
@@ -189,6 +196,8 @@ Singleton {
             property bool barWorkspaces: root.defaults.barWorkspaces
             property bool barTitle: root.defaults.barTitle
             property bool barClock: root.defaults.barClock
+            property bool barMedia: root.defaults.barMedia
+            property int cavaFps: root.defaults.cavaFps
             property bool barStats: root.defaults.barStats
             property bool barTray: root.defaults.barTray
             property bool barBattery: root.defaults.barBattery

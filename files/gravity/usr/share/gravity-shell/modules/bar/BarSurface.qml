@@ -5,8 +5,9 @@ import qs.components
 
 // What the bar looks like: a solid Material 3 Expressive style strip along one screen edge
 // (Theme.barEdge) with inverted corners curving into the screen at both ends: the workspaces
-// floating at the start, the clock and date in an accent pill in the middle, and at the far
-// end the system monitor, the tray, the battery, and network, Bluetooth and volume in a
+// floating at the start, the clock and date in an accent pill in the middle with an audio
+// visualiser beside it while something can play, and at the far
+// end the tray, the system monitor, the battery, and network, Bluetooth and volume in a
 // tonal pill that opens the quick panel. Along a side everything stacks vertically. Config.bar* hide parts of it.
 // Theme.barStyle "floating" makes it a fully rounded bar inset from the edge, "frame" adds a
 // thin border around the rest of the screen with the corners curving in at all four.
@@ -90,6 +91,128 @@ Item {
             }
         }
 
+        // Audio visualiser just after the clock, with a small play/pause button at its end,
+        // while there is a media player. It fades and grows in when one appears and fades
+        // out when it goes. Click (anywhere but the button) for the media panel under it.
+        Item {
+            id: media
+
+            readonly property bool active: Panels.media === root.output
+            readonly property bool shown: Config.barMedia && Playback.hasPlayer
+            // Where the clock ends (the middle of the bar without it).
+            readonly property real after: root.vertical ? (clockPill.visible ? clockPill.y + clockPill.height : parent.height / 2) : (clockPill.visible ? clockPill.x + clockPill.width : parent.width / 2)
+            // Middle of the pill along the bar, where the panel opens; as the monitor's.
+            readonly property real centre: !shown ? -1 : root.vertical ? bar.y + y + height / 2 : bar.x + x + width / 2
+
+            onCentreChanged: if (root.enabled)
+                Panels.setMediaAnchor(root.output, centre)
+            Component.onCompleted: if (root.enabled)
+                Panels.setMediaAnchor(root.output, centre)
+
+            visible: opacity > 0
+            opacity: shown ? 1 : 0
+            scale: shown ? 1 : 0.8
+            x: root.vertical ? (parent.width - width) / 2 : after + 10
+            y: root.vertical ? after + 10 : (parent.height - height) / 2
+            // The visualiser, then the button close to the pill's rounded end.
+            width: root.vertical ? 34 : 14 + mediaContent.width + 4
+            height: root.vertical ? 12 + mediaContent.height + 4 : 32
+
+            Behavior on opacity {
+                NumberAnimation {
+                    duration: Theme.normal
+                    easing.type: Easing.OutCubic
+                }
+            }
+            Behavior on scale {
+                NumberAnimation {
+                    duration: Theme.normal
+                    easing.type: media.shown ? Easing.OutBack : Easing.InCubic
+                }
+            }
+
+            // Under the pill's contents, so the button takes its own clicks.
+            MouseArea {
+                id: mediaMouse
+
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: Panels.toggleMedia(root.output)
+            }
+
+            Rectangle {
+                anchors.fill: parent
+                radius: (root.vertical ? width : height) / 2
+                color: mediaMouse.containsMouse && !media.active ? Theme.hover(Theme.dusk, 1.2) : Theme.dusk
+                border.width: media.active ? 2 : 0
+                border.color: Theme.gold
+
+                Behavior on color {
+                    ColorAnimation {
+                        duration: Theme.normal
+                    }
+                }
+
+                Grid {
+                    id: mediaContent
+
+                    x: root.vertical ? (parent.width - width) / 2 : 14
+                    y: root.vertical ? 12 : (parent.height - height) / 2
+                    columns: root.vertical ? 1 : 2
+                    spacing: 8
+                    horizontalItemAlignment: Grid.AlignHCenter
+                    verticalItemAlignment: Grid.AlignVCenter
+
+                    Visualizer {
+                        vertical: root.vertical
+                    }
+
+                    // Play/pause, in the accent.
+                    Rectangle {
+                        width: 24
+                        height: 24
+                        radius: 12
+                        color: playMouse.containsMouse ? Theme.hover(Theme.gold, 1.12) : Theme.gold
+                        scale: playMouse.pressed ? 0.88 : 1
+
+                        Behavior on scale {
+                            NumberAnimation {
+                                duration: Theme.fast
+                                easing.type: Easing.OutBack
+                            }
+                        }
+                        Behavior on color {
+                            ColorAnimation {
+                                duration: Theme.fast
+                            }
+                        }
+
+                        Text {
+                            anchors.centerIn: parent
+                            // The play triangle sits a touch right of centre to look centred.
+                            anchors.horizontalCenterOffset: Playback.playing ? 0 : 1
+                            text: Playback.playing ? "\u{f03e4}" : "\u{f040a}"
+                            color: Theme.goldInk
+                            font.family: "Symbols Nerd Font"
+                            font.pixelSize: 14
+                        }
+
+                        MouseArea {
+                            id: playMouse
+
+                            anchors.fill: parent
+                            anchors.margins: -3
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            enabled: Playback.player?.canTogglePlaying ?? false
+                            onClicked: Playback.player.togglePlaying()
+                        }
+                    }
+                }
+            }
+        }
+
         Grid {
             id: end
 
@@ -99,6 +222,12 @@ Item {
             spacing: 12
             horizontalItemAlignment: Grid.AlignHCenter
             verticalItemAlignment: Grid.AlignVCenter
+
+            Tray {
+                visible: Config.barTray
+                vertical: root.vertical
+                barWindow: root.barWindow
+            }
 
             // CPU and memory bars. Click for the monitor panel under it.
             Item {
@@ -141,12 +270,6 @@ Item {
                     cursorShape: Qt.PointingHandCursor
                     onClicked: Panels.toggleMonitor(root.output)
                 }
-            }
-
-            Tray {
-                visible: Config.barTray
-                vertical: root.vertical
-                barWindow: root.barWindow
             }
 
             // Battery level, on laptops. Click for the battery panel under it.

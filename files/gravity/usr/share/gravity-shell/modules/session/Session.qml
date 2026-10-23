@@ -55,6 +55,7 @@ Scope {
         Panels.closeTray();
         Panels.closeMonitor();
         Panels.closeBattery();
+        Panels.closeMedia();
         targetScreen = Quickshell.screens.find(s => s.name === (Object.values(Niri.workspaces).find(w => w.is_focused)?.output ?? "")) ?? Quickshell.screens[0];
         // Starts on Lock, the one that can't lose any work.
         index = 0;
