@@ -30,9 +30,20 @@ Item {
         text: root.text
     }
 
+    // When the text last changed. Text that keeps changing (a spinner or a progress count in
+    // a window title) is swapped at once: animating every change would keep the window
+    // redrawing for as long as it goes on.
+    property real changedAt: 0
+
     onTextChanged: {
-        if (label.text === "" || label.text === text) {
+        const now = Date.now();
+        const rapid = now - changedAt < 1000;
+        changedAt = now;
+        if (label.text === "" || label.text === text || rapid || !visible) {
+            swap.stop();
             label.text = text;
+            label.opacity = 1;
+            label.anchors.verticalCenterOffset = 0;
             return;
         }
         swap.restart();
