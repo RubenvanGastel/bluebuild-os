@@ -498,7 +498,7 @@ overview {
 
     // --- colours for apps ------------------------------------------------------------------
     // Each from the applied palette (like niri's), and each can be turned off in the
-    // settings (Config.themeGtk, themeQt, themeGhostty), which returns it to its own colours.
+    // settings (Config.themeGtk, themeQt, themeGhostty, themeVesktop, themeZen), which returns it to its own colours.
 
     readonly property string configHome: Quickshell.env("XDG_CONFIG_HOME") || Quickshell.env("HOME") + "/.config"
 
@@ -810,6 +810,245 @@ ${palette.map((c, i) => `palette = ${i}=${hex(c)}`).join("\n")}
         }
     }
 
+    // Vesktop: a Vencord theme overriding Discord's colour variables, both the older names
+    // and the visual refresh's. Laid out like GTK's: the server and channel lists in the
+    // shell's surface, the chat a step below, popouts and modals a step above.
+    readonly property string vesktopCss: {
+        const p = niriPalette;
+        const raised = appliedLight ? p.night : p.dusk;
+        const highest = appliedLight ? p.night : mix(p.dusk, p.text, 0.06);
+        const outline = mix(p.dusk, p.textDim, 0.35);
+        const faint = mix(p.textDim, p.deep, 0.35);
+        const veil = (c, pct) => `color-mix(in srgb, ${hex(c)} ${pct}%, transparent)`;
+        const groups = [
+            [p.deep, "--background-base-low --chat-background --chat-background-default --background-primary --bg-base-primary --home-background"],
+            [p.panel, "--background-base-lower --background-secondary --bg-base-secondary --custom-channel-members-bg --background-base-lowest --app-frame-background --background-tertiary --background-secondary-alt --bg-base-tertiary --__header-bar-background"],
+            [raised, "--background-surface-high --bg-surface-raised --card-primary-bg --activity-card-background --background-surface-higher --bg-surface-overlay --background-floating --background-nested-floating --autocomplete-bg --control-secondary-background-default --button-secondary-background"],
+            [highest, "--background-surface-highest --modal-background --modal-footer-background --background-accent --card-secondary-bg --user-profile-overlay-background --control-secondary-background-hover --button-secondary-background-hover --spoiler-hidden-background"],
+            [raised, "--input-background-default --input-background --channeltextarea-background --deprecated-text-input-bg"],
+            [p.night, "--background-code --spoiler-revealed-background"],
+            [p.text, "--text-default --text-normal --text-primary --text-strong --header-primary --embed-title --interactive-active --input-text-default --interactive-hover --interactive-icon-hover --interactive-icon-active --interactive-text-hover --interactive-text-active --control-secondary-text-default --button-secondary-text --redesign-button-secondary-text --button-outline-primary-text --button-transparent-text --message-reacted-text-default"],
+            [p.textDim, "--text-secondary --text-muted --text-subtle --text-tertiary --chat-text-muted --header-secondary --header-muted --text-muted-on-default --text-low-contrast --interactive-normal --icon-primary --icon-secondary --icon-tertiary --interactive-icon-default --interactive-text-default"],
+            [faint, "--channels-default --channel-icon --icon-muted --channel-text-area-placeholder --input-placeholder-text-default --status-offline --text-status-offline --icon-status-offline"],
+            [outline, "--interactive-muted --input-border-default --input-border --deprecated-text-input-border --border-muted --border-normal --scrollbar-auto-thumb --scrollbar-thin-thumb --scrollbar-auto-scrollbar-color-thumb"],
+            [p.gold, "--text-link --text-brand --control-brand-foreground --control-brand-foreground-new --mention-foreground --brand-500 --brand-experiment --brand-experiment-360 --brand-experiment-500 --bg-brand --background-brand --control-primary-background-default --button-filled-brand-background --button-outline-brand-text --redesign-input-control-selected --focus-primary --__adaptive-focus-ring-color --badge-notification-background --background-feedback-notification"],
+            [p.goldInk, "--control-primary-text-default --control-primary-text-hover --control-primary-text-active --control-primary-icon-default --control-primary-icon-hover --control-primary-icon-active --button-filled-brand-text --badge-text-brand"],
+            [p.rose, "--text-danger --text-feedback-critical --icon-feedback-critical --button-danger-background --control-critical-primary-background-default --button-outline-danger-text --button-outline-danger-border"],
+            [p.night, "--button-danger-text"],
+            [ansiNormal[1], "--text-positive --text-feedback-positive"],
+            [ansiNormal[2], "--text-warning --text-feedback-warning"],
+            [p.amber, "--text-feedback-info"]
+        ].map(([c, names]) => [hex(c), names]).concat([
+            [veil(p.text, 8), "--background-modifier-hover --background-mod-subtle --bg-mod-faint --interactive-background-hover --button-transparent-background-hover --button-outline-primary-background-hover"],
+            [veil(p.text, 12), "--background-modifier-active --background-mod-normal --interactive-background-active --button-transparent-background-active --button-outline-primary-background-active"],
+            [veil(p.gold, 16), "--background-modifier-selected --background-mod-strong --bg-mod-strong --interactive-background-selected --message-reacted-background-default --button-outline-brand-background-hover"],
+            [veil(p.text, 6), "--background-modifier-accent"],
+            [veil(p.text, 4), "--background-message-hover --message-background-hover"],
+            [veil(p.amber, 12), "--background-message-highlight --message-highlight-background-default"],
+            [veil(p.amber, 16), "--background-message-highlight-hover --message-highlight-background-hover"],
+            [veil(p.gold, 12), "--background-mentioned --message-mentioned-background-default --mention-background"],
+            [veil(p.gold, 16), "--background-mentioned-hover --message-mentioned-background-hover"],
+            [veil(outline, 50), "--chat-border --border-subtle"],
+            [veil(outline, 30), "--border-faint"],
+            [hex(faint), "--border-strong"],
+            [`color-mix(in srgb, ${hex(p.gold)} 88%, ${hex(p.goldInk)})`, "--control-primary-background-hover --button-filled-brand-background-hover"],
+            [`color-mix(in srgb, ${hex(p.gold)} 78%, ${hex(p.goldInk)})`, "--control-primary-background-active --button-filled-brand-background-active"],
+            ["transparent", "--scrollbar-auto-track --scrollbar-thin-track --scrollbar-auto-scrollbar-color-track"]
+        ]);
+        // Discord's brand ramp, from the accent towards white and black.
+        const ramp = [[100, 12, "#ffffff"], [200, 25, "#ffffff"], [260, 33, "#ffffff"], [300, 40, "#ffffff"], [360, 55, "#ffffff"], [400, 70, "#ffffff"], [560, 90, "#000000"], [600, 85, "#000000"], [700, 70, "#000000"], [800, 55, "#000000"], [900, 40, "#000000"]];
+        const lines = groups.map(([c, names]) => names.split(" ").map(n => `    ${n}: ${c} !important;`).join("\n")).concat(ramp.map(([step, pct, to]) => `    --brand-${step}: color-mix(in srgb, ${hex(p.gold)} ${pct}%, ${to}) !important;`));
+        return `/**
+ * @name Gravity
+ * @description The Gravity shell's colours. Written by gravity-shell; edits are overwritten.
+ * @author gravity-shell
+ * @version 1.0.0
+ */
+
+:root,
+.theme-dark,
+.theme-light,
+.visual-refresh.theme-dark,
+.visual-refresh.theme-light,
+.visual-refresh .theme-dark,
+.visual-refresh .theme-light {
+${lines.join("\n")}
+}
+
+::selection {
+    background: ${veil(p.gold, 35)};
+}
+`;
+    }
+
+    readonly property string vesktopState: Config.themeVesktop ? vesktopCss : "off"
+
+    onVesktopStateChanged: vesktopWrite.restart()
+
+    Timer {
+        id: vesktopWrite
+
+        interval: 200
+        onTriggered: {
+            if (!Config.ready || !Appearance.ready)
+                return;
+            vesktopProc.running = false;
+            vesktopProc.running = true;
+        }
+    }
+
+    // On: themes/gravity.css, which Vesktop reloads as soon as it changes, and the theme
+    // enabled in Vencord's settings. Vesktop keeps those in memory and writes them back over
+    // anything changed meanwhile, so enabling waits until it has quit. Off: the theme is
+    // disabled and removed. For the Flatpak and a native Vesktop, whichever is installed.
+    Process {
+        id: vesktopProc
+
+        command: ["sh", "-c", `
+            enable() {
+                s="$1/settings/settings.json"
+                command -v jq >/dev/null || return 0
+                while pgrep -x vesktop >/dev/null; do sleep 10; done
+                mkdir -p "$1/settings" || return 1
+                [ -s "$s" ] || echo '{}' > "$s"
+                jq --arg on "$2" '.enabledThemes = ((.enabledThemes // []) - ["gravity.css"] + (if $on == "on" then ["gravity.css"] else [] end))' "$s" > "$s.tmp" && mv -f "$s.tmp" "$s"
+            }
+            for d in "$HOME/.var/app/dev.vencord.Vesktop/config/vesktop" "$0/vesktop"; do
+                case "$d" in
+                    "$HOME/.var/app/"*) flatpak info dev.vencord.Vesktop >/dev/null 2>&1 || [ -d "$d" ] || continue ;;
+                    *) command -v vesktop >/dev/null || [ -d "$d" ] || continue ;;
+                esac
+                if [ "$1" = on ]; then
+                    mkdir -p "$d/themes" && printf "%s" "$2" > "$d/themes/gravity.css.tmp" && mv -f "$d/themes/gravity.css.tmp" "$d/themes/gravity.css" || exit 1
+                    grep -qs '"gravity.css"' "$d/settings/settings.json" || enable "$d" on || exit 1
+                elif [ -f "$d/themes/gravity.css" ]; then
+                    rm -f "$d/themes/gravity.css"
+                    [ -f "$d/settings/settings.json" ] && { enable "$d" off || exit 1; }
+                fi
+            done
+        `, root.configHome, Config.themeVesktop ? "on" : "off", root.vesktopCss]
+        onExited: code => {
+            if (code !== 0)
+                console.warn("gravity: could not write Vesktop colours");
+        }
+    }
+
+    // Zen: its own colour variables plus Firefox's, on :root and !important, as Zen sets
+    // its workspace gradient inline. The toolbars and sidebar take the shell's surface, the
+    // frame around pages a step below, and panels and menus a step above.
+    readonly property string zenCss: {
+        const p = niriPalette;
+        const raised = appliedLight ? p.night : p.dusk;
+        const outline = mix(p.dusk, p.textDim, 0.35);
+        const veil = (c, pct) => `color-mix(in srgb, ${hex(c)} ${pct}%, transparent)`;
+        const vars = [
+            ["--zen-primary-color", p.gold],
+            ["--zen-colors-primary", p.tonal],
+            ["--zen-colors-primary-foreground", p.tonalInk],
+            ["--zen-colors-secondary", p.dusk],
+            ["--zen-colors-tertiary", p.deep],
+            ["--zen-colors-border", outline],
+            ["--zen-colors-border-contrast", outline],
+            ["--zen-colors-input-bg", raised],
+            ["--zen-main-browser-background", p.panel],
+            ["--zen-main-browser-background-toolbar", p.panel],
+            ["--zen-themed-toolbar-bg-transparent", p.panel],
+            ["--zen-dialog-background", p.panel],
+            ["--toolbar-bgcolor", p.panel],
+            ["--toolbar-color", p.text],
+            ["--toolbar-field-background-color", raised],
+            ["--toolbar-field-color", p.text],
+            ["--toolbar-field-focus-background-color", raised],
+            ["--toolbar-field-focus-color", p.text],
+            ["--toolbarbutton-icon-fill", p.text],
+            ["--lwt-text-color", p.text],
+            ["--tab-selected-bgcolor", raised],
+            ["--tab-selected-textcolor", p.text],
+            ["--sidebar-background-color", p.panel],
+            ["--sidebar-text-color", p.text],
+            ["--arrowpanel-background", raised],
+            ["--arrowpanel-color", p.text],
+            ["--arrowpanel-border-color", outline],
+            ["--panel-separator-color", outline],
+            ["--tabpanel-background-color", p.deep],
+            ["--focus-outline-color", p.gold],
+            ["--color-accent-primary", p.gold],
+            ["--button-primary-bgcolor", p.gold],
+            ["--button-primary-color", p.goldInk],
+            ["--urlbarView-highlight-background", p.tonal],
+            ["--urlbarView-highlight-color", p.tonalInk],
+            ["--autocomplete-popup-highlight-background", p.tonal],
+            ["--autocomplete-popup-highlight-color", p.tonalInk]
+        ].map(([n, c]) => [n, hex(c)]).concat([
+            ["--zen-colors-hover-bg", veil(p.text, 8)],
+            ["--tab-hover-background-color", veil(p.text, 8)],
+            ["--toolbarbutton-hover-background", veil(p.text, 8)],
+            ["--toolbarbutton-active-background", veil(p.text, 12)],
+            ["--arrowpanel-dimmed", veil(p.text, 8)],
+            ["--arrowpanel-dimmed-further", veil(p.text, 12)]
+        ]);
+        return `/* Written by gravity-shell from its colours; edits are overwritten. */
+:root {
+${vars.map(([n, c]) => `    ${n}: ${c} !important;`).join("\n")}
+}
+
+::selection {
+    background-color: ${veil(p.gold, 35)} !important;
+}
+`;
+    }
+
+    readonly property string zenState: Config.themeZen ? zenCss : "off"
+
+    onZenStateChanged: zenWrite.restart()
+
+    Timer {
+        id: zenWrite
+
+        interval: 200
+        onTriggered: {
+            if (!Config.ready || !Appearance.ready)
+                return;
+            zenProc.running = false;
+            zenProc.running = true;
+        }
+    }
+
+    // As GTK's: chrome/gravity.css in every Zen profile (Flatpak or native), imported at the
+    // top of userChrome.css, which Zen reads when it starts. user.js turns on reading
+    // userChrome.css, and stays on when the colours are turned off (other mods use it too).
+    Process {
+        id: zenProc
+
+        command: ["sh", "-c", `
+            line='@import url("gravity.css");'
+            pref='user_pref("toolkit.legacyUserProfileCustomizations.stylesheets", true);'
+            for base in "$HOME/.var/app/app.zen_browser.zen/.zen" "$HOME/.var/app/app.zen_browser.zen/config/zen" "$HOME/.zen" "$0/zen"; do
+                for p in "$base"/*/; do
+                    [ -f "$p/prefs.js" ] || continue
+                    dir="$p/chrome" css="$p/chrome/userChrome.css"
+                    if [ "$1" = on ]; then
+                        mkdir -p "$dir" && printf "%s" "$2" > "$dir/gravity.css.tmp" && mv -f "$dir/gravity.css.tmp" "$dir/gravity.css" || exit 1
+                        if ! grep -qxF "$line" "$css" 2>/dev/null; then
+                            { echo "$line"; if [ -f "$css" ]; then cat "$css"; fi; } > "$css.tmp" && mv -f "$css.tmp" "$css" || exit 1
+                        fi
+                        grep -qsF "$pref" "$p/user.js" || echo "$pref" >> "$p/user.js" || exit 1
+                    else
+                        rm -f "$dir/gravity.css"
+                        if grep -qxF "$line" "$css" 2>/dev/null; then
+                            grep -vxF "$line" "$css" > "$css.tmp"
+                            if grep -q '[^[:space:]]' "$css.tmp"; then mv -f "$css.tmp" "$css"; else rm -f "$css.tmp" "$css"; fi
+                        fi
+                    fi
+                done
+            done
+        `, root.configHome, Config.themeZen ? "on" : "off", root.zenCss]
+        onExited: code => {
+            if (code !== 0)
+                console.warn("gravity: could not write Zen colours");
+        }
+    }
+
     Connections {
         target: Appearance
 
@@ -819,6 +1058,8 @@ ${palette.map((c, i) => `palette = ${i}=${hex(c)}`).join("\n")}
             gtkWrite.restart();
             qtWrite.restart();
             ghosttyWrite.restart();
+            vesktopWrite.restart();
+            zenWrite.restart();
         }
     }
 

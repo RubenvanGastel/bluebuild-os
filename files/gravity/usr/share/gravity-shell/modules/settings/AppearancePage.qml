@@ -209,5 +209,19 @@ Column {
             checked: Config.themeGhostty
             onToggled: on => Config.set("themeGhostty", on)
         }
+
+        Toggle {
+            label: "Vesktop"
+            description: "A Discord theme in the whole palette. Open windows change at once; it is switched on in Vesktop's themes once Vesktop has quit."
+            checked: Config.themeVesktop
+            onToggled: on => Config.set("themeVesktop", on)
+        }
+
+        Toggle {
+            label: "Zen Browser"
+            description: "Toolbars, sidebar, tabs and menus through userChrome.css. Zen takes it when it restarts."
+            checked: Config.themeZen
+            onToggled: on => Config.set("themeZen", on)
+        }
     }
 }

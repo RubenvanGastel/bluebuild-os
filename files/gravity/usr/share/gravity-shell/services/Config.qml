@@ -54,12 +54,14 @@ Singleton {
     property alias barTray: adapter.barTray
     property alias barBattery: adapter.barBattery
     property alias barStatus: adapter.barStatus
-    // Whether apps take the shell's colours: GTK/GNOME apps (gtk.css and the nearest GNOME accent), Qt
-    // and KDE apps (qt6ct's palette and KDE's colours) and Ghostty. Off returns each to its
-    // own colours.
+    // Whether apps take the shell's colours: GTK/GNOME apps (gtk.css and the nearest GNOME
+    // accent), Qt and KDE apps (qt6ct's palette and KDE's colours), Ghostty, Vesktop (a
+    // Vencord theme) and Zen (userChrome.css). Off returns each to its own colours.
     property alias themeGtk: adapter.themeGtk
     property alias themeQt: adapter.themeQt
     property alias themeGhostty: adapter.themeGhostty
+    property alias themeVesktop: adapter.themeVesktop
+    property alias themeZen: adapter.themeZen
 
     // False until the config file has been read (or found missing).
     property bool ready: false
@@ -136,7 +138,9 @@ Singleton {
             barStatus: true,
             themeGtk: true,
             themeQt: true,
-            themeGhostty: true
+            themeGhostty: true,
+            themeVesktop: true,
+            themeZen: true
         })
 
     // The config folder may not exist yet on a fresh account.
@@ -192,6 +196,8 @@ Singleton {
             property bool themeGtk: root.defaults.themeGtk
             property bool themeQt: root.defaults.themeQt
             property bool themeGhostty: root.defaults.themeGhostty
+            property bool themeVesktop: root.defaults.themeVesktop
+            property bool themeZen: root.defaults.themeZen
         }
     }
 }
