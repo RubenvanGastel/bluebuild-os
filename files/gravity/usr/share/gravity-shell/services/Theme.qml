@@ -934,7 +934,8 @@ ${lines.join("\n")}
     }
 
     // Zen: its own colour variables plus Firefox's, on :root and !important, as Zen sets
-    // its workspace gradient inline. The toolbars and sidebar take the shell's surface, the
+    // its accent inline. The workspace gradient is set inline on the background elements
+    // themselves, so it's overridden there too. The toolbars and sidebar take the shell's surface, the
     // frame around pages a step below, and panels and menus a step above.
     readonly property string zenCss: {
         const p = niriPalette;
@@ -990,6 +991,13 @@ ${lines.join("\n")}
         return `/* Written by gravity-shell from its colours; edits are overwritten. */
 :root {
 ${vars.map(([n, c]) => `    ${n}: ${c} !important;`).join("\n")}
+}
+
+.zen-browser-generic-background {
+    --zen-main-browser-background: ${hex(p.panel)} !important;
+    --zen-main-browser-background-old: ${hex(p.panel)} !important;
+    --zen-main-browser-background-toolbar: ${hex(p.panel)} !important;
+    --zen-main-browser-background-toolbar-old: ${hex(p.panel)} !important;
 }
 
 ::selection {
