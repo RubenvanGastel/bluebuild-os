@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Effects
+import Quickshell
 import qs.services
 
 // A panel that is the bar growing into the screen (the quick panel, the system monitor,
@@ -26,6 +27,25 @@ Item {
 
     default property alias content: inner.data
     readonly property Item card: card
+    // What to blur behind it (Theme.blur): the card and the curves joining it to the bar.
+    // For its window's BackgroundEffect.blurRegion; the sheet must fill that window.
+    readonly property Region blurRegion: Region {
+        item: card
+        topLeftRadius: card.topLeftRadius
+        topRightRadius: card.topRightRadius
+        bottomLeftRadius: card.bottomLeftRadius
+        bottomRightRadius: card.bottomRightRadius
+
+        CornerRegion {
+            corner: startCorner
+        }
+        CornerRegion {
+            corner: endCorner
+        }
+        CornerRegion {
+            corner: barEndCorner
+        }
+    }
 
     readonly property string edge: Theme.barEdge
     readonly property bool vertical: Theme.barVertical
@@ -66,6 +86,8 @@ Item {
 
     // Joins the card's start to the bar.
     EdgeCorner {
+        id: startCorner
+
         visible: !root.floating
         u: root.start - size
         v: root.bar
@@ -76,6 +98,8 @@ Item {
 
     // Joins its far end to the bar.
     EdgeCorner {
+        id: endCorner
+
         visible: !root.floating && root.align !== "barEnd"
         u: root.start + root.span
         v: root.bar
@@ -85,6 +109,8 @@ Item {
 
     // At the bar's end: the curve there rides along on the card's outer edge.
     EdgeCorner {
+        id: barEndCorner
+
         visible: !root.floating && root.align === "barEnd"
         u: root.hi - size
         v: root.bar + root.depth
@@ -93,9 +119,9 @@ Item {
         fill: Theme.surface
     }
 
-    // Floating, a soft shadow like niri's windows have.
+    // Floating, a soft shadow like niri's windows have (not under a see-through card).
     RectangularShadow {
-        visible: root.floating && root.depth > 0
+        visible: root.floating && root.depth > 0 && !Theme.blur
         anchors.fill: card
         radius: card.topLeftRadius
         blur: 30

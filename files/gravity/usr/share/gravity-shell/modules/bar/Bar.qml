@@ -38,6 +38,8 @@ Variants {
             mask: Region {
                 item: surface.strip
             }
+            // See-through with blur on; niri blurs behind the whole surface.
+            BackgroundEffect.blurRegion: Theme.blur ? surface.blurRegion : null
 
             BarSurface {
                 id: surface

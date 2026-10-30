@@ -115,6 +115,8 @@ Scope {
             WlrLayershell.keyboardFocus: root.open ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
             // Click-through while it goes away.
             mask: root.open ? null : passThrough
+            // The panel's surface is see-through with blur on; niri blurs behind it.
+            BackgroundEffect.blurRegion: Theme.blur ? sheet.blurRegion : null
 
             Region {
                 id: passThrough

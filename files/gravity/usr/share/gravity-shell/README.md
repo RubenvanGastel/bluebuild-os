@@ -61,8 +61,17 @@ rest, and bold [Google Sans Flex](https://fonts.google.com/specimen/Google+Sans+
   live (worked out on the machine; the place is looked up once with Open-Meteo's place
   search). The quick panel's Light/Dark buttons grey out then; clicking one goes back to
   choosing by hand.
+- **Blur**: Settings > Appearance > Blur turns the bar, panels, notifications and cards
+  see-through, with niri 26.04's blur behind them (each window tells niri exactly where,
+  so the inverted corners blur too). Ghostty (`background-opacity` and `background-blur`
+  in its theme), Zen (`zen.widget.linux.transparency` and a see-through `gravity.css`) and,
+  with their colours on, GTK apps (see-through window, header bar, sidebar and content
+  colours) and Vesktop (Vencord's transparent window, set once Vesktop has quit) go along, and niri blurs behind every window. By default niri's xray blur is
+  used: only the wallpaper, blurred once and shared, so it costs little. *Blur windows
+  too* blurs whatever is behind instead, other windows included, which niri redraws
+  whenever that changes. Off returns everything to solid.
 - **Settings** (`Super+Comma`, or the cog in the quick panel): the screen dims and a card
-  springs up with a sidebar of pages. *Appearance*: light or dark, built-in or wallpaper
+  springs up with a sidebar of pages. *Appearance*: light or dark, blur, built-in or wallpaper
   colours and the scheme, the wallpaper and its folder. *Bar*: which edge it
   runs along, its style and what it shows. *Wi-Fi*: on or off, the network you're on with its addresses,
   every network in range (join, with the password asked in place, or forget) and hidden

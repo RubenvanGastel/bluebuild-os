@@ -55,6 +55,8 @@ Scope {
             WlrLayershell.keyboardFocus: root.open ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
             // Click-through while it goes away.
             mask: root.open ? null : passThrough
+            // The panel's surface is see-through with blur on; niri blurs behind it.
+            BackgroundEffect.blurRegion: Theme.blur ? sheet.blurRegion : null
 
             Region {
                 id: passThrough
@@ -154,6 +156,8 @@ Scope {
             // Centred on the pill (just past the middle of the bar without it), kept clear
             // of the bar's ends.
             BarSheet {
+                id: sheet
+
                 anchors.fill: parent
                 at: Panels.mediaAt >= 0 ? Panels.mediaAt : length / 2 + 120
                 fullWidth: 460

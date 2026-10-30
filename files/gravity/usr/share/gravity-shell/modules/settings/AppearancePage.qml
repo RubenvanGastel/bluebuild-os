@@ -181,6 +181,26 @@ Column {
         }
     }
 
+    // See-through surfaces with niri's blur behind them; off makes everything solid again.
+    Section {
+        title: "Blur"
+
+        Toggle {
+            label: "Blur"
+            description: "The bar, panels and cards turn see-through with the wallpaper blurred behind them, and so do Ghostty, Zen and (with their colours on) GTK apps and Vesktop. niri blurs the wallpaper once and shares it, so it costs little. New Ghostty windows take it, GTK apps and Zen when they restart, Vesktop once it has quit."
+            checked: Config.blur
+            onToggled: on => Config.set("blur", on)
+        }
+
+        Toggle {
+            enabled: Config.blur
+            label: "Blur windows too"
+            description: "Blurs whatever is behind, other windows included, rather than only the wallpaper. Uses more power: niri redraws the blur whenever something behind moves."
+            checked: Config.blurWindows
+            onToggled: on => Config.set("blurWindows", on)
+        }
+    }
+
     // Which apps take the shell's colours; off returns each to its own.
     Section {
         title: "Toolkits"

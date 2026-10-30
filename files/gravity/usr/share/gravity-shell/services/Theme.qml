@@ -125,8 +125,16 @@ Singleton {
 
     property color text: palette.text
     property color textDim: palette.textDim
-    // Solid surface for the bar, notification cards and the password field.
-    property color surface: palette.panel
+    // Surface for the bar, panels, notification cards and the password field: solid, or
+    // see-through with blur on (Config.blur), so niri's blur shows behind it.
+    property color surface: Qt.alpha(palette.panel, surfaceOpacity)
+
+    // Config.blur: surfaces let this much of themselves through (and apps' backgrounds,
+    // a little more solid, appOpacity). Windows set the regions niri blurs behind them
+    // with BackgroundEffect, and drop their shadows, which would show through.
+    readonly property bool blur: Config.blur
+    readonly property real surfaceOpacity: blur ? 0.72 : 1
+    readonly property real appOpacity: 0.8
 
     // Light and dark, and one palette to the next, fade into each other rather than snap.
     readonly property int colorFade: 450
@@ -470,7 +478,26 @@ layout {
 overview {
     backdrop-color "${niriPalette.night}"
 }
-`
+${blurConfig}`
+
+    // With blur on, every window gets it behind (only the see-through parts of a window show
+    // it), and the focus ring is no longer drawn behind them, where it would tint them. The
+    // shell asks for blur behind its own surfaces itself. niri blurs only the wallpaper
+    // (xray) unless blurWindows: then windows and the shell blur what is behind them.
+    readonly property string blurConfig: !Config.blur ? "" : `window-rule {
+    draw-border-with-background false
+    background-effect {
+        blur true
+        xray ${!Config.blurWindows}
+    }
+}
+` + (!Config.blurWindows ? "" : `layer-rule {
+    match namespace="^gravity-"
+    background-effect {
+        xray false
+    }
+}
+`)
 
     onNiriConfigChanged: niriWrite.restart()
 
@@ -508,6 +535,12 @@ overview {
 
     function hex(c: color): string {
         return Qt.color(c).toString();
+    }
+
+    // As CSS: c at opacity a.
+    function rgba(c: color, a: real): string {
+        const q = Qt.color(c);
+        return `rgba(${[q.r, q.g, q.b].map(v => Math.round(v * 255)).join(", ")}, ${a})`;
     }
 
     // Material has no greens or yellows, so terminal colours (and KDE's positive and
@@ -549,10 +582,16 @@ overview {
     // to gtk.css for GTK 3 and 4. GTK 4 also gets them as CSS variables, which libadwaita
     // 1.6 and later read. Windows and their header bars take the shell's surface (the bar
     // and its cards), content a step towards the background, and cards a step away from it.
+    // With blur, windows, header bars, sidebars and content are see-through; cards, dialogs
+    // and popovers stay solid, as they sit over other content.
     function gtkCss(vars: bool): string {
         const p = niriPalette;
         const raised = appliedLight ? p.night : p.dusk;
         const shade = appliedLight ? "rgba(0, 0, 0, 0.07)" : "rgba(0, 0, 0, 0.36)";
+        const see = Config.blur ? [
+            "window_bg_color", "headerbar_bg_color", "headerbar_backdrop_color", "sidebar_bg_color", "sidebar_backdrop_color",
+            "secondary_sidebar_bg_color", "secondary_sidebar_backdrop_color", "view_bg_color"
+        ] : [];
         const colors = [
             ["accent_color", p.gold], ["accent_bg_color", p.gold], ["accent_fg_color", p.goldInk],
             ["destructive_color", p.rose], ["destructive_bg_color", p.rose], ["destructive_fg_color", p.night],
@@ -568,7 +607,7 @@ overview {
             ["dialog_bg_color", p.panel], ["dialog_fg_color", p.text],
             ["popover_bg_color", raised], ["popover_fg_color", p.text],
             ["thumbnail_bg_color", p.dusk], ["thumbnail_fg_color", p.text]
-        ].map(([name, c]) => [name, hex(c)]).concat([
+        ].map(([name, c]) => [name, see.includes(name) ? rgba(c, appOpacity) : hex(c)]).concat([
             ["headerbar_shade_color", shade], ["sidebar_shade_color", shade], ["secondary_sidebar_shade_color", shade],
             ["card_shade_color", shade], ["popover_shade_color", shade], ["shade_color", shade]
         ]);
@@ -764,10 +803,14 @@ DecorationHover=${rgb(p.gold)}
 
     // Ghostty: the "gravity" theme, which /etc/ghostty/gravity picks. Off: a theme that sets
     // nothing, so Ghostty's own colours. Its background is the shell's surface, so a
-    // terminal reads as one with the bar and frame around it.
+    // terminal reads as one with the bar and frame around it. Blur (either way) makes the
+    // background see-through and asks niri to blur behind it.
+    readonly property string ghosttyBlur: Config.blur ? `background-opacity = ${appOpacity}
+background-blur = true
+` : ""
     readonly property string ghosttyTheme: {
         if (!Config.themeGhostty)
-            return "# Written by gravity-shell; its colours are turned off in its settings.\n";
+            return "# Written by gravity-shell; its colours are turned off in its settings.\n" + ghosttyBlur;
         const p = niriPalette;
         const greys = appliedLight ? [p.text, mix(p.dusk, p.textDim, 0.5), p.textDim, p.dusk] : [p.dusk, p.textDim, mix(p.dusk, p.textDim, 0.5), p.text];
         const palette = [greys[0], ...ansiNormal, greys[1], greys[2], ...ansiBright, greys[3]];
@@ -779,7 +822,7 @@ cursor-text = ${hex(p.goldInk)}
 selection-background = ${hex(p.tonal)}
 selection-foreground = ${hex(p.tonalInk)}
 ${palette.map((c, i) => `palette = ${i}=${hex(c)}`).join("\n")}
-`;
+${ghosttyBlur}`;
     }
 
     onGhosttyThemeChanged: ghosttyWrite.restart()
@@ -812,7 +855,9 @@ ${palette.map((c, i) => `palette = ${i}=${hex(c)}`).join("\n")}
 
     // Vesktop: a Vencord theme overriding Discord's colour variables, both the older names
     // and the visual refresh's. Laid out like GTK's: the server and channel lists in the
-    // shell's surface, the chat a step below, popouts and modals a step above.
+    // shell's surface, the chat a step below, popouts and modals a step above. With blur,
+    // the window behind them all is the see-through surface, the lists are clear on it and
+    // the chat a shade darker; popouts and modals stay solid.
     readonly property string vesktopCss: {
         const p = niriPalette;
         const raised = appliedLight ? p.night : p.dusk;
@@ -820,9 +865,11 @@ ${palette.map((c, i) => `palette = ${i}=${hex(c)}`).join("\n")}
         const outline = mix(p.dusk, p.textDim, 0.35);
         const faint = mix(p.textDim, p.deep, 0.35);
         const veil = (c, pct) => `color-mix(in srgb, ${hex(c)} ${pct}%, transparent)`;
+        const frame = Config.blur ? "transparent" : hex(p.panel);
+        const chat = Config.blur ? veil(p.night, 25) : hex(p.deep);
         const groups = [
-            [p.deep, "--background-base-low --chat-background --chat-background-default --background-primary --bg-base-primary --home-background"],
-            [p.panel, "--background-base-lower --background-secondary --bg-base-secondary --custom-channel-members-bg --background-base-lowest --app-frame-background --background-tertiary --background-secondary-alt --bg-base-tertiary --__header-bar-background"],
+            [chat, "--background-base-low --chat-background --chat-background-default --background-primary --bg-base-primary --home-background"],
+            [frame, "--background-base-lower --background-secondary --bg-base-secondary --custom-channel-members-bg --background-base-lowest --app-frame-background --background-tertiary --background-secondary-alt --bg-base-tertiary --__header-bar-background"],
             [raised, "--background-surface-high --bg-surface-raised --card-primary-bg --activity-card-background --background-surface-higher --bg-surface-overlay --background-floating --background-nested-floating --autocomplete-bg --control-secondary-background-default --button-secondary-background"],
             [highest, "--background-surface-highest --modal-background --modal-footer-background --background-accent --card-secondary-bg --user-profile-overlay-background --control-secondary-background-hover --button-secondary-background-hover --spoiler-hidden-background"],
             [raised, "--input-background-default --input-background --channeltextarea-background --deprecated-text-input-bg"],
@@ -838,7 +885,7 @@ ${palette.map((c, i) => `palette = ${i}=${hex(c)}`).join("\n")}
             [ansiNormal[1], "--text-positive --text-feedback-positive"],
             [ansiNormal[2], "--text-warning --text-feedback-warning"],
             [p.amber, "--text-feedback-info"]
-        ].map(([c, names]) => [hex(c), names]).concat([
+        ].map(([c, names]) => [typeof c === "string" ? c : hex(c), names]).concat([
             [veil(p.text, 8), "--background-modifier-hover --background-mod-subtle --bg-mod-faint --interactive-background-hover --button-transparent-background-hover --button-outline-primary-background-hover"],
             [veil(p.text, 12), "--background-modifier-active --background-mod-normal --interactive-background-active --button-transparent-background-active --button-outline-primary-background-active"],
             [veil(p.gold, 16), "--background-modifier-selected --background-mod-strong --bg-mod-strong --interactive-background-selected --message-reacted-background-default --button-outline-brand-background-hover"],
@@ -878,10 +925,25 @@ ${lines.join("\n")}
 ::selection {
     background: ${veil(p.gold, 35)};
 }
-`;
+${Config.blur ? `
+/* The see-through surface, once: everything above it is clear. */
+html {
+    background: ${rgba(p.panel, appOpacity)} !important;
+}
+
+body,
+#app-mount {
+    background: transparent !important;
+}
+
+/* Layers over the app (settings) would show the app through them: solid. */
+[class*="layers_"] > [class*="layer_"]:not([class*="baseLayer_"]) {
+    background: ${hex(p.panel)} !important;
+}
+` : ""}`;
     }
 
-    readonly property string vesktopState: Config.themeVesktop ? vesktopCss : "off"
+    readonly property string vesktopState: (Config.themeVesktop ? vesktopCss : "off") + Config.blur
 
     onVesktopStateChanged: vesktopWrite.restart()
 
@@ -900,18 +962,35 @@ ${lines.join("\n")}
     // On: themes/gravity.css, which Vesktop reloads as soon as it changes, and the theme
     // enabled in Vencord's settings. Vesktop keeps those in memory and writes them back over
     // anything changed meanwhile, so enabling waits until it has quit. Off: the theme is
-    // disabled and removed. For the Flatpak and a native Vesktop, whichever is installed.
+    // disabled and removed. With blur (and the theme), Vencord's transparent window is
+    // turned on the same way, and off again only if the shell turned it on (the marker).
+    // For the Flatpak and a native Vesktop, whichever is installed.
     Process {
         id: vesktopProc
 
         command: ["sh", "-c", `
-            enable() {
-                s="$1/settings/settings.json"
+            # Brings settings.json to the theme ($2) and transparency ($3) wanted, once
+            # Vesktop has quit, if it isn't there yet.
+            apply() {
+                s="$1/settings/settings.json" mark="$1/themes/.gravity-transparent"
                 command -v jq >/dev/null || return 0
-                while pgrep -x vesktop >/dev/null; do sleep 10; done
-                mkdir -p "$1/settings" || return 1
+                theme=$2 clear=$3
+                [ "$clear" = on ] || [ -f "$mark" ] || clear=keep
+                jq -e --arg t "$theme" --arg c "$clear" '
+                    (((.enabledThemes // []) | index("gravity.css")) != null) == ($t == "on") and
+                    ($c == "keep" or (.transparent // false) == ($c == "on"))
+                ' "$s" >/dev/null 2>&1 && return 0
+                while pgrep -x 'vesktop|vesktop.bin' >/dev/null; do sleep 10; done
+                mkdir -p "$1/settings" "$1/themes" || return 1
                 [ -s "$s" ] || echo '{}' > "$s"
-                jq --arg on "$2" '.enabledThemes = ((.enabledThemes // []) - ["gravity.css"] + (if $on == "on" then ["gravity.css"] else [] end))' "$s" > "$s.tmp" && mv -f "$s.tmp" "$s"
+                jq --arg t "$theme" --arg c "$clear" '
+                    .enabledThemes = ((.enabledThemes // []) - ["gravity.css"] + (if $t == "on" then ["gravity.css"] else [] end)) |
+                    if $c == "keep" then . else .transparent = ($c == "on") end
+                ' "$s" > "$s.tmp" && mv -f "$s.tmp" "$s" || return 1
+                case "$clear" in
+                    on) : > "$mark" ;;
+                    off) rm -f "$mark" ;;
+                esac
             }
             for d in "$HOME/.var/app/dev.vencord.Vesktop/config/vesktop" "$0/vesktop"; do
                 case "$d" in
@@ -920,13 +999,13 @@ ${lines.join("\n")}
                 esac
                 if [ "$1" = on ]; then
                     mkdir -p "$d/themes" && printf "%s" "$2" > "$d/themes/gravity.css.tmp" && mv -f "$d/themes/gravity.css.tmp" "$d/themes/gravity.css" || exit 1
-                    grep -qs '"gravity.css"' "$d/settings/settings.json" || enable "$d" on || exit 1
-                elif [ -f "$d/themes/gravity.css" ]; then
+                    apply "$d" on "$3" || exit 1
+                elif [ -f "$d/themes/gravity.css" ] || [ -f "$d/themes/.gravity-transparent" ]; then
                     rm -f "$d/themes/gravity.css"
-                    [ -f "$d/settings/settings.json" ] && { enable "$d" off || exit 1; }
+                    apply "$d" off off || exit 1
                 fi
             done
-        `, root.configHome, Config.themeVesktop ? "on" : "off", root.vesktopCss]
+        `, root.configHome, Config.themeVesktop ? "on" : "off", root.vesktopCss, Config.themeVesktop && Config.blur ? "on" : "off"]
         onExited: code => {
             if (code !== 0)
                 console.warn("gravity: could not write Vesktop colours");
@@ -936,10 +1015,13 @@ ${lines.join("\n")}
     // Zen: its own colour variables plus Firefox's, on :root and !important, as Zen sets
     // its accent inline. The workspace gradient is set inline on the background elements
     // themselves, so it's overridden there too. The toolbars and sidebar take the shell's surface, the
-    // frame around pages a step below, and panels and menus a step above.
+    // frame around pages a step below, and panels and menus a step above. With blur, the
+    // background behind the toolbars and sidebar is see-through and they are clear on it.
     readonly property string zenCss: {
         const p = niriPalette;
         const raised = appliedLight ? p.night : p.dusk;
+        const back = Config.blur ? rgba(p.panel, appOpacity) : hex(p.panel);
+        const bar = Config.blur ? "transparent" : hex(p.panel);
         const outline = mix(p.dusk, p.textDim, 0.35);
         const veil = (c, pct) => `color-mix(in srgb, ${hex(c)} ${pct}%, transparent)`;
         const vars = [
@@ -951,11 +1033,7 @@ ${lines.join("\n")}
             ["--zen-colors-border", outline],
             ["--zen-colors-border-contrast", outline],
             ["--zen-colors-input-bg", raised],
-            ["--zen-main-browser-background", p.panel],
-            ["--zen-main-browser-background-toolbar", p.panel],
-            ["--zen-themed-toolbar-bg-transparent", p.panel],
             ["--zen-dialog-background", p.panel],
-            ["--toolbar-bgcolor", p.panel],
             ["--toolbar-color", p.text],
             ["--toolbar-field-background-color", raised],
             ["--toolbar-field-color", p.text],
@@ -965,7 +1043,6 @@ ${lines.join("\n")}
             ["--lwt-text-color", p.text],
             ["--tab-selected-bgcolor", raised],
             ["--tab-selected-textcolor", p.text],
-            ["--sidebar-background-color", p.panel],
             ["--sidebar-text-color", p.text],
             ["--arrowpanel-background", raised],
             ["--arrowpanel-color", p.text],
@@ -981,6 +1058,11 @@ ${lines.join("\n")}
             ["--autocomplete-popup-highlight-background", p.tonal],
             ["--autocomplete-popup-highlight-color", p.tonalInk]
         ].map(([n, c]) => [n, hex(c)]).concat([
+            ["--zen-main-browser-background", back],
+            ["--zen-main-browser-background-toolbar", back],
+            ["--zen-themed-toolbar-bg-transparent", bar],
+            ["--toolbar-bgcolor", bar],
+            ["--sidebar-background-color", bar],
             ["--zen-colors-hover-bg", veil(p.text, 8)],
             ["--tab-hover-background-color", veil(p.text, 8)],
             ["--toolbarbutton-hover-background", veil(p.text, 8)],
@@ -994,10 +1076,10 @@ ${vars.map(([n, c]) => `    ${n}: ${c} !important;`).join("\n")}
 }
 
 .zen-browser-generic-background {
-    --zen-main-browser-background: ${hex(p.panel)} !important;
-    --zen-main-browser-background-old: ${hex(p.panel)} !important;
-    --zen-main-browser-background-toolbar: ${hex(p.panel)} !important;
-    --zen-main-browser-background-toolbar-old: ${hex(p.panel)} !important;
+    --zen-main-browser-background: ${back} !important;
+    --zen-main-browser-background-old: ${back} !important;
+    --zen-main-browser-background-toolbar: ${back} !important;
+    --zen-main-browser-background-toolbar-old: ${back} !important;
 }
 
 ::selection {
@@ -1006,7 +1088,7 @@ ${vars.map(([n, c]) => `    ${n}: ${c} !important;`).join("\n")}
 `;
     }
 
-    readonly property string zenState: Config.themeZen ? zenCss : "off"
+    readonly property string zenState: (Config.themeZen ? zenCss : "off") + Config.blur
 
     onZenStateChanged: zenWrite.restart()
 
@@ -1025,12 +1107,16 @@ ${vars.map(([n, c]) => `    ${n}: ${c} !important;`).join("\n")}
     // As GTK's: chrome/gravity.css in every Zen profile (Flatpak or native), imported at the
     // top of userChrome.css, which Zen reads when it starts. user.js turns on reading
     // userChrome.css, and stays on when the colours are turned off (other mods use it too).
+    // Blur turns on Zen's see-through window (zen.widget.linux.transparency) in user.js;
+    // off sets it back to false there, as Zen keeps a pref user.js once set.
     Process {
         id: zenProc
 
         command: ["sh", "-c", `
             line='@import url("gravity.css");'
             pref='user_pref("toolkit.legacyUserProfileCustomizations.stylesheets", true);'
+            key='user_pref("zen.widget.linux.transparency", '
+            [ "$3" = on ] && see="\${key}true);" || see="\${key}false);"
             for base in "$HOME/.var/app/app.zen_browser.zen/.zen" "$HOME/.var/app/app.zen_browser.zen/config/zen" "$HOME/.zen" "$0/zen"; do
                 for p in "$base"/*/; do
                     [ -f "$p/prefs.js" ] || continue
@@ -1048,9 +1134,12 @@ ${vars.map(([n, c]) => `    ${n}: ${c} !important;`).join("\n")}
                             if grep -q '[^[:space:]]' "$css.tmp"; then mv -f "$css.tmp" "$css"; else rm -f "$css.tmp" "$css"; fi
                         fi
                     fi
+                    if [ "$3" = on ] || grep -qsF "\${key}true);" "$p/user.js"; then
+                        { grep -vsF "$key" "$p/user.js"; echo "$see"; } > "$p/user.js.tmp" && mv -f "$p/user.js.tmp" "$p/user.js" || exit 1
+                    fi
                 done
             done
-        `, root.configHome, Config.themeZen ? "on" : "off", root.zenCss]
+        `, root.configHome, Config.themeZen ? "on" : "off", root.zenCss, Config.blur ? "on" : "off"]
         onExited: code => {
             if (code !== 0)
                 console.warn("gravity: could not write Zen colours");

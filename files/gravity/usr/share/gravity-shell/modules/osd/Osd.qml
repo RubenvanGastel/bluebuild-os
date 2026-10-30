@@ -122,6 +122,11 @@ Scope {
             exclusiveZone: 0
             WlrLayershell.layer: WlrLayer.Overlay
             WlrLayershell.namespace: "gravity-osd"
+            // The pill is see-through with blur on; niri blurs behind it.
+            BackgroundEffect.blurRegion: Region {
+                item: Theme.blur ? pill : null
+                radius: pill.radius
+            }
             // Never takes clicks.
             mask: Region {}
 
@@ -183,7 +188,7 @@ Scope {
 
                 layer.enabled: true
                 layer.effect: MultiEffect {
-                    shadowEnabled: true
+                    shadowEnabled: !Theme.blur
                     shadowColor: Qt.rgba(0, 0, 0, 0.45)
                     shadowBlur: 0.6
                     shadowVerticalOffset: 4

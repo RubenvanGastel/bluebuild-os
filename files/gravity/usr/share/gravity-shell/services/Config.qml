@@ -67,6 +67,12 @@ Singleton {
     property alias themeGhostty: adapter.themeGhostty
     property alias themeVesktop: adapter.themeVesktop
     property alias themeZen: adapter.themeZen
+    // See-through surfaces with niri's blur behind them: the shell's own, Ghostty's, Zen's
+    // and (with their colours on) GTK apps' and Vesktop's. Off returns each to solid. `blur` alone uses
+    // niri's xray blur, of the wallpaper only, made once and shared; `blurWindows` blurs
+    // whatever is behind, windows included, which niri redraws whenever that changes.
+    property alias blur: adapter.blur
+    property alias blurWindows: adapter.blurWindows
 
     // False until the config file has been read (or found missing).
     property bool ready: false
@@ -147,7 +153,9 @@ Singleton {
             themeQt: true,
             themeGhostty: true,
             themeVesktop: true,
-            themeZen: true
+            themeZen: true,
+            blur: false,
+            blurWindows: false
         })
 
     // The config folder may not exist yet on a fresh account.
@@ -207,6 +215,8 @@ Singleton {
             property bool themeGhostty: root.defaults.themeGhostty
             property bool themeVesktop: root.defaults.themeVesktop
             property bool themeZen: root.defaults.themeZen
+            property bool blur: root.defaults.blur
+            property bool blurWindows: root.defaults.blurWindows
         }
     }
 }

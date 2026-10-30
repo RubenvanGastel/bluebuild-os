@@ -154,7 +154,7 @@ Item {
         id: hover
     }
 
-    // Solid surface like the bar; critical ones get an error-coloured ring.
+    // The bar's surface; critical ones get an error-coloured ring.
     Rectangle {
         anchors.fill: parent
         radius: 24
@@ -164,7 +164,7 @@ Item {
 
         layer.enabled: true
         layer.effect: MultiEffect {
-            shadowEnabled: true
+            shadowEnabled: !Theme.blur
             shadowColor: Qt.rgba(0, 0, 0, 0.45)
             shadowBlur: 0.6
             shadowVerticalOffset: 4

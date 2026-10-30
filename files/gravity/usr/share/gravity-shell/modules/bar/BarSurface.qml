@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell
 import Quickshell.Wayland
 import qs.services
 import qs.components
@@ -22,6 +23,34 @@ Item {
     property var barWindow: null
     // The strip itself, without the corners (for input masks).
     readonly property Item strip: bar
+    // All of the surface, for the blur behind it (Theme.blur): the strip, its corners and
+    // the frame. In window coordinates, so only for a window this fills.
+    readonly property Region blurRegion: Region {
+        item: bar
+        radius: bar.radius
+
+        CornerRegion {
+            corner: startCorner
+        }
+        CornerRegion {
+            corner: endCorner
+        }
+        Region {
+            item: root.frame ? startBand : null
+        }
+        Region {
+            item: root.frame ? endBand : null
+        }
+        Region {
+            item: root.frame ? farBand : null
+        }
+        CornerRegion {
+            corner: farStartCorner
+        }
+        CornerRegion {
+            corner: farEndCorner
+        }
+    }
 
     readonly property string edge: Theme.barEdge
     readonly property bool vertical: Theme.barVertical
@@ -366,6 +395,8 @@ Item {
 
     // Curving into the screen at both ends of the bar (into the frame with one).
     EdgeCorner {
+        id: startCorner
+
         visible: !root.floating
         u: root.frameSize
         v: Theme.barSize
@@ -374,6 +405,8 @@ Item {
     }
 
     EdgeCorner {
+        id: endCorner
+
         visible: !root.floating
         u: root.length - root.frameSize - size
         v: Theme.barSize
@@ -384,6 +417,8 @@ Item {
 
     // The frame: along both ends of the bar and the far edge, curving in at the far corners.
     Band {
+        id: startBand
+
         u: 0
         v: Theme.barSize
         along: root.frameSize
@@ -391,6 +426,8 @@ Item {
     }
 
     Band {
+        id: endBand
+
         u: root.length - root.frameSize
         v: Theme.barSize
         along: root.frameSize
@@ -398,6 +435,8 @@ Item {
     }
 
     Band {
+        id: farBand
+
         u: root.frameSize
         v: root.across - root.frameSize
         along: root.length - 2 * root.frameSize
@@ -405,6 +444,8 @@ Item {
     }
 
     EdgeCorner {
+        id: farStartCorner
+
         visible: root.frame
         u: root.frameSize
         v: root.across - root.frameSize - size
@@ -414,6 +455,8 @@ Item {
     }
 
     EdgeCorner {
+        id: farEndCorner
+
         visible: root.frame
         u: root.length - root.frameSize - size
         v: root.across - root.frameSize - size

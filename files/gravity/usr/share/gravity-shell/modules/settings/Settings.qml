@@ -91,6 +91,11 @@ Scope {
             exclusionMode: ExclusionMode.Ignore
             WlrLayershell.layer: WlrLayer.Overlay
             WlrLayershell.namespace: "gravity-settings"
+            // The card is see-through with blur on; niri blurs behind it.
+            BackgroundEffect.blurRegion: Region {
+                item: Theme.blur ? card : null
+                radius: card.radius
+            }
             WlrLayershell.keyboardFocus: root.open ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
             // 0..1: the screen dimming, and the card from below the edge to in place.
@@ -183,7 +188,7 @@ Scope {
 
                 layer.enabled: true
                 layer.effect: MultiEffect {
-                    shadowEnabled: true
+                    shadowEnabled: !Theme.blur
                     shadowColor: Qt.rgba(0, 0, 0, 0.45)
                     shadowBlur: 0.8
                     shadowVerticalOffset: 6

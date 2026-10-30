@@ -51,6 +51,44 @@ Scope {
             item: stack
         }
 
+        // Cards are see-through with blur on; niri blurs behind each. Regions can't come from
+        // the Repeater, so the first eight cards get one, more than ever fit on the screen.
+        readonly property var cards: Array.from(stack.children).filter(c => c.notification !== undefined)
+
+        BackgroundEffect.blurRegion: Region {
+            CardRegion {
+                card: win.cards[0] ?? null
+            }
+            CardRegion {
+                card: win.cards[1] ?? null
+            }
+            CardRegion {
+                card: win.cards[2] ?? null
+            }
+            CardRegion {
+                card: win.cards[3] ?? null
+            }
+            CardRegion {
+                card: win.cards[4] ?? null
+            }
+            CardRegion {
+                card: win.cards[5] ?? null
+            }
+            CardRegion {
+                card: win.cards[6] ?? null
+            }
+            CardRegion {
+                card: win.cards[7] ?? null
+            }
+        }
+
+        component CardRegion: Region {
+            property Item card
+
+            item: Theme.blur ? card : null
+            radius: 24
+        }
+
         Column {
             id: stack
 
