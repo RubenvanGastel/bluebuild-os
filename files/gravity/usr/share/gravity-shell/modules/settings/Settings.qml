@@ -7,7 +7,7 @@ import qs.services
 
 // Settings (Mod+Comma, the cog in the quick panel, or `gravity-shell ipc call settings
 // toggle`). Like the session menu the screen dims and a solid card springs up, with the
-// pages in a sidebar: Appearance, Bar, Displays, Wi-Fi, Bluetooth and Lock & clock. Changes apply at
+// pages in a sidebar: Appearance, Apps, Bar, Media, Displays, Wi-Fi, Bluetooth and Lock & clock. Changes apply at
 // once and are saved in config.json (light or dark in GNOME's own setting). Ctrl+Tab goes
 // through the pages; Esc or a click outside closes.
 Scope {
@@ -21,7 +21,9 @@ Scope {
 
     readonly property var pages: [
         { id: "appearance", label: "Appearance", icon: "\u{f03d8}" },
+        { id: "apps", label: "Apps", icon: "\u{f003b}" },
         { id: "bar", label: "Bar", icon: "\u{f06fc}" },
+        { id: "media", label: "Media", icon: "\u{f075a}" },
         { id: "displays", label: "Displays", icon: "\u{f0379}" },
         { id: "wifi", label: "Wi-Fi", icon: "\u{f05a9}" },
         { id: "bluetooth", label: "Bluetooth", icon: "\u{f00af}" },
@@ -61,7 +63,7 @@ Scope {
             root.toggle();
         }
 
-        // appearance, bar, wifi, bluetooth or general.
+        // appearance, apps, bar, media, displays, wifi, bluetooth or general.
         function open(page: string): void {
             root.show(page);
         }
@@ -336,8 +338,20 @@ Scope {
                                 settings: root
                             }
 
+                            AppsPage {
+                                visible: root.page === "apps"
+                                width: parent.width
+                                settings: root
+                            }
+
                             BarPage {
                                 visible: root.page === "bar"
+                                width: parent.width
+                                settings: root
+                            }
+
+                            MediaPage {
+                                visible: root.page === "media"
                                 width: parent.width
                                 settings: root
                             }

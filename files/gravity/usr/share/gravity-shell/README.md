@@ -73,7 +73,7 @@ rest, and bold [Google Sans Flex](https://fonts.google.com/specimen/Google+Sans+
   from a prompt on every screen (or `gravity-shell ipc call displays keep`/`revert`;
   `displays mode extend|mirror|internal|external` switches from a keybind). It all goes into
   niri's config as output sections. niri has no HDR yet.
-- **Blur**: Settings > Appearance > Blur turns the bar, panels, notifications and cards
+- **Blur**: Settings > Apps > Blur turns the bar, panels, notifications and cards
   see-through, with niri 26.04's blur behind them (each window tells niri exactly where,
   so the inverted corners blur too). Ghostty (`background-opacity` and `background-blur`
   in its theme), Zen (`zen.widget.linux.transparency` and a see-through `gravity.css`) and,
@@ -83,9 +83,11 @@ rest, and bold [Google Sans Flex](https://fonts.google.com/specimen/Google+Sans+
   too* blurs whatever is behind instead, other windows included, which niri redraws
   whenever that changes. Off returns everything to solid.
 - **Settings** (`Super+Comma`, or the cog in the quick panel): the screen dims and a card
-  springs up with a sidebar of pages. *Appearance*: light or dark, blur, built-in or wallpaper
-  colours and the scheme, the wallpaper and its folder. *Bar*: which edge it
-  runs along, its style and what it shows. *Displays*: see above. *Wi-Fi*: on or off, the network you're on with its addresses,
+  springs up with a sidebar of pages. *Appearance*: light or dark, built-in or wallpaper
+  colours and the scheme, the wallpaper and its folder. *Apps*: blur, and which toolkits and
+  apps take the shell's colours. *Bar*: which edge it
+  runs along, its style and what it shows. *Media*: the visualiser in the bar, the
+  visualisers' style (bars, a wave or dots) and frame rate. *Displays*: see above. *Wi-Fi*: on or off, the network you're on with its addresses,
   every network in range (join, with the password asked in place, or forget) and hidden
   networks. *Bluetooth*: on or off, visible to other devices, your devices (connect, rename,
   trust, forget) and devices nearby to pair. *Lock & clock*: idle lock time, 24-hour time and
@@ -158,7 +160,7 @@ prefers that copy, and Quickshell reloads it live as you save.
 
 Keybinds use the IPC targets `volume` (increase, decrease, muteOutput, muteInput),
 `powerProfile` (cycle), `wallpaper` (toggle, set), `theme`, `appearance` (toggle, set
-`light|dark`, auto `wallpaper|sun|manual`), `settings` (toggle, open `appearance|bar|wifi|bluetooth|general`), `lock`, `keybinds` (toggle), `session`
+`light|dark`, auto `wallpaper|sun|manual`), `settings` (toggle, open `appearance|apps|bar|media|displays|wifi|bluetooth|general`), `lock`, `keybinds` (toggle), `session`
 (toggle, run `lock|suspend|logout|reboot|firmware|poweroff`) and `polkit` (cancel).
 
 Useful commands: `gravity-shell lock`, `gravity-shell wallpaper [image]`, `gravity-shell ipc show`, `gravity-shell log`.

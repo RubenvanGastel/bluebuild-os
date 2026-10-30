@@ -296,9 +296,19 @@ Scope {
                                 }
                             }
 
-                            // Rounded bars standing on a baseline two thirds down, the accent
+                            Connections {
+                                target: Config
+
+                                function onVisualizerStyleChanged(): void {
+                                    spectrum.requestPaint();
+                                }
+                            }
+
+                            // Standing on a baseline about three quarters down, the accent
                             // fading to the tertiary colour at the top, with a faint
-                            // reflection under the line.
+                            // reflection under the line. Config.visualizerStyle draws rounded
+                            // bars, one smooth wave through their tops, or columns of dots
+                            // lit from the baseline up (the rest faint).
                             onPaint: {
                                 const ctx = getContext("2d");
                                 ctx.reset();
@@ -310,16 +320,68 @@ Scope {
                                 const grad = ctx.createLinearGradient(0, 0, 0, base);
                                 grad.addColorStop(0, Theme.amber);
                                 grad.addColorStop(1, Theme.gold);
+                                const level = i => Math.max(0, Math.min(1, v[i]));
+                                const alpha = Playback.playing ? 1 : 0.4;
+                                const shine = Playback.playing ? 0.18 : 0.08;
+
+                                if (Config.visualizerStyle === "wave") {
+                                    // The tops of the bars, with curves between the midpoints.
+                                    const pts = [];
+                                    for (let i = 0; i < n; i++)
+                                        pts.push([i * (w + gap) + w / 2, base - Math.max(2, level(i) * base)]);
+                                    const outline = scaleY => {
+                                        ctx.beginPath();
+                                        ctx.moveTo(0, base);
+                                        ctx.lineTo(0, base - (base - pts[0][1]) * scaleY);
+                                        for (let i = 0; i < n - 1; i++)
+                                            ctx.quadraticCurveTo(pts[i][0], base - (base - pts[i][1]) * scaleY, (pts[i][0] + pts[i + 1][0]) / 2, base - (base - (pts[i][1] + pts[i + 1][1]) / 2) * scaleY);
+                                        ctx.lineTo(width, base - (base - pts[n - 1][1]) * scaleY);
+                                        ctx.lineTo(width, base);
+                                        ctx.closePath();
+                                    };
+                                    ctx.globalAlpha = alpha;
+                                    ctx.fillStyle = grad;
+                                    outline(1);
+                                    ctx.fill();
+                                    // The reflection: the same shape flipped under the line,
+                                    // squashed to a third.
+                                    ctx.save();
+                                    ctx.translate(0, 2 * base + 4);
+                                    ctx.scale(1, -1);
+                                    ctx.beginPath();
+                                    ctx.rect(0, base - (height - base - 4), width, height - base - 4);
+                                    ctx.clip();
+                                    ctx.globalAlpha = shine;
+                                    ctx.fillStyle = Theme.gold;
+                                    outline(0.3);
+                                    ctx.fill();
+                                    ctx.restore();
+                                    return;
+                                }
+
                                 for (let i = 0; i < n; i++) {
-                                    const h = Math.max(w, Math.min(1, v[i]) * base);
+                                    const h = Math.max(w, level(i) * base);
                                     const x = i * (w + gap);
                                     const r = w / 2;
-                                    ctx.globalAlpha = Playback.playing ? 1 : 0.4;
+                                    if (Config.visualizerStyle === "dots") {
+                                        // Round dots a bar wide, a gap apart, lit up to the level.
+                                        const step = w + gap;
+                                        const lit = Math.max(1, Math.round(level(i) * base / step));
+                                        for (let d = 0; d < Math.floor(base / step); d++) {
+                                            ctx.globalAlpha = d < lit ? alpha : shine;
+                                            ctx.fillStyle = d < lit ? grad : Theme.gold;
+                                            ctx.beginPath();
+                                            ctx.arc(x + r, base - r - d * step, r, 0, 2 * Math.PI);
+                                            ctx.fill();
+                                        }
+                                        continue;
+                                    }
+                                    ctx.globalAlpha = alpha;
                                     ctx.fillStyle = grad;
                                     ctx.beginPath();
                                     ctx.roundedRect(x, base - h, w, h, r, r);
                                     ctx.fill();
-                                    ctx.globalAlpha = Playback.playing ? 0.18 : 0.08;
+                                    ctx.globalAlpha = shine;
                                     ctx.fillStyle = Theme.gold;
                                     ctx.beginPath();
                                     ctx.roundedRect(x, base + 4, w, Math.min(height - base - 4, h * 0.3), r, r);

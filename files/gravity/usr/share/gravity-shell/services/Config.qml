@@ -55,6 +55,8 @@ Singleton {
     property alias barMedia: adapter.barMedia
     // Frames a second of the visualisers (cava's framerate).
     property alias cavaFps: adapter.cavaFps
+    // How the visualisers draw the spectrum: "bars", "wave" or "dots".
+    property alias visualizerStyle: adapter.visualizerStyle
     property alias barStats: adapter.barStats
     property alias barTray: adapter.barTray
     property alias barBattery: adapter.barBattery
@@ -158,6 +160,7 @@ Singleton {
             barClock: true,
             barMedia: true,
             cavaFps: 60,
+            visualizerStyle: "bars",
             barStats: true,
             barTray: true,
             barBattery: true,
@@ -221,6 +224,7 @@ Singleton {
             property bool barClock: root.defaults.barClock
             property bool barMedia: root.defaults.barMedia
             property int cavaFps: root.defaults.cavaFps
+            property string visualizerStyle: root.defaults.visualizerStyle
             property bool barStats: root.defaults.barStats
             property bool barTray: root.defaults.barTray
             property bool barBattery: root.defaults.barBattery
