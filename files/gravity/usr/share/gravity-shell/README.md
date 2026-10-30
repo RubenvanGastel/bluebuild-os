@@ -61,6 +61,18 @@ rest, and bold [Google Sans Flex](https://fonts.google.com/specimen/Google+Sans+
   live (worked out on the machine; the place is looked up once with Open-Meteo's place
   search). The quick panel's Light/Dark buttons grey out then; clicking one goes back to
   choosing by hand.
+- **Displays**: Settings > Displays. With another monitor connected: extend the desktop,
+  mirror the built-in display on it (wl-mirror, fullscreen there), or use only the built-in
+  display or only the others; remembered per set of monitors connected together, and a set
+  never seen before extends, every monitor in its preferred mode, to the right. Drag the
+  monitors into place in the arrangement picker. Per monitor (following it from port to
+  port): resolution and refresh rate, scale, variable refresh rate (always or on demand)
+  and custom modes: a size and refresh rate with niri's CVT timings or GTF ones for CRTs,
+  or a modeline of your own, shown with the horizontal frequency it needs before it is
+  tried. Changes to modes, scale and how monitors are used go back after 15 s unless kept,
+  from a prompt on every screen (or `gravity-shell ipc call displays keep`/`revert`;
+  `displays mode extend|mirror|internal|external` switches from a keybind). It all goes into
+  niri's config as output sections. niri has no HDR yet.
 - **Blur**: Settings > Appearance > Blur turns the bar, panels, notifications and cards
   see-through, with niri 26.04's blur behind them (each window tells niri exactly where,
   so the inverted corners blur too). Ghostty (`background-opacity` and `background-blur`
@@ -73,7 +85,7 @@ rest, and bold [Google Sans Flex](https://fonts.google.com/specimen/Google+Sans+
 - **Settings** (`Super+Comma`, or the cog in the quick panel): the screen dims and a card
   springs up with a sidebar of pages. *Appearance*: light or dark, blur, built-in or wallpaper
   colours and the scheme, the wallpaper and its folder. *Bar*: which edge it
-  runs along, its style and what it shows. *Wi-Fi*: on or off, the network you're on with its addresses,
+  runs along, its style and what it shows. *Displays*: see above. *Wi-Fi*: on or off, the network you're on with its addresses,
   every network in range (join, with the password asked in place, or forget) and hidden
   networks. *Bluetooth*: on or off, visible to other devices, your devices (connect, rename,
   trust, forget) and devices nearby to pair. *Lock & clock*: idle lock time, 24-hour time and

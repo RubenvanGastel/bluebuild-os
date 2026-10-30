@@ -73,6 +73,14 @@ Singleton {
     // whatever is behind, windows included, which niri redraws whenever that changes.
     property alias blur: adapter.blur
     property alias blurWindows: adapter.blurWindows
+    // Monitors (services/Displays.qml). `displays`: per monitor, by niri's "make model
+    // serial", the mode ("WxH@Hz" of its own, "custom:<n>" for one of `customModes`, empty
+    // for its preferred one), scale (0 = niri's), vrr ("off", "on", "on-demand") and the
+    // custom modes added for it. `displayLayouts`: per set of monitors connected together,
+    // how they are used ("extend", "mirror", "internal", "external") and where each is.
+    // A set never seen before extends, every monitor in its preferred mode.
+    property alias displays: adapter.displays
+    property alias displayLayouts: adapter.displayLayouts
 
     // False until the config file has been read (or found missing).
     property bool ready: false
@@ -113,10 +121,15 @@ Singleton {
 
     // Any setting by name, as the settings card does.
     function set(key: string, value: var): void {
-        if (!(key in defaults) || adapter[key] === value)
+        if (!(key in defaults) || root.same(adapter[key], value))
             return;
         adapter[key] = value;
         save();
+    }
+
+    // Settings that are objects compare by what they hold.
+    function same(a: var, b: var): bool {
+        return typeof a === "object" || typeof b === "object" ? JSON.stringify(a) === JSON.stringify(b) : a === b;
     }
 
     function save(): void {
@@ -155,7 +168,9 @@ Singleton {
             themeVesktop: true,
             themeZen: true,
             blur: false,
-            blurWindows: false
+            blurWindows: false,
+            displays: ({}),
+            displayLayouts: ({})
         })
 
     // The config folder may not exist yet on a fresh account.
@@ -166,7 +181,7 @@ Singleton {
         onExited: {
             const changed = {};
             for (const key in root.defaults)
-                if (adapter[key] !== root.defaults[key])
+                if (!root.same(adapter[key], root.defaults[key]))
                     changed[key] = adapter[key];
             file.setText(JSON.stringify(changed, null, 2) + "\n");
         }
@@ -217,6 +232,8 @@ Singleton {
             property bool themeZen: root.defaults.themeZen
             property bool blur: root.defaults.blur
             property bool blurWindows: root.defaults.blurWindows
+            property var displays: root.defaults.displays
+            property var displayLayouts: root.defaults.displayLayouts
         }
     }
 }

@@ -7,7 +7,7 @@ import qs.services
 
 // Settings (Mod+Comma, the cog in the quick panel, or `gravity-shell ipc call settings
 // toggle`). Like the session menu the screen dims and a solid card springs up, with the
-// pages in a sidebar: Appearance, Bar, Wi-Fi, Bluetooth and Lock & clock. Changes apply at
+// pages in a sidebar: Appearance, Bar, Displays, Wi-Fi, Bluetooth and Lock & clock. Changes apply at
 // once and are saved in config.json (light or dark in GNOME's own setting). Ctrl+Tab goes
 // through the pages; Esc or a click outside closes.
 Scope {
@@ -22,6 +22,7 @@ Scope {
     readonly property var pages: [
         { id: "appearance", label: "Appearance", icon: "\u{f03d8}" },
         { id: "bar", label: "Bar", icon: "\u{f06fc}" },
+        { id: "displays", label: "Displays", icon: "\u{f0379}" },
         { id: "wifi", label: "Wi-Fi", icon: "\u{f05a9}" },
         { id: "bluetooth", label: "Bluetooth", icon: "\u{f00af}" },
         { id: "general", label: "Lock & clock", icon: "\u{f097f}" }
@@ -337,6 +338,12 @@ Scope {
 
                             BarPage {
                                 visible: root.page === "bar"
+                                width: parent.width
+                                settings: root
+                            }
+
+                            DisplayPage {
+                                visible: root.page === "displays"
                                 width: parent.width
                                 settings: root
                             }

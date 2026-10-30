@@ -14,6 +14,7 @@ import qs.modules.background
 import qs.modules.bar
 import qs.modules.battery
 import qs.modules.controls
+import qs.modules.displays
 import qs.modules.keybinds
 import qs.modules.lock
 import qs.modules.media
@@ -32,6 +33,7 @@ ShellRoot {
     Bar {}
     BatteryPanel {}
     Controls {}
+    DisplayConfirm {}
     Keybinds {}
     Lock {}
     MediaPanel {}

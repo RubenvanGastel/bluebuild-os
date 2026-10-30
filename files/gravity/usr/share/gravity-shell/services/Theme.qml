@@ -478,7 +478,9 @@ layout {
 overview {
     backdrop-color "${niriPalette.night}"
 }
-${blurConfig}`
+${blurConfig}${Displays.niriConfig}`
+    // Also the blur rules and the monitors' output config (Displays); not written until
+    // the monitors are known, so niri never goes back to its defaults for them meanwhile.
 
     // With blur on, every window gets it behind (only the see-through parts of a window show
     // it), and the focus ring is no longer drawn behind them, where it would tint them. The
@@ -1165,7 +1167,7 @@ ${vars.map(([n, c]) => `    ${n}: ${c} !important;`).join("\n")}
 
         interval: 200
         onTriggered: {
-            if (!Config.ready || !Appearance.ready)
+            if (!Config.ready || !Appearance.ready || !Displays.ready)
                 return;
             niriProc.running = false;
             niriProc.text = root.niriConfig;

@@ -7,7 +7,8 @@ import qs.services
 // The bar window ignores reserved space, so it is drawn from the screen's own edges; empty
 // struts beside it keep windows clear of the bar and, with the frame style, of the frame.
 Variants {
-    model: Quickshell.screens
+    // Not on monitors showing a mirror of the built-in display.
+    model: Quickshell.screens.filter(s => !Displays.mirrors.includes(s.name))
 
     Scope {
         id: scope

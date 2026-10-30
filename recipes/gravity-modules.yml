@@ -10,6 +10,7 @@ modules:
         - cava # audio visualiser beside the clock and in the media panel
         - fuzzel # app launcher (Mod+Space)
         - qt6ct # Qt apps take the shell's colours (QT_QPA_PLATFORMTHEME in environment.d)
+        - wl-mirror # mirrored monitors (Settings > Displays)
 
   # Material 3 Expressive typeface used by the Gravity shell
   - type: fonts
