@@ -1,6 +1,7 @@
 # Colours from the Gravity shell, which writes ~/.config/ghostty/themes/gravity from
 # its palette (light or dark, accent or wallpaper) and tells Ghostty to reload.
 theme = gravity
-# Tabs and titlebar from those colours too: gravity-shell's GTK css leaves libadwaita's
-# tab colours alone, so with window-theme = auto they came out inverted.
-window-theme = ghostty
+# Tabs and titlebar from gravity-shell's GTK colours, following its light and dark live.
+# Not "ghostty" (or "auto"): those take the colours once, when Ghostty starts, and keep
+# them through reloads, so after a light/dark switch the tabs came out inverted.
+window-theme = system
