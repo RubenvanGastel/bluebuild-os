@@ -639,10 +639,23 @@ ${blurConfig}${Displays.niriConfig}`
     // On: gravity.css is written and gtk.css imports it first, so your own rules there still
     // win. Off: the import comes out again (and gtk.css with it, if that was all it held).
     // Apps read it when they start.
+    // Flatpaks look for gtk.css in their own config folder (~/.var/app/<id>/config), so a
+    // user-wide override lets them read the GTK folders: Flatpak then mounts those into
+    // each app's own config folder too. Off takes just those two entries out of the
+    // override again (flatpak override can only deny a path, not forget one).
     Process {
         id: gtkProc
 
         command: ["sh", "-c", `
+            ov="\${XDG_DATA_HOME:-$HOME/.local/share}/flatpak/overrides/global"
+            gtkdirs='xdg-config/gtk-3.0:ro;xdg-config/gtk-4.0:ro;'
+            if [ "$1" = on ]; then
+                if command -v flatpak >/dev/null && ! grep -q "^filesystems=.*$gtkdirs" "$ov" 2>/dev/null; then
+                    flatpak override --user --filesystem=xdg-config/gtk-3.0:ro --filesystem=xdg-config/gtk-4.0:ro || echo "gravity: could not let Flatpaks read the GTK colours" >&2
+                fi
+            elif [ -f "$ov" ]; then
+                sed -i -e '/^filesystems=/{s|xdg-config/gtk-3\\.0:ro;||;s|xdg-config/gtk-4\\.0:ro;||}' -e '/^filesystems=$/d' "$ov"
+            fi
             line='@import url("gravity.css");'
             for v in 3.0 4.0; do
                 dir="$0/gtk-$v" css="$0/gtk-$v/gtk.css"
