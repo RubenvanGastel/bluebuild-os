@@ -46,6 +46,7 @@ Dev tools are installed per user, so they update themselves without an image reb
 
 - `ujust install-claude-code`: Claude Code in `~/.local/bin` (auto-updates)
 - `ujust install-antigravity`: Antigravity IDE in `~/.local/opt` (run again to update)
+- `ujust install-jetbrains-toolbox`: JetBrains Toolbox in `~/.local/opt`, which installs and updates the IDEs (and itself)
 
 Resources replaces the System Monitor, htop and nvtop that come with the base images.
 
