@@ -27,6 +27,15 @@ Column {
             checked: Config.blurWindows
             onToggled: on => Config.set("blurWindows", on)
         }
+
+        Slider {
+            enabled: Config.blur
+            label: "Blur strength"
+            description: "How soft the blur behind the see-through surfaces is. The tick marks niri's default."
+            value: Config.blurStrength
+            defaultValue: Config.defaults.blurStrength
+            onCommitted: v => Config.set("blurStrength", Math.round(v * 100) / 100)
+        }
     }
 
     // Which apps take the shell's colours; off returns each to its own.

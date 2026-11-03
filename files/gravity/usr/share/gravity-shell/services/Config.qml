@@ -75,6 +75,8 @@ Singleton {
     // whatever is behind, windows included, which niri redraws whenever that changes.
     property alias blur: adapter.blur
     property alias blurWindows: adapter.blurWindows
+    // How strong niri's blur is, 0..1 (its `blur { offset }`; 0.4 is niri's own default).
+    property alias blurStrength: adapter.blurStrength
     // Monitors (services/Displays.qml). `displays`: per monitor, by niri's "make model
     // serial", the mode ("WxH@Hz" of its own, "custom:<n>" for one of `customModes`, empty
     // for its preferred one), scale (0 = niri's), vrr ("off", "on", "on-demand") and the
@@ -172,6 +174,7 @@ Singleton {
             themeZen: true,
             blur: false,
             blurWindows: false,
+            blurStrength: 0.4,
             displays: ({}),
             displayLayouts: ({})
         })
@@ -236,6 +239,7 @@ Singleton {
             property bool themeZen: root.defaults.themeZen
             property bool blur: root.defaults.blur
             property bool blurWindows: root.defaults.blurWindows
+            property real blurStrength: root.defaults.blurStrength
             property var displays: root.defaults.displays
             property var displayLayouts: root.defaults.displayLayouts
         }

@@ -81,7 +81,8 @@ rest, and bold [Google Sans Flex](https://fonts.google.com/specimen/Google+Sans+
   colours) and Vesktop (Vencord's transparent window, set once Vesktop has quit) go along, and niri blurs behind every window. By default niri's xray blur is
   used: only the wallpaper, blurred once and shared, so it costs little. *Blur windows
   too* blurs whatever is behind instead, other windows included, which niri redraws
-  whenever that changes. Off returns everything to solid.
+  whenever that changes. *Blur strength* sets niri's `blur { offset }` for both. Off
+  returns everything to solid.
 - **Settings** (`Super+Comma`, or the cog in the quick panel): the screen dims and a card
   springs up with a sidebar of pages. *Appearance*: light or dark, built-in or wallpaper
   colours and the scheme, the wallpaper and its folder. *Apps*: blur, and which toolkits and

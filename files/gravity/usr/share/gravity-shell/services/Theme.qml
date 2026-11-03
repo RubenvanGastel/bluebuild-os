@@ -486,7 +486,11 @@ ${blurConfig}${Displays.niriConfig}`
     // it), and the focus ring is no longer drawn behind them, where it would tint them. The
     // shell asks for blur behind its own surfaces itself. niri blurs only the wallpaper
     // (xray) unless blurWindows: then windows and the shell blur what is behind them.
-    readonly property string blurConfig: !Config.blur ? "" : `window-rule {
+    // blurStrength sets how far each of niri's passes spreads (offset 0.5..6.75, 3 at 0.4).
+    readonly property string blurConfig: !Config.blur ? "" : `blur {
+    offset ${(0.5 + 6.25 * Math.max(0, Math.min(1, Config.blurStrength))).toFixed(2)}
+}
+window-rule {
     draw-border-with-background false
     background-effect {
         blur true
