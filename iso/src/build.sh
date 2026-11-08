@@ -13,6 +13,9 @@ SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 mkdir -p "$(realpath /root)"
 # bwrap (used by flatpak) writes to /proc/sys/user/max_user_namespaces
 mount -o remount,rw /proc/sys
+# bootc images ship an empty /var, but flatpak (ostree) needs /var/tmp for temp files
+mkdir -p /var/tmp /tmp /var/lib/flatpak
+chmod 1777 /var/tmp /tmp
 
 ### Flatpaks ###################################################################
 # Install the image's own default-flatpaks list (from the recipes) into /var/lib/flatpak.
