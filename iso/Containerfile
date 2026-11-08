@@ -1,0 +1,13 @@
+# Live installer image for one of the images in this repo. The build-iso workflow turns
+# it into an ISO with Titanoboa (https://github.com/ublue-os/titanoboa).
+#
+# The live system has the image's Flatpaks installed already; the installer copies
+# them into /var of the new system, so they don't have to be downloaded on first boot.
+#
+# Build with: podman build --cap-add sys_admin --security-opt label=disable --squash \
+#               --build-arg IMAGE=gravity -t localhost/live iso
+ARG IMAGE=gravity
+FROM ghcr.io/rubenvangastel/${IMAGE}:latest
+ARG IMAGE
+COPY src /src
+RUN IMAGE="${IMAGE}" /src/build.sh && rm -rf /src

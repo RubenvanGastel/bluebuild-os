@@ -1,0 +1,73 @@
+name: build-iso
+# Builds an installer ISO for one image, with its Flatpaks on the ISO. Run it by hand
+# (Actions > build-iso > Run workflow) after the image itself has been built.
+on:
+  workflow_dispatch:
+    inputs:
+      image:
+        description: Image to build the ISO for
+        type: choice
+        default: gravity-nvidia
+        options:
+          - gnome
+          - gnome-nvidia
+          - gravity
+          - gravity-nvidia
+          - niri
+          - niri-nvidia
+
+concurrency:
+  group: ${{ github.workflow }}-${{ inputs.image }}
+  cancel-in-progress: true
+
+jobs:
+  iso:
+    name: Build ISO (${{ inputs.image }})
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      # The live image (OS + ~5 GB of Flatpaks) and the ISO need a lot of disk
+      - name: Free disk space
+        uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          tool-cache: true
+
+      - name: Keep container storage on the big /mnt disk
+        run: |
+          sudo mkdir -p /mnt/containers /etc/containers
+          printf '[storage]\ndriver = "overlay"\ngraphroot = "/mnt/containers"\n' |
+            sudo tee /etc/containers/storage.conf
+          df -h / /mnt
+
+      - uses: actions/checkout@v4
+
+      - name: Build live image
+        run: |
+          sudo podman build \
+            --cap-add sys_admin --security-opt label=disable --squash \
+            --build-arg IMAGE=${{ inputs.image }} \
+            -t localhost/${{ inputs.image }}-live:latest \
+            iso
+
+      - name: Build ISO
+        id: build
+        uses: ublue-os/titanoboa@main
+        with:
+          image-ref: localhost/${{ inputs.image }}-live:latest
+
+      - name: Rename and checksum ISO
+        run: |
+          mkdir -p output
+          mv "${{ steps.build.outputs.iso-dest }}" output/${{ inputs.image }}.iso
+          (cd output && sha256sum ${{ inputs.image }}.iso | tee ${{ inputs.image }}.iso-CHECKSUM)
+
+      # Too big for a GitHub release (2 GB limit), so it's a workflow artifact
+      - name: Upload ISO
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.image }}-iso
+          path: output/
+          compression-level: 0
+          retention-days: 14
+          if-no-files-found: error

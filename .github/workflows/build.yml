@@ -5,6 +5,8 @@ on:
   push:
     paths-ignore: # don't rebuild if only documentation has changed
       - "**.md"
+      - "iso/**" # the installer ISO has its own workflow (build-iso.yml)
+      - ".github/workflows/build-iso.yml"
   pull_request:
   workflow_dispatch: # allow manually triggering builds
 

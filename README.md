@@ -60,6 +60,14 @@ Resources replaces the System Monitor, htop and nvtop that come with the base im
 
 ## Installing
 
+### From the ISO (Flatpaks included)
+
+Run **Actions → build-iso → Run workflow** and pick an image. When it's done, download the ISO from the run's artifacts (kept for 14 days), write it to a USB stick and boot it. The live session opens the installer, which installs the signed image and copies the Flatpaks from the USB stick, so your apps are there on first boot. The image itself is downloaded during the install, so you need internet.
+
+### By rebasing an existing install
+
+Here the Flatpaks are downloaded on first boot, which takes a few minutes. If that fails (no network, laptop suspended), it's retried every few minutes.
+
 Start from any Fedora Atomic install, for example Fedora Silverblue, and rebase twice:
 
 ```bash
@@ -92,6 +100,7 @@ files/
   niri-base/            copied into the gravity and niri images (greetd config)
   gravity/              copied into the gravity images (Gravity shell, its niri config, ujust recipes)
   dux/                  copied into the niri images (Dux Shell niri config, ujust recipes)
+iso/                    live installer image for the build-iso workflow (Flatpaks on the ISO)
 ```
 
 <details>

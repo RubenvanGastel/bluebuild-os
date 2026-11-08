@@ -1,0 +1,30 @@
+#!/bin/sh
+# livesys session for the gravity and niri images: log liveuser straight into niri
+# through greetd and open the installer. Sourced by /usr/libexec/livesys/livesys-main.
+
+# greetd: start niri for liveuser once at boot, the login screen after that
+cat >> /etc/greetd/config.toml << EOF
+
+[initial_session]
+user = "liveuser"
+command = "niri-session"
+EOF
+
+# Show the installer in the launcher and open it on login
+sed -i -e 's/NoDisplay=true/NoDisplay=false/' /usr/share/applications/liveinst.desktop
+mkdir -p /home/liveuser/.config/autostart
+cp /usr/share/applications/liveinst.desktop /home/liveuser/.config/autostart/
+
+# liveuser has no password and there may be no polkit agent: let it start the
+# installer and set up Wi-Fi (the shell's Wi-Fi menu, nmtui) without a prompt.
+# The install downloads the image, so it needs the network.
+cat > /usr/share/polkit-1/rules.d/20-livesys-niri.rules << EOF
+polkit.addRule(function(action, subject) {
+    if (!subject.local || subject.user !== 'liveuser')
+        return undefined;
+    if (action.id.indexOf('org.fedoraproject.pkexec.liveinst') === 0 ||
+        action.id.indexOf('org.freedesktop.NetworkManager.') === 0)
+        return 'yes';
+    return undefined;
+});
+EOF
