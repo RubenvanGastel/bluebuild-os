@@ -225,7 +225,7 @@ Scope {
                     // Back to the parent menu.
                     Row_ {
                         visible: win.stack.length > 1
-                        label: "Back"
+                        label: I18n.tr("Back")
                         leading: "\u{f0141}"
                         onClicked: win.back()
                     }

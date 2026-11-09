@@ -53,7 +53,7 @@ Singleton {
 
     function label(o: var): string {
         if (isInternal(o.name))
-            return "Built-in display";
+            return I18n.tr("Built-in display");
         return o.model && o.model !== "Unknown" ? o.model : o.make && o.make !== "Unknown" ? o.make : o.name;
     }
 

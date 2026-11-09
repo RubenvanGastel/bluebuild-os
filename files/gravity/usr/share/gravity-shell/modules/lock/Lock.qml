@@ -152,7 +152,7 @@ Scope {
                 unlockTimer.restart();
             } else {
                 if (root.message === "")
-                    root.message = "That's not it. Try again";
+                    root.message = I18n.tr("That's not it. Try again");
                 root.buffer = "";
                 root.failed();
             }

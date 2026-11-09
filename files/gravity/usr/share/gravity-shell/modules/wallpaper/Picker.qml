@@ -52,10 +52,10 @@ Scope {
     // that no longer matches anything shows all.
     property string filter: "all"
     readonly property var filters: [
-        { id: "all", label: "All" },
-        { id: "images", label: "Images" },
-        { id: "videos", label: "Videos" },
-        { id: "workshop", label: "Workshop" }
+        { id: "all", label: I18n.tr("All") },
+        { id: "images", label: I18n.tr("Images") },
+        { id: "videos", label: I18n.tr("Videos") },
+        { id: "workshop", label: I18n.tr("Workshop") }
     ]
 
     function isWorkshop(path: string): bool {
@@ -710,19 +710,19 @@ Scope {
                         spacing: 8
 
                         Chip {
-                            label: "Default colours"
+                            label: I18n.tr("Default colours")
                             selected: Config.colors === "default"
                             onClicked: Config.setColors("default")
                         }
 
                         Chip {
-                            label: "Accent colour"
+                            label: I18n.tr("Accent colour")
                             selected: Config.colors === "accent"
                             onClicked: Config.setColors("accent")
                         }
 
                         Chip {
-                            label: "From wallpaper"
+                            label: I18n.tr("From wallpaper")
                             selected: Config.colors === "wallpaper"
                             onClicked: Config.setColors("wallpaper")
                         }
@@ -751,7 +751,7 @@ Scope {
                     Text {
                         anchors.horizontalCenter: parent.horizontalCenter
                         visible: Config.colors !== "default" && Theme.error !== ""
-                        text: Theme.error + ", using the default colours"
+                        text: I18n.tr("%1, using the default colours", Theme.error)
                         color: Theme.rose
                         font.family: Theme.font
                         font.pixelSize: 13
@@ -796,10 +796,10 @@ Scope {
 
                     Repeater {
                         model: [
-                            { label: "Light", light: true },
-                            { label: "Dark", light: false },
-                            { label: "By wallpaper", mode: "wallpaper" },
-                            { label: "Time of day", mode: "sun" }
+                            { label: I18n.tr("Light"), light: true },
+                            { label: I18n.tr("Dark"), light: false },
+                            { label: I18n.tr("By wallpaper"), mode: "wallpaper" },
+                            { label: I18n.tr("Time of day"), mode: "sun" }
                         ]
 
                         Chip {
@@ -816,7 +816,7 @@ Scope {
                     Text {
                         visible: Appearance.mode === "wallpaper"
                         leftPadding: 4
-                        text: Appearance.brightness[win.selected] === undefined ? "Measuring…" : (Appearance.brightness[win.selected] > Appearance.brightThreshold ? "Light" : "Dark") + " for this one"
+                        text: Appearance.brightness[win.selected] === undefined ? I18n.tr("Measuring…") : Appearance.brightness[win.selected] > Appearance.brightThreshold ? I18n.tr("Light for this one") : I18n.tr("Dark for this one")
                         color: Theme.textDim
                         font.family: Theme.font
                         font.pixelSize: 12
@@ -1008,7 +1008,7 @@ Scope {
 
                     Text {
                         anchors.horizontalCenter: parent.horizontalCenter
-                        text: (root.files.length <= 1 ? "Put images in " + root.prettyDir + " to see them here" : "←  →  browse    ·    ↑  ↓  filter    ·    Enter  apply    ·    Esc  close    ·    " + root.prettyDir)
+                        text: root.files.length <= 1 ? I18n.tr("Put images in %1 to see them here", root.prettyDir) : I18n.tr("←  →  browse    ·    ↑  ↓  filter    ·    Enter  apply    ·    Esc  close    ·    %1", root.prettyDir)
                         color: Theme.textDim
                         font.family: Theme.font
                         font.pixelSize: 12

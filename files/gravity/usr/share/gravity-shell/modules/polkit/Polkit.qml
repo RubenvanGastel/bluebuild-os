@@ -309,7 +309,7 @@ Scope {
                     Text {
                         width: parent.width
                         horizontalAlignment: Text.AlignHCenter
-                        text: "Authentication required"
+                        text: I18n.tr("Authentication required")
                         color: Theme.text
                         font.family: Theme.font
                         font.pixelSize: 22
@@ -439,7 +439,7 @@ Scope {
                         // Polkit's own prompt ("Password:"), while nothing is typed.
                         Text {
                             anchors.centerIn: parent
-                            text: (root.flow?.inputPrompt ?? "").replace(/:\s*$/, "") || "Password"
+                            text: (root.flow?.inputPrompt ?? "").replace(/:\s*$/, "") || I18n.tr("Password")
                             color: Theme.textDim
                             font.family: Theme.font
                             font.pixelSize: 15
@@ -524,8 +524,8 @@ Scope {
 
                         Repeater {
                             model: [
-                                { id: "cancel", label: "Cancel", accent: false },
-                                { id: "ok", label: "Authenticate", accent: true }
+                                { id: "cancel", label: I18n.tr("Cancel"), accent: false },
+                                { id: "ok", label: I18n.tr("Authenticate"), accent: true }
                             ]
 
                             Item {

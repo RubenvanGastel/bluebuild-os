@@ -108,12 +108,12 @@ Column {
 
     function btState(d: var): string {
         if (d.pairing)
-            return "Pairing…";
+            return I18n.tr("Pairing…");
         switch (d.state) {
         case BluetoothDeviceState.Connecting:
-            return "Connecting…";
+            return I18n.tr("Connecting…");
         case BluetoothDeviceState.Disconnecting:
-            return "Disconnecting…";
+            return I18n.tr("Disconnecting…");
         }
         return d.batteryAvailable ? Math.round(d.battery * 100) + "%" : "";
     }
@@ -133,7 +133,7 @@ Column {
             available: root.wifiDevice !== null && Networking.wifiHardwareEnabled
             icon: !root.wifiOn ? "\u{f05aa}" : root.wifiConnected ? String.fromCodePoint(0xf091f + Math.max(0, Math.min(3, Math.floor(root.wifiConnected.signalStrength * 4 - 0.01))) * 3) : "\u{f092f}"
             label: "Wi-Fi"
-            status: root.wifiDevice === null ? "Unavailable" : !Networking.wifiHardwareEnabled ? "Blocked" : !Networking.wifiEnabled ? "Off" : root.wifiConnected?.name ?? "Not connected"
+            status: root.wifiDevice === null ? I18n.tr("Unavailable") : !Networking.wifiHardwareEnabled ? I18n.tr("Blocked") : !Networking.wifiEnabled ? I18n.tr("Off") : root.wifiConnected?.name ?? I18n.tr("Not connected")
             onToggled: Networking.wifiEnabled = !Networking.wifiEnabled
         }
 
@@ -145,7 +145,7 @@ Column {
             available: root.adapter !== null && root.adapter.state !== BluetoothAdapterState.Blocked
             icon: !root.btOn ? "\u{f00b2}" : root.btConnected.length > 0 ? "\u{f00b1}" : "\u{f00af}"
             label: "Bluetooth"
-            status: root.adapter === null ? "Unavailable" : root.adapter.state === BluetoothAdapterState.Blocked ? "Blocked" : !root.btOn ? "Off" : root.btConnected.length === 1 ? root.btConnected[0].name : root.btConnected.length > 1 ? root.btConnected.length + " devices" : "On"
+            status: root.adapter === null ? I18n.tr("Unavailable") : root.adapter.state === BluetoothAdapterState.Blocked ? I18n.tr("Blocked") : !root.btOn ? I18n.tr("Off") : root.btConnected.length === 1 ? root.btConnected[0].name : root.btConnected.length > 1 ? I18n.trn("%n device", "%n devices", root.btConnected.length) : I18n.tr("On")
             onToggled: root.adapter.enabled = !root.adapter.enabled
         }
     }
@@ -169,7 +169,7 @@ Column {
                 selected: modelData.connected
                 icon: root.wifiIcon(modelData)
                 label: modelData.name
-                note: modelData.stateChanging ? (modelData.state === ConnectionState.Disconnecting ? "Disconnecting…" : "Connecting…") : ""
+                note: modelData.stateChanging ? (modelData.state === ConnectionState.Disconnecting ? I18n.tr("Disconnecting…") : I18n.tr("Connecting…")) : ""
                 // Known networks can be forgotten.
                 action: modelData.known && !modelData.connected ? "\u{f09e7}" : ""
                 asking: root.passwordFor === modelData
@@ -191,7 +191,7 @@ Column {
                         if (net.modelData.known)
                             return;
                         root.passwordFor = net.modelData;
-                        root.passwordError = reason === ConnectionFailReason.NoSecrets || reason === ConnectionFailReason.WifiClientFailed || reason === ConnectionFailReason.WifiAuthTimeout ? "Wrong password" : "Could not connect";
+                        root.passwordError = reason === ConnectionFailReason.NoSecrets || reason === ConnectionFailReason.WifiClientFailed || reason === ConnectionFailReason.WifiAuthTimeout ? I18n.tr("Wrong password") : I18n.tr("Could not connect");
                     }
                 }
             }
@@ -200,7 +200,7 @@ Column {
         Searching {
             list: wifiList
             index: root.wifiShown.length
-            text: root.wifiShown.length === 0 ? "Looking for networks…" : "Looking for more…"
+            text: root.wifiShown.length === 0 ? I18n.tr("Looking for networks…") : I18n.tr("Looking for more…")
         }
     }
 
@@ -246,7 +246,7 @@ Column {
         Searching {
             list: btList
             index: root.btShown.length
-            text: root.btShown.length === 0 ? "Looking for devices…" : "Looking for more…"
+            text: root.btShown.length === 0 ? I18n.tr("Looking for devices…") : I18n.tr("Looking for more…")
         }
     }
 
@@ -574,7 +574,7 @@ Column {
                 Text {
                     anchors.verticalCenter: parent.verticalCenter
                     visible: field.text === ""
-                    text: entry.error !== "" ? entry.error + ", try again" : "Password"
+                    text: entry.error !== "" ? I18n.tr("%1, try again", entry.error) : I18n.tr("Password")
                     color: entry.error !== "" ? Theme.rose : Theme.textDim
                     font: field.font
                 }
@@ -586,7 +586,7 @@ Column {
                 anchors.right: parent.right
                 anchors.rightMargin: 14
                 anchors.verticalCenter: parent.verticalCenter
-                text: "Enter"
+                text: I18n.tr("Enter")
                 opacity: field.text.length >= 8 ? 1 : 0.4
                 color: Theme.textDim
                 font.family: Theme.font

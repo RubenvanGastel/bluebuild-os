@@ -52,15 +52,15 @@ Singleton {
     // Accent colours to pick from for "accent" (any other colour works too): GNOME's own,
     // with the name its accent-color setting has for each.
     readonly property var accents: [
-        { value: "#3584e4", label: "Blue", gnome: "blue" },
-        { value: "#2190a4", label: "Teal", gnome: "teal" },
-        { value: "#3a944a", label: "Green", gnome: "green" },
-        { value: "#c88800", label: "Yellow", gnome: "yellow" },
-        { value: "#ed5b00", label: "Orange", gnome: "orange" },
-        { value: "#e62d42", label: "Red", gnome: "red" },
-        { value: "#d56199", label: "Pink", gnome: "pink" },
-        { value: "#9141ac", label: "Purple", gnome: "purple" },
-        { value: "#6f8396", label: "Slate", gnome: "slate" }
+        { value: "#3584e4", label: I18n.tr("Blue"), gnome: "blue" },
+        { value: "#2190a4", label: I18n.tr("Teal"), gnome: "teal" },
+        { value: "#3a944a", label: I18n.tr("Green"), gnome: "green" },
+        { value: "#c88800", label: I18n.tr("Yellow"), gnome: "yellow" },
+        { value: "#ed5b00", label: I18n.tr("Orange"), gnome: "orange" },
+        { value: "#e62d42", label: I18n.tr("Red"), gnome: "red" },
+        { value: "#d56199", label: I18n.tr("Pink"), gnome: "pink" },
+        { value: "#9141ac", label: I18n.tr("Purple"), gnome: "purple" },
+        { value: "#6f8396", label: I18n.tr("Slate"), gnome: "slate" }
     ]
 
     // Light or dark as shown in the shell, which may be a preview; and as set for the apps.
@@ -86,15 +86,15 @@ Singleton {
 
     // matugen's scheme variants for "accent" and "wallpaper" colours (Config.colorScheme).
     readonly property var schemes: [
-        { id: "scheme-tonal-spot", label: "Tonal" },
-        { id: "scheme-vibrant", label: "Vibrant" },
-        { id: "scheme-expressive", label: "Expressive" },
-        { id: "scheme-content", label: "Content" },
-        { id: "scheme-fidelity", label: "Fidelity" },
-        { id: "scheme-fruit-salad", label: "Fruit salad" },
-        { id: "scheme-rainbow", label: "Rainbow" },
-        { id: "scheme-neutral", label: "Neutral" },
-        { id: "scheme-monochrome", label: "Mono" }
+        { id: "scheme-tonal-spot", label: I18n.tr("Tonal") },
+        { id: "scheme-vibrant", label: I18n.tr("Vibrant") },
+        { id: "scheme-expressive", label: I18n.tr("Expressive") },
+        { id: "scheme-content", label: I18n.tr("Content") },
+        { id: "scheme-fidelity", label: I18n.tr("Fidelity") },
+        { id: "scheme-fruit-salad", label: I18n.tr("Fruit salad") },
+        { id: "scheme-rainbow", label: I18n.tr("Rainbow") },
+        { id: "scheme-neutral", label: I18n.tr("Neutral") },
+        { id: "scheme-monochrome", label: I18n.tr("Mono") }
     ]
 
     // While the wallpaper picker is open: the wallpaper it has selected, so the colours
@@ -416,7 +416,7 @@ Singleton {
             if (code !== 0 && matugen.ahead) {
                 root.failed[matugen.key] = true;
             } else if (code !== 0) {
-                root.error = code === 127 ? "matugen is not installed" : matugen.color ? "matugen could not read this colour" : "matugen could not read this image";
+                root.error = code === 127 ? I18n.tr("matugen is not installed") : matugen.color ? I18n.tr("matugen could not read this colour") : I18n.tr("matugen could not read this image");
                 console.warn("gravity: matugen failed:", err.text.trim());
                 root.generated = {};
                 root.generatedKey = "";
@@ -428,7 +428,7 @@ Singleton {
                     if (!matugen.ahead || matugen.key === root.wanted)
                         root.use(matugen.key, palette);
                 } else if (!matugen.ahead) {
-                    root.error = "matugen gave unexpected output";
+                    root.error = I18n.tr("matugen gave unexpected output");
                 }
             }
             // The wallpaper may have changed meanwhile; otherwise the next one to make ahead.

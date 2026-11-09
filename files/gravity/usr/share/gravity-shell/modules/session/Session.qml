@@ -36,13 +36,13 @@ Scope {
     property bool firmwareSetup: false
 
     readonly property var allActions: [
-        { id: "lock", doing: "Locking", label: "Lock", icon: "\u{f033e}", command: ["gravity-shell", "lock"] },
+        { id: "lock", doing: I18n.tr("Locking"), label: I18n.tr("Lock"), icon: "\u{f033e}", command: ["gravity-shell", "lock"] },
         // The lock module locks before any suspend, so the session is locked when it wakes up.
-        { id: "suspend", doing: "Suspending", label: "Suspend", icon: "\u{f0904}", command: ["systemctl", "suspend"] },
-        { id: "logout", doing: "Logging out", label: "Log out", icon: "\u{f0343}", command: ["niri", "msg", "action", "quit", "--skip-confirmation"] },
-        { id: "reboot", doing: "Rebooting", label: "Reboot", icon: "\u{f0709}", command: ["systemctl", "reboot"] },
-        { id: "firmware", doing: "Rebooting into the BIOS", label: "BIOS", icon: "\u{f061a}", command: ["systemctl", "reboot", "--firmware-setup"] },
-        { id: "poweroff", doing: "Powering off", label: "Power off", icon: "\u{f0425}", command: ["systemctl", "poweroff"] }
+        { id: "suspend", doing: I18n.tr("Suspending"), label: I18n.tr("Suspend"), icon: "\u{f0904}", command: ["systemctl", "suspend"] },
+        { id: "logout", doing: I18n.tr("Logging out"), label: I18n.tr("Log out"), icon: "\u{f0343}", command: ["niri", "msg", "action", "quit", "--skip-confirmation"] },
+        { id: "reboot", doing: I18n.tr("Rebooting"), label: I18n.tr("Reboot"), icon: "\u{f0709}", command: ["systemctl", "reboot"] },
+        { id: "firmware", doing: I18n.tr("Rebooting into the BIOS"), label: "BIOS", icon: "\u{f061a}", command: ["systemctl", "reboot", "--firmware-setup"] },
+        { id: "poweroff", doing: I18n.tr("Powering off"), label: I18n.tr("Power off"), icon: "\u{f0425}", command: ["systemctl", "poweroff"] }
     ]
     readonly property var actions: allActions.filter(a => a.id !== "firmware" || firmwareSetup)
 
@@ -470,7 +470,7 @@ Scope {
                     anchors.horizontalCenter: parent.horizontalCenter
                     anchors.top: row.bottom
                     anchors.topMargin: 14
-                    text: root.countdownText + " in " + root.secondsLeft + " · Enter now · Esc cancels"
+                    text: I18n.tr("%1 in %2 · Enter now · Esc cancels", root.countdownText, root.secondsLeft)
                     color: Theme.textDim
                     font.family: Theme.font
                     font.pixelSize: 15

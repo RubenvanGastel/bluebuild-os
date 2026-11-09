@@ -105,7 +105,7 @@ Scope {
             return "\u{f075f}";
         return value < 0.34 ? "\u{f057f}" : value < 0.67 ? "\u{f0580}" : "\u{f057e}";
     }
-    readonly property string label: kind === "mic" ? (muted ? "Mic off" : "Mic on") : muted ? "Muted" : Math.round(value * 100) + "%"
+    readonly property string label: kind === "mic" ? (muted ? I18n.tr("Mic off") : I18n.tr("Mic on")) : muted ? I18n.tr("Muted") : Math.round(value * 100) + "%"
 
     LazyLoader {
         active: root.shown

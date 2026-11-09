@@ -233,7 +233,7 @@ Scope {
 
                             Text {
                                 width: parent.width
-                                text: root.player ? (root.player.trackTitle || "Unknown title") : "Nothing playing"
+                                text: root.player ? (root.player.trackTitle || I18n.tr("Unknown title")) : I18n.tr("Nothing playing")
                                 maximumLineCount: 2
                                 wrapMode: Text.Wrap
                                 elide: Text.ElideRight
@@ -393,7 +393,7 @@ Scope {
                         Text {
                             anchors.centerIn: parent
                             visible: !Cava.available
-                            text: "cava is not installed"
+                            text: I18n.tr("cava is not installed")
                             color: Theme.textDim
                             font.family: Theme.font
                             font.pixelSize: 13

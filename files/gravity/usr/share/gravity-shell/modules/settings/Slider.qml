@@ -91,7 +91,7 @@ Rectangle {
             id: statusText
 
             anchors.centerIn: parent
-            text: root.atDefault ? "Default" : "Reset"
+            text: root.atDefault ? I18n.tr("Default") : I18n.tr("Reset")
             color: root.atDefault ? Theme.textDim : Theme.tonalInk
             font.family: Theme.font
             font.pixelSize: 12

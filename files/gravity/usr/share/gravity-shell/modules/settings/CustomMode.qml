@@ -31,7 +31,7 @@ Column {
         spacing: 2
 
         Text {
-            text: "Add a custom mode"
+            text: I18n.tr("Add a custom mode")
             color: Theme.text
             font.family: Theme.font
             font.pixelSize: 14
@@ -41,7 +41,7 @@ Column {
         Text {
             width: parent.width
             wrapMode: Text.Wrap
-            text: "A mode the monitor doesn't list. Out of its range it may stay dark (this goes back by itself) or, with a CRT, be damaged: keep within the horizontal and vertical frequencies its manual gives."
+            text: I18n.tr("A mode the monitor doesn't list. Out of its range it may stay dark (this goes back by itself) or, with a CRT, be damaged: keep within the horizontal and vertical frequencies its manual gives.")
             color: Theme.textDim
             font.family: Theme.font
             font.pixelSize: 12
@@ -51,8 +51,8 @@ Column {
 
     Choice {
         options: [
-            { value: "cvt", label: "Standard (CVT)" },
-            { value: "gtf", label: "CRT (GTF)" },
+            { value: "cvt", label: I18n.tr("Standard (CVT)") },
+            { value: "gtf", label: I18n.tr("CRT (GTF)") },
             { value: "modeline", label: "Modeline" }
         ]
         value: root.timing
@@ -66,21 +66,21 @@ Column {
 
         Field {
             width: (parent.width - 2 * parent.spacing) / 3
-            placeholder: "Width, e.g. 640"
+            placeholder: I18n.tr("Width, e.g. 640")
             text: root.widthText
             onAccepted: t => root.widthText = t.trim()
         }
 
         Field {
             width: (parent.width - 2 * parent.spacing) / 3
-            placeholder: "Height, e.g. 480"
+            placeholder: I18n.tr("Height, e.g. 480")
             text: root.heightText
             onAccepted: t => root.heightText = t.trim()
         }
 
         Field {
             width: (parent.width - 2 * parent.spacing) / 3
-            placeholder: "Hz, e.g. 60"
+            placeholder: I18n.tr("Hz, e.g. 60")
             text: root.refreshText
             onAccepted: t => root.refreshText = t.trim().replace(",", ".")
         }
@@ -90,7 +90,7 @@ Column {
         visible: root.timing === "modeline"
         placeholder: "clock hdisp hsyncstart hsyncend htotal vdisp vsyncstart vsyncend vtotal ±hsync ±vsync"
         text: root.modelineText
-        error: root.modelineText !== "" && root.parsed === null ? "Nine numbers, each sync after the one before it, then +hsync or -hsync and +vsync or -vsync." : ""
+        error: root.modelineText !== "" && root.parsed === null ? I18n.tr("Nine numbers, each sync after the one before it, then +hsync or -hsync and +vsync or -vsync.") : ""
         onAccepted: t => root.modelineText = t.trim()
     }
 
@@ -102,10 +102,10 @@ Column {
         text: {
             const p = root.parsed;
             if (!p)
-                return root.timing === "cvt" && root.sizeValid ? "niri works out CVT timings for it." : "";
+                return root.timing === "cvt" && root.sizeValid ? I18n.tr("niri works out CVT timings for it.") : "";
             const n = p.numbers;
             const hfreq = n[0] * 1000 / n[4], vfreq = n[0] * 1e6 / (n[4] * n[8]);
-            return `${n[1]}×${n[5]} at ${vfreq.toFixed(2)} Hz, ${hfreq.toFixed(2)} kHz horizontal, ${n[0]} MHz pixel clock\n${n.join(" ")} ${p.hsync} ${p.vsync}`;
+            return I18n.tr("%1×%2 at %3 Hz, %4 kHz horizontal, %5 MHz pixel clock", n[1], n[5], vfreq.toFixed(2), hfreq.toFixed(2), n[0]) + `\n${n.join(" ")} ${p.hsync} ${p.vsync}`;
         }
         color: Theme.gold
         font.family: Theme.font
@@ -118,7 +118,7 @@ Column {
         opacity: enabled ? 1 : 0.5
         accent: true
         icon: "\u{f0415}"
-        label: "Add and try"
+        label: I18n.tr("Add and try")
         onClicked: {
             const p = root.parsed;
             const mode = root.timing === "modeline" ? {

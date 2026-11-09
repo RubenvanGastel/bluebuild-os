@@ -29,7 +29,7 @@ Grid {
         font.pixelSize: 14
         font.weight: Font.Bold
         lineHeight: 0.9
-        text: root.vertical ? Qt.formatDateTime(clock.date, Config.use24h ? "HH\nmm" : "h\nmm") : Qt.formatDateTime(clock.date, Config.use24h ? "HH:mm" : "h:mm AP")
+        text: root.vertical ? I18n.date(clock.date, Config.use24h ? "HH\nmm" : "h\nmm") : I18n.date(clock.date, Config.use24h ? "HH:mm" : "h:mm AP")
     }
 
     Rectangle {
@@ -51,6 +51,6 @@ Grid {
         font.pixelSize: root.vertical ? 12 : 14
         font.weight: Font.Medium
         lineHeight: 0.9
-        text: Qt.formatDateTime(clock.date, root.vertical ? "d\nMMM" : "ddd d MMM")
+        text: I18n.date(clock.date, root.vertical ? "d\nMMM" : "ddd d MMM")
     }
 }

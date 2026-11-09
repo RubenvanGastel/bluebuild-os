@@ -52,16 +52,16 @@ Column {
 
     function describe(d: var): string {
         if (d.pairing)
-            return "Pairing…";
+            return I18n.tr("Pairing…");
         switch (d.state) {
         case BluetoothDeviceState.Connecting:
-            return "Connecting…";
+            return I18n.tr("Connecting…");
         case BluetoothDeviceState.Disconnecting:
-            return "Disconnecting…";
+            return I18n.tr("Disconnecting…");
         }
-        const parts = [d.connected ? "Connected" : d.paired ? "Paired" : "Not paired"];
+        const parts = [d.connected ? I18n.tr("Connected") : d.paired ? I18n.tr("Paired") : I18n.tr("Not paired")];
         if (d.batteryAvailable)
-            parts.push(Math.round(d.battery * 100) + "% battery");
+            parts.push(I18n.tr("%1% battery", Math.round(d.battery * 100)));
         return parts.join(" · ");
     }
 
@@ -73,7 +73,7 @@ Column {
 
     Toggle {
         label: "Bluetooth"
-        description: root.adapter === null ? "No Bluetooth adapter found." : root.adapter.state === BluetoothAdapterState.Blocked ? "Switched off by a hardware switch or airplane mode." : ""
+        description: root.adapter === null ? I18n.tr("No Bluetooth adapter found.") : root.adapter.state === BluetoothAdapterState.Blocked ? I18n.tr("Switched off by a hardware switch or airplane mode.") : ""
         enabled: root.adapter !== null && root.adapter.state !== BluetoothAdapterState.Blocked
         checked: root.on
         onToggled: on => root.adapter.enabled = on
@@ -81,8 +81,8 @@ Column {
 
     Toggle {
         visible: root.on
-        label: "Visible to other devices"
-        description: "Shows up as “" + (root.adapter?.name ?? "") + "” so a phone or another computer can pair with it."
+        label: I18n.tr("Visible to other devices")
+        description: I18n.tr("Shows up as “%1” so a phone or another computer can pair with it.", root.adapter?.name ?? "")
         checked: root.adapter?.discoverable ?? false
         onToggled: on => root.adapter.discoverable = on
     }
@@ -90,7 +90,7 @@ Column {
     // --- paired -----------------------------------------------------------------------------
     Section {
         visible: root.on && root.paired.length > 0
-        title: "Your devices"
+        title: I18n.tr("Your devices")
 
         Repeater {
             model: root.paired
@@ -114,7 +114,7 @@ Column {
                     spacing: 8
 
                     Field {
-                        placeholder: "Name"
+                        placeholder: I18n.tr("Name")
                         text: dev.modelData.name
                         onAccepted: t => {
                             if (t.trim() !== "")
@@ -123,8 +123,8 @@ Column {
                     }
 
                     Toggle {
-                        label: "Trusted"
-                        description: "Connects by itself, without asking."
+                        label: I18n.tr("Trusted")
+                        description: I18n.tr("Connects by itself, without asking.")
                         checked: dev.modelData.trusted
                         onToggled: on => dev.modelData.trusted = on
                     }
@@ -132,7 +132,7 @@ Column {
                     PillButton {
                         danger: true
                         icon: "\u{f09e7}"
-                        label: "Forget"
+                        label: I18n.tr("Forget")
                         onClicked: {
                             root.editing = null;
                             dev.modelData.forget();
@@ -146,7 +146,7 @@ Column {
     // --- nearby ------------------------------------------------------------------------------
     Section {
         visible: root.on
-        title: root.nearby.length > 0 ? "Nearby" : "Looking for devices…"
+        title: root.nearby.length > 0 ? I18n.tr("Nearby") : I18n.tr("Looking for devices…")
 
         Repeater {
             model: root.nearby

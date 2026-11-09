@@ -42,8 +42,8 @@ Column {
 
     function describe(n: var): string {
         if (n.stateChanging)
-            return n.state === ConnectionState.Disconnecting ? "Disconnecting…" : "Connecting…";
-        const parts = [n.connected ? "Connected" : n.known ? "Saved" : secured(n) ? "Secured" : "Open"];
+            return n.state === ConnectionState.Disconnecting ? I18n.tr("Disconnecting…") : I18n.tr("Connecting…");
+        const parts = [n.connected ? I18n.tr("Connected") : n.known ? I18n.tr("Saved") : secured(n) ? I18n.tr("Secured") : I18n.tr("Open")];
         parts.push(Math.round(n.signalStrength * 100) + "%");
         return parts.join(" · ");
     }
@@ -62,7 +62,7 @@ Column {
 
     Toggle {
         label: "Wi-Fi"
-        description: root.device === null ? "No Wi-Fi adapter found." : !Networking.wifiHardwareEnabled ? "Switched off by a hardware switch or airplane mode." : ""
+        description: root.device === null ? I18n.tr("No Wi-Fi adapter found.") : !Networking.wifiHardwareEnabled ? I18n.tr("Switched off by a hardware switch or airplane mode.") : ""
         enabled: root.device !== null && Networking.wifiHardwareEnabled
         checked: root.on
         onToggled: on => Networking.wifiEnabled = on
@@ -71,7 +71,7 @@ Column {
     // --- the network you're on ------------------------------------------------------------
     Section {
         visible: root.on && root.connected !== null
-        title: "Connected"
+        title: I18n.tr("Connected")
 
         ListRow {
             selected: true
@@ -145,7 +145,7 @@ Column {
                     if (value !== "" && !found[key])
                         found[key] = value;
                 }
-                const labels = { "IP4.ADDRESS": "IPv4 address", "IP4.GATEWAY": "Gateway", "IP4.DNS": "DNS", "IP6.ADDRESS": "IPv6 address", "GENERAL.HWADDR": "Hardware address" };
+                const labels = { "IP4.ADDRESS": I18n.tr("IPv4 address"), "IP4.GATEWAY": I18n.tr("Gateway"), "IP4.DNS": "DNS", "IP6.ADDRESS": I18n.tr("IPv6 address"), "GENERAL.HWADDR": I18n.tr("Hardware address") };
                 details.rows = Object.keys(labels).filter(k => found[k]).map(k => ({ label: labels[k], value: found[k] }));
             }
         }
@@ -158,7 +158,7 @@ Column {
     // --- everything else in range -----------------------------------------------------------
     Section {
         visible: root.on
-        title: root.others.length > 0 ? "Networks" : "Looking for networks…"
+        title: root.others.length > 0 ? I18n.tr("Networks") : I18n.tr("Looking for networks…")
 
         Repeater {
             model: root.others
@@ -180,7 +180,7 @@ Column {
                     id: psk
 
                     password: true
-                    placeholder: "Password, then Enter"
+                    placeholder: I18n.tr("Password, then Enter")
                     error: net.expanded ? root.passwordError : ""
                     onAccepted: t => {
                         if (t.length < 8)
@@ -202,7 +202,7 @@ Column {
                         if (net.modelData.known)
                             return;
                         root.passwordFor = net.modelData;
-                        root.passwordError = reason === ConnectionFailReason.NoSecrets || reason === ConnectionFailReason.WifiClientFailed || reason === ConnectionFailReason.WifiAuthTimeout ? "Wrong password, try again." : "Could not connect.";
+                        root.passwordError = reason === ConnectionFailReason.NoSecrets || reason === ConnectionFailReason.WifiClientFailed || reason === ConnectionFailReason.WifiAuthTimeout ? I18n.tr("Wrong password, try again.") : I18n.tr("Could not connect.");
                     }
                 }
             }
@@ -217,12 +217,12 @@ Column {
         property string error
 
         visible: root.on
-        title: "Hidden network"
+        title: I18n.tr("Hidden network")
 
         PillButton {
             visible: !hidden.open
             icon: "\u{f0415}"
-            label: "Join a hidden network"
+            label: I18n.tr("Join a hidden network")
             onClicked: {
                 hidden.open = true;
                 ssid.input.forceActiveFocus();
@@ -233,7 +233,7 @@ Column {
             id: ssid
 
             visible: hidden.open
-            placeholder: "Network name"
+            placeholder: I18n.tr("Network name")
         }
 
         Field {
@@ -241,7 +241,7 @@ Column {
 
             visible: hidden.open
             password: true
-            placeholder: "Password (empty for an open network)"
+            placeholder: I18n.tr("Password (empty for an open network)")
             error: hidden.error
             onAccepted: if (ssid.input.text !== "")
                 joinHidden.start()
@@ -253,13 +253,13 @@ Column {
 
             PillButton {
                 accent: true
-                label: joinHidden.running ? "Joining…" : "Join"
+                label: joinHidden.running ? I18n.tr("Joining…") : I18n.tr("Join")
                 enabled: ssid.input.text !== "" && !joinHidden.running
                 onClicked: joinHidden.start()
             }
 
             PillButton {
-                label: "Cancel"
+                label: I18n.tr("Cancel")
                 onClicked: {
                     hidden.open = false;
                     hidden.error = "";
@@ -292,7 +292,7 @@ Column {
                     ssid.input.text = "";
                     hiddenPsk.input.text = "";
                 } else {
-                    hidden.error = hiddenErr.text.trim().replace(/^Error: /, "") || "Could not connect.";
+                    hidden.error = hiddenErr.text.trim().replace(/^Error: /, "") || I18n.tr("Could not connect.");
                 }
             }
         }

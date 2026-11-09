@@ -20,14 +20,14 @@ Scope {
     property string page: "appearance"
 
     readonly property var pages: [
-        { id: "appearance", label: "Appearance", icon: "\u{f03d8}" },
-        { id: "apps", label: "Apps", icon: "\u{f003b}" },
-        { id: "bar", label: "Bar", icon: "\u{f06fc}" },
-        { id: "media", label: "Media", icon: "\u{f075a}" },
-        { id: "displays", label: "Displays", icon: "\u{f0379}" },
+        { id: "appearance", label: I18n.tr("Appearance"), icon: "\u{f03d8}" },
+        { id: "apps", label: I18n.tr("Apps"), icon: "\u{f003b}" },
+        { id: "bar", label: I18n.tr("Bar"), icon: "\u{f06fc}" },
+        { id: "media", label: I18n.tr("Media"), icon: "\u{f075a}" },
+        { id: "displays", label: I18n.tr("Displays"), icon: "\u{f0379}" },
         { id: "wifi", label: "Wi-Fi", icon: "\u{f05a9}" },
         { id: "bluetooth", label: "Bluetooth", icon: "\u{f00af}" },
-        { id: "general", label: "Lock & clock", icon: "\u{f097f}" }
+        { id: "general", label: I18n.tr("General"), icon: "\u{f097f}" }
     ]
 
     function show(id: string): void {
@@ -230,7 +230,7 @@ Scope {
                     Text {
                         leftPadding: 16
                         bottomPadding: 14
-                        text: "Settings"
+                        text: I18n.tr("Settings")
                         color: Theme.text
                         font.family: Theme.font
                         font.pixelSize: 26

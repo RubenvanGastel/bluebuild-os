@@ -143,22 +143,22 @@ Scope {
             semicolon: ";",
             apostrophe: "'",
             grave: "`",
-            wheelscrollup: "Scroll ↑",
-            wheelscrolldown: "Scroll ↓",
-            wheelscrollleft: "Scroll ←",
-            wheelscrollright: "Scroll →",
-            touchpadscrollup: "Swipe ↑",
-            touchpadscrolldown: "Swipe ↓",
-            touchpadscrollleft: "Swipe ←",
-            touchpadscrollright: "Swipe →",
-            xf86audioraisevolume: "Volume +",
-            xf86audiolowervolume: "Volume −",
-            xf86audiomute: "Mute",
-            xf86audiomicmute: "Mic mute",
-            xf86monbrightnessup: "Brightness +",
-            xf86monbrightnessdown: "Brightness −",
-            xf86audioprev: "Previous",
-            xf86audionext: "Next"
+            wheelscrollup: I18n.tr("Scroll ↑"),
+            wheelscrolldown: I18n.tr("Scroll ↓"),
+            wheelscrollleft: I18n.tr("Scroll ←"),
+            wheelscrollright: I18n.tr("Scroll →"),
+            touchpadscrollup: I18n.tr("Swipe ↑"),
+            touchpadscrolldown: I18n.tr("Swipe ↓"),
+            touchpadscrollleft: I18n.tr("Swipe ←"),
+            touchpadscrollright: I18n.tr("Swipe →"),
+            xf86audioraisevolume: I18n.tr("Volume +"),
+            xf86audiolowervolume: I18n.tr("Volume −"),
+            xf86audiomute: I18n.tr("Mute"),
+            xf86audiomicmute: I18n.tr("Mic mute"),
+            xf86monbrightnessup: I18n.tr("Brightness +"),
+            xf86monbrightnessdown: I18n.tr("Brightness −"),
+            xf86audioprev: I18n.tr("Previous"),
+            xf86audionext: I18n.tr("Next")
         })
 
     function keyName(key: string): string {
@@ -282,7 +282,7 @@ Scope {
             if (!bind)
                 continue;
             if (!category) {
-                category = { name: "Keybinds", binds: [] };
+                category = { name: I18n.tr("Keybinds"), binds: [] };
                 found.push(category);
             }
             category.binds.push(bind);
@@ -466,7 +466,7 @@ Scope {
 
                     x: card.pad + 8
                     y: card.pad
-                    text: root.categories.length > 0 ? "Keybinds" : "No keybinds found in the niri config"
+                    text: root.categories.length > 0 ? I18n.tr("Keybinds") : I18n.tr("No keybinds found in the niri config")
                     color: Theme.text
                     font.family: Theme.font
                     font.pixelSize: 24
@@ -477,7 +477,7 @@ Scope {
                     anchors.right: parent.right
                     anchors.rightMargin: card.pad + 8
                     anchors.baseline: title.baseline
-                    text: "Esc closes"
+                    text: I18n.tr("Esc closes")
                     color: Theme.textDim
                     font.family: Theme.font
                     font.pixelSize: 14

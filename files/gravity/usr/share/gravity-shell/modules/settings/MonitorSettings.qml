@@ -23,7 +23,7 @@ Section {
         visible: !monitor.on
         width: parent.width
         wrapMode: Text.Wrap
-        text: "Off while only the " + (Displays.isInternal(monitor.output.name) ? "external monitors are" : "built-in display is") + " used."
+        text: Displays.isInternal(monitor.output.name) ? I18n.tr("Off while only the external monitors are used.") : I18n.tr("Off while only the built-in display is used.")
         color: Theme.textDim
         font.family: Theme.font
         font.pixelSize: 13
@@ -31,8 +31,8 @@ Section {
     }
 
     Choice {
-        label: "Resolution"
-        description: (monitor.output.physical_size ? `${Math.round(Math.hypot(...monitor.output.physical_size) / 25.4)}″ · ` : "") + "Automatic is its preferred mode."
+        label: I18n.tr("Resolution")
+        description: (monitor.output.physical_size ? `${Math.round(Math.hypot(...monitor.output.physical_size) / 25.4)}″ · ` : "") + I18n.tr("Automatic is its preferred mode.")
         wrap: true
         options: {
             const sizes = [];
@@ -41,7 +41,7 @@ Section {
                 if (!sizes.includes(s))
                     sizes.push(s);
             }
-            return [{ value: "", label: "Automatic" }].concat(sizes.map(s => ({ value: s, label: s.replace("x", "×") })), monitor.custom.map((c, i) => ({ value: "custom:" + i, label: `${c.width}×${c.height} @ ${c.refresh} Hz`, icon: "\u{f0493}" })));
+            return [{ value: "", label: I18n.tr("Automatic") }].concat(sizes.map(s => ({ value: s, label: s.replace("x", "×") })), monitor.custom.map((c, i) => ({ value: "custom:" + i, label: `${c.width}×${c.height} @ ${c.refresh} Hz`, icon: "\u{f0493}" })));
         }
         value: monitor.chosen === "" || monitor.chosen.startsWith("custom:") ? monitor.chosen : monitor.size
         onChosen: v => {
@@ -58,7 +58,7 @@ Section {
     Choice {
         // Shown with one rate too, so it's clear what it runs at.
         visible: monitor.current !== null && options.length > 0
-        label: "Refresh rate"
+        label: I18n.tr("Refresh rate")
         wrap: true
         options: monitor.output.modes.filter(m => `${m.width}x${m.height}` === monitor.size).sort((a, b) => b.refresh_rate - a.refresh_rate).map(m => ({
                     value: Displays.modeName(m),
@@ -69,14 +69,14 @@ Section {
     }
 
     Choice {
-        label: "Scale"
-        description: monitor.output.logical ? `Now ${Math.round(monitor.output.logical.scale * 100)}%, ${monitor.output.logical.width}×${monitor.output.logical.height} to lay out windows in.` : ""
+        label: I18n.tr("Scale")
+        description: monitor.output.logical ? I18n.tr("Now %1%, %2×%3 to lay out windows in.", Math.round(monitor.output.logical.scale * 100), monitor.output.logical.width, monitor.output.logical.height) : ""
         wrap: true
         // Below 100% fits more on a small screen (a CRT at 640×480, say), drawn smaller.
         options: {
             const c = monitor.custom[Number((/^custom:(\d+)$/.exec(monitor.chosen) ?? [])[1])];
             const auto = Displays.autoScale(monitor.output, c?.width ?? monitor.current?.width ?? 0, c?.height ?? monitor.current?.height ?? 0);
-            return [{ value: 0, label: `Automatic (${Math.round(auto * 100)}%)` }].concat([0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.5, 3].map(s => ({ value: s, label: Math.round(s * 100) + "%" })));
+            return [{ value: 0, label: I18n.tr("Automatic (%1%)", Math.round(auto * 100)) }].concat([0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.5, 3].map(s => ({ value: s, label: Math.round(s * 100) + "%" })));
         }
         value: monitor.prefs.scale ?? 0
         onChosen: v => Displays.setDisplayRisky(monitor.output, { scale: v })
@@ -84,12 +84,12 @@ Section {
 
     Choice {
         visible: monitor.output.vrr_supported
-        label: "Variable refresh rate"
-        description: "FreeSync / G-Sync / Adaptive-Sync. On demand only while a window asks for it (niri's variable-refresh-rate window rule), which avoids flicker some monitors have."
+        label: I18n.tr("Variable refresh rate")
+        description: I18n.tr("FreeSync / G-Sync / Adaptive-Sync. On demand only while a window asks for it (niri's variable-refresh-rate window rule), which avoids flicker some monitors have.")
         options: [
-            { value: "off", label: "Off" },
-            { value: "on", label: "On" },
-            { value: "on-demand", label: "On demand" }
+            { value: "off", label: I18n.tr("Off") },
+            { value: "on", label: I18n.tr("On") },
+            { value: "on-demand", label: I18n.tr("On demand") }
         ]
         value: monitor.prefs.vrr ?? "off"
         onChosen: v => Displays.setDisplay(monitor.output, { vrr: v })
@@ -107,7 +107,7 @@ Section {
             icon: "\u{f0379}"
             selected: monitor.chosen === "custom:" + index
             title: `${modelData.width}×${modelData.height} @ ${modelData.refresh} Hz`
-            subtitle: modelData.timing === "gtf" ? "GTF timings (CRT)" : modelData.timing === "modeline" ? "Modeline: " + modelData.modeline : "CVT timings"
+            subtitle: modelData.timing === "gtf" ? I18n.tr("GTF timings (CRT)") : modelData.timing === "modeline" ? "Modeline: " + modelData.modeline : I18n.tr("CVT timings")
             actions: [{ id: "remove", icon: "\u{f0a7a}" }]
             onClicked: Displays.setDisplayRisky(monitor.output, { mode: "custom:" + index })
             onActed: id => Displays.removeCustomMode(monitor.output, index)

@@ -91,8 +91,8 @@ rest, and bold [Google Sans Flex](https://fonts.google.com/specimen/Google+Sans+
   visualisers' style (bars, a wave or dots) and frame rate. *Displays*: see above. *Wi-Fi*: on or off, the network you're on with its addresses,
   every network in range (join, with the password asked in place, or forget) and hidden
   networks. *Bluetooth*: on or off, visible to other devices, your devices (connect, rename,
-  trust, forget) and devices nearby to pair. *Lock & clock*: idle lock time, 24-hour time and
-  the date. Changes apply at once. Ctrl+Tab goes through the pages, Esc closes.
+  trust, forget) and devices nearby to pair. *General*: the language, idle lock time, 24-hour
+  time and the date. Changes apply at once. Ctrl+Tab goes through the pages, Esc closes.
 - **Session menu** (`Super+Shift+Q`): the screen dims and a card springs up with Lock,
   Suspend (locks first), Log out, Reboot, BIOS (reboot into the firmware setup; only when the
   machine supports it) and Power off. Left/Right or Tab picks one, Enter or a click runs it,
@@ -129,6 +129,7 @@ picker write it, storing only settings that differ from the defaults:
   "longitude": 5.48,
   "idleLockMinutes": 10,
   "use24h": true,
+  "language": "",
   "showDate": true,
   "barPosition": "top",
   "barStyle": "edge",
@@ -144,7 +145,8 @@ picker write it, storing only settings that differ from the defaults:
 
 `"colors"` is `"default"`, `"accent"` (made from `"accent"`, a `#rrggbb` colour) or
 `"wallpaper"`; `"appearanceMode"` is `"manual"`, `"wallpaper"` or `"sun"`; `"barPosition"` is `"top"`, `"bottom"`, `"left"`
-or `"right"`; `"barStyle"` is `"edge"`, `"floating"` or `"frame"`. Generated colours are cached in
+or `"right"`; `"barStyle"` is `"edge"`, `"floating"` or `"frame"`; `"language"` is `""` (the system's) or a
+language code such as `"nl"`. Generated colours are cached in
 `~/.cache/gravity-shell/colors.json`. matugen can't read `.jxl` images, so with those the
 default colours are used. From a terminal:
 
@@ -153,6 +155,17 @@ gravity-shell ipc call theme set wallpaper     # or: accent, default
 gravity-shell ipc call theme accent "#e62d42"  # switches to accent colours
 gravity-shell ipc call theme scheme vibrant
 ```
+
+## Languages
+
+The shell is in English and Dutch. It follows the system language (`LANGUAGE`, `LC_ALL`,
+`LC_MESSAGES`, `LANG`) unless *Settings > General > Language* picks one; dates and times
+follow it too. Text is written in English as `I18n.tr("Charging")` (`services/I18n.qml`),
+and `i18n/<code>.json` maps each English text to its translation, with `%1`, `%2`, ... for
+values and `I18n.trn()` for singular and plural. Missing text stays English.
+
+To add a language: list it in `I18n.languages`, then `i18n/check.py <code> --add` creates
+the file with every text to fill in. `i18n/check.py nl` lists what is missing or unused.
 
 ## Changing the shell itself
 

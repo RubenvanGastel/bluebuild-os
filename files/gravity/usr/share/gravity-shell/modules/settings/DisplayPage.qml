@@ -18,14 +18,14 @@ Column {
 
     Choice {
         visible: Displays.both
-        label: "Use"
-        description: Displays.mode === "mirror" && !Displays.hasMirror ? "Mirroring needs wl-mirror, which isn't installed; the monitors extend meanwhile." : "Remembered for these monitors together. Monitors connected for the first time extend the desktop."
+        label: I18n.tr("Use")
+        description: Displays.mode === "mirror" && !Displays.hasMirror ? I18n.tr("Mirroring needs wl-mirror, which isn't installed; the monitors extend meanwhile.") : I18n.tr("Remembered for these monitors together. Monitors connected for the first time extend the desktop.")
         wrap: true
         options: [
-            { value: "extend", label: "Extend", icon: "\u{f037a}" },
-            { value: "mirror", label: "Mirror", icon: "\u{f11fd}" },
-            { value: "internal", label: "Only built-in", icon: "\u{f0322}" },
-            { value: "external", label: "Only external", icon: "\u{f0379}" }
+            { value: "extend", label: I18n.tr("Extend"), icon: "\u{f037a}" },
+            { value: "mirror", label: I18n.tr("Mirror"), icon: "\u{f11fd}" },
+            { value: "internal", label: I18n.tr("Only built-in"), icon: "\u{f0322}" },
+            { value: "external", label: I18n.tr("Only external"), icon: "\u{f0379}" }
         ]
         value: Displays.mode
         onChosen: v => Displays.setMode(v)
@@ -35,7 +35,7 @@ Column {
         visible: !Displays.both
         width: parent.width
         wrapMode: Text.Wrap
-        text: Displays.list.length === 0 ? "No monitors found." : "Connect another monitor to extend or mirror; it starts in its preferred mode, next to this one."
+        text: Displays.list.length === 0 ? I18n.tr("No monitors found.") : I18n.tr("Connect another monitor to extend or mirror; it starts in its preferred mode, next to this one.")
         color: Theme.textDim
         font.family: Theme.font
         font.pixelSize: 13
@@ -48,7 +48,7 @@ Column {
         spacing: 8
 
         Text {
-            text: "Arrangement"
+            text: I18n.tr("Arrangement")
             color: Theme.text
             font.family: Theme.font
             font.pixelSize: 14
@@ -58,7 +58,7 @@ Column {
         Text {
             width: parent.width
             wrapMode: Text.Wrap
-            text: "Drag the monitors to where they stand; the pointer moves between them where they touch. Click one for its settings."
+            text: I18n.tr("Drag the monitors to where they stand; the pointer moves between them where they touch. Click one for its settings.")
             color: Theme.textDim
             font.family: Theme.font
             font.pixelSize: 12
@@ -77,7 +77,7 @@ Column {
     // Its settings: picked here or by clicking it in the arrangement.
     Choice {
         visible: Displays.list.length > 1
-        label: "Monitor"
+        label: I18n.tr("Monitor")
         wrap: true
         options: Displays.list.map(o => ({ value: o.name, label: Displays.label(o), icon: Displays.isInternal(o.name) ? "\u{f0322}" : "\u{f0379}" }))
         value: root.shown?.name ?? ""
@@ -92,7 +92,7 @@ Column {
     Text {
         width: parent.width
         wrapMode: Text.Wrap
-        text: "HDR isn't available: niri doesn't support it yet."
+        text: I18n.tr("HDR isn't available: niri doesn't support it yet.")
         color: Theme.textDim
         font.family: Theme.font
         font.pixelSize: 12

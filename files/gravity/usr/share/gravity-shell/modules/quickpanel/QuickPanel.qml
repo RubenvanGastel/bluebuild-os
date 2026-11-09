@@ -59,19 +59,19 @@ Scope {
     function duration(seconds: real): string {
         const m = Math.round(seconds / 60);
         const h = Math.floor(m / 60);
-        return h > 0 ? `${h} h ${m % 60} min` : `${m} min`;
+        return h > 0 ? I18n.tr("%1 h %2 min", h, m % 60) : I18n.tr("%1 min", m);
     }
 
     readonly property string batteryText: {
         switch (battery?.state) {
         case UPowerDeviceState.Charging:
-            return battery.timeToFull > 0 ? "Charging, full in " + duration(battery.timeToFull) : "Charging";
+            return battery.timeToFull > 0 ? I18n.tr("Charging, full in %1", duration(battery.timeToFull)) : I18n.tr("Charging");
         case UPowerDeviceState.FullyCharged:
-            return "Fully charged";
+            return I18n.tr("Fully charged");
         case UPowerDeviceState.PendingCharge:
-            return "Plugged in, not charging";
+            return I18n.tr("Plugged in, not charging");
         case UPowerDeviceState.Discharging:
-            return battery.timeToEmpty > 0 ? duration(battery.timeToEmpty) + " left" : "On battery";
+            return battery.timeToEmpty > 0 ? I18n.tr("%1 left", duration(battery.timeToEmpty)) : I18n.tr("On battery");
         default:
             return "";
         }
@@ -90,9 +90,9 @@ Scope {
     readonly property string brightnessIcon: Brightness.level < 0.34 ? "\u{f00de}" : Brightness.level < 0.67 ? "\u{f00df}" : "\u{f00e0}"
 
     readonly property var profiles: [
-        { value: PowerProfile.PowerSaver, label: "Saver", icon: "\u{f032a}" },
-        { value: PowerProfile.Balanced, label: "Balanced", icon: "\u{f05d1}" },
-        { value: PowerProfile.Performance, label: "Performance", icon: "\u{f04c5}" }
+        { value: PowerProfile.PowerSaver, label: I18n.tr("Saver"), icon: "\u{f032a}" },
+        { value: PowerProfile.Balanced, label: I18n.tr("Balanced"), icon: "\u{f05d1}" },
+        { value: PowerProfile.Performance, label: I18n.tr("Performance"), icon: "\u{f04c5}" }
     ].filter(p => p.value !== PowerProfile.Performance || PowerProfiles.hasPerformanceProfile)
 
     LazyLoader {
@@ -498,7 +498,7 @@ Scope {
                         icon: root.volumeIcon
                         value: root.volume
                         dimmed: root.muted
-                        label: root.muted ? "Muted" : Math.round(root.volume * 100) + "%"
+                        label: root.muted ? I18n.tr("Muted") : Math.round(root.volume * 100) + "%"
                         iconClickable: true
                         armed: win.reveal > 0.2
                         onIconClicked: if (root.sink?.audio)
@@ -519,7 +519,7 @@ Scope {
                     Text {
                         topPadding: 4
                         // Says who decides while it's automatic.
-                        text: !Appearance.automatic ? "Appearance" : Appearance.mode === "wallpaper" ? "Appearance · automatic, by the wallpaper" : !Appearance.hasLocation ? "Appearance · automatic, set a place in the settings" : Appearance.nextChange ? "Appearance · automatic, " + (Appearance.sunUp ? "dark at sunset " : "light at sunrise ") + Qt.formatTime(Appearance.nextChange, Config.use24h ? "HH:mm" : "h:mm AP") : "Appearance · automatic, by time of day"
+                        text: !Appearance.automatic ? I18n.tr("Appearance") : Appearance.mode === "wallpaper" ? I18n.tr("Appearance · automatic, by the wallpaper") : !Appearance.hasLocation ? I18n.tr("Appearance · automatic, set a place in the settings") : Appearance.nextChange ? I18n.tr(Appearance.sunUp ? "Appearance · automatic, dark at sunset %1" : "Appearance · automatic, light at sunrise %1", I18n.date(Appearance.nextChange, Config.use24h ? "HH:mm" : "h:mm AP")) : I18n.tr("Appearance · automatic, by time of day")
                         color: Theme.textDim
                         font.family: Theme.font
                         font.pixelSize: 13
@@ -542,8 +542,8 @@ Scope {
 
                         Repeater {
                             model: [
-                                { light: true, label: "Light", icon: "\u{f0599}" },
-                                { light: false, label: "Dark", icon: "\u{f0594}" }
+                                { light: true, label: I18n.tr("Light"), icon: "\u{f0599}" },
+                                { light: false, label: I18n.tr("Dark"), icon: "\u{f0594}" }
                             ]
 
                             Rectangle {
@@ -606,7 +606,7 @@ Scope {
                     // --- power profile ------------------------------------------------
                     Text {
                         topPadding: 4
-                        text: "Power mode"
+                        text: I18n.tr("Power mode")
                         color: Theme.textDim
                         font.family: Theme.font
                         font.pixelSize: 13

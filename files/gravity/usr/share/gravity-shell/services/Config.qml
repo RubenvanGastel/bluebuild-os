@@ -38,6 +38,8 @@ Singleton {
     // 0 disables auto-lock.
     property alias idleLockMinutes: adapter.idleLockMinutes
     property alias use24h: adapter.use24h
+    // Language of the shell: "" follows the system, else a code from I18n.languages.
+    property alias language: adapter.language
     // The date beside the time in the bar.
     property alias showDate: adapter.showDate
     // Screen edge the bar runs along: "top", "bottom", "left" or "right".
@@ -154,6 +156,7 @@ Singleton {
             longitude: 0,
             idleLockMinutes: 10,
             use24h: true,
+            language: "",
             showDate: true,
             barPosition: "top",
             barStyle: "edge",
@@ -219,6 +222,7 @@ Singleton {
             property real longitude: root.defaults.longitude
             property int idleLockMinutes: root.defaults.idleLockMinutes
             property bool use24h: root.defaults.use24h
+            property string language: root.defaults.language
             property bool showDate: root.defaults.showDate
             property string barPosition: root.defaults.barPosition
             property string barStyle: root.defaults.barStyle

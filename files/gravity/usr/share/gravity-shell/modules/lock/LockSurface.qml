@@ -133,7 +133,7 @@ WlSessionLockSurface {
 
             anchors.horizontalCenter: parent.horizontalCenter
             y: surface.height * 0.28 - (1 - surface.show) * 40
-            text: Qt.formatDateTime(clock.date, Config.use24h ? "HH:mm" : "h:mm")
+            text: I18n.date(clock.date, Config.use24h ? "HH:mm" : "h:mm")
             color: Theme.text
             font.family: Theme.font
             font.pixelSize: Math.round(surface.height * 0.14)
@@ -162,7 +162,7 @@ WlSessionLockSurface {
                 id: date
 
                 anchors.centerIn: parent
-                text: Qt.formatDateTime(clock.date, "dddd d MMMM")
+                text: I18n.date(clock.date, "dddd d MMMM")
                 color: Theme.tonalInk
                 font.family: Theme.font
                 font.pixelSize: Math.round(surface.height * 0.02)
@@ -221,7 +221,7 @@ WlSessionLockSurface {
 
             Text {
                 anchors.centerIn: parent
-                text: "Enter password"
+                text: I18n.tr("Enter password")
                 color: Theme.textDim
                 font.family: Theme.font
                 font.pixelSize: Math.round(surface.height * 0.017)

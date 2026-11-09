@@ -37,7 +37,7 @@ Scope {
         const m = Math.floor(seconds / 60);
         const h = Math.floor(m / 60);
         const d = Math.floor(h / 24);
-        return d > 0 ? `${d} d ${h % 24} h` : h > 0 ? `${h} h ${m % 60} min` : `${m} min`;
+        return d > 0 ? I18n.tr("%1 d %2 h", d, h % 24) : h > 0 ? I18n.tr("%1 h %2 min", h, m % 60) : I18n.tr("%1 min", m);
     }
 
     // Cool to hot: the accent up to 70 °C, amber up to the hot mark, rose beyond.
@@ -202,23 +202,23 @@ Scope {
                             icon: "\u{f061a}"
                             label: "CPU"
                             value: root.percent(SysMon.cpu)
-                            detail: SysMon.cpuFreq > 0 ? (SysMon.cpuFreq / 1000).toFixed(2) + " GHz" : SysMon.cores.length + " threads"
+                            detail: SysMon.cpuFreq > 0 ? (SysMon.cpuFreq / 1000).toFixed(2) + " GHz" : I18n.trn("%n thread", "%n threads", SysMon.cores.length)
                             level: SysMon.cpu
                             accent: Theme.gold
                         }
 
                         Tile {
                             icon: "\u{f050f}"
-                            label: "Temp"
+                            label: I18n.tr("Temp")
                             value: Math.round(SysMon.cpuTemp) + "°C"
-                            detail: SysMon.cpuTemp >= SysMon.hot ? "Hot" : SysMon.cpuTemp >= 70 ? "Warm" : "Cool"
+                            detail: SysMon.cpuTemp >= SysMon.hot ? I18n.tr("Hot") : SysMon.cpuTemp >= 70 ? I18n.tr("Warm") : I18n.tr("Cool")
                             level: (SysMon.cpuTemp - 30) / 70
                             accent: root.tempColor(SysMon.cpuTemp)
                         }
 
                         Tile {
                             icon: "\u{f035b}"
-                            label: "Memory"
+                            label: I18n.tr("Memory")
                             value: root.percent(SysMon.mem)
                             detail: SysMon.gib(SysMon.memUsed) + " / " + Math.round(SysMon.memTotal / 1048576) + " GiB"
                             level: SysMon.mem
@@ -311,7 +311,7 @@ Scope {
 
                             Legend {
                                 colour: Theme.glow
-                                label: "Memory"
+                                label: I18n.tr("Memory")
                             }
                         }
 
@@ -319,7 +319,7 @@ Scope {
                             anchors.right: parent.right
                             anchors.rightMargin: 14
                             y: 10
-                            text: "Last minute"
+                            text: I18n.tr("Last minute")
                             color: Theme.textDim
                             font.family: Theme.font
                             font.pixelSize: 11
@@ -329,7 +329,7 @@ Scope {
 
                     // --- cores -------------------------------------------------------------
                     Heading {
-                        text: "Cores"
+                        text: I18n.tr("Cores")
                         aside: SysMon.cpuModel
                     }
 
@@ -375,8 +375,8 @@ Scope {
                     // --- temperatures ------------------------------------------------------
                     Heading {
                         visible: SysMon.temps.length > 0
-                        text: "Temperatures"
-                        aside: SysMon.fans.length === 0 ? "" : SysMon.fans.some(f => f.rpm > 0) ? SysMon.fans.filter(f => f.rpm > 0).map(f => f.rpm + " rpm").join(" · ") : "Fans off"
+                        text: I18n.tr("Temperatures")
+                        aside: SysMon.fans.length === 0 ? "" : SysMon.fans.some(f => f.rpm > 0) ? SysMon.fans.filter(f => f.rpm > 0).map(f => f.rpm + " rpm").join(" · ") : I18n.tr("Fans off")
                     }
 
                     Flow {
@@ -413,7 +413,7 @@ Scope {
 
                                     Text {
                                         anchors.verticalCenter: parent.verticalCenter
-                                        text: sensor.modelData.name
+                                        text: sensor.modelData.name.replace(/^Board\b/, I18n.tr("Board"))
                                         color: Theme.tonalInk
                                         font.family: Theme.font
                                         font.pixelSize: 13
@@ -435,8 +435,8 @@ Scope {
 
                     // --- memory and GPU ----------------------------------------------------
                     Heading {
-                        text: "Memory"
-                        aside: SysMon.gib(SysMon.memAvailable) + " available"
+                        text: I18n.tr("Memory")
+                        aside: I18n.tr("%1 available", SysMon.gib(SysMon.memAvailable))
                     }
 
                     // Used by programs, then cache (given back when needed), then free.
@@ -481,25 +481,25 @@ Scope {
 
                         Legend {
                             colour: Theme.glow
-                            label: "Used " + SysMon.gib(SysMon.memUsed)
+                            label: I18n.tr("Used %1", SysMon.gib(SysMon.memUsed))
                         }
 
                         Legend {
                             colour: Qt.alpha(Theme.glow, 0.4)
-                            label: "Cache " + SysMon.gib(SysMon.memCached)
+                            label: I18n.tr("Cache %1", SysMon.gib(SysMon.memCached))
                         }
 
                         Legend {
                             visible: SysMon.swapTotal > 0
                             colour: Qt.alpha(Theme.text, 0.3)
-                            label: "Swap " + root.percent(SysMon.swap)
+                            label: I18n.tr("Swap %1", root.percent(SysMon.swap))
                         }
                     }
 
                     Heading {
                         visible: SysMon.gpu >= 0
-                        text: "Graphics"
-                        aside: SysMon.vramTotal > 0 ? SysMon.gib(SysMon.vramUsed) + " of " + SysMon.gib(SysMon.vramTotal) + " video memory" : ""
+                        text: I18n.tr("Graphics")
+                        aside: SysMon.vramTotal > 0 ? I18n.tr("%1 of %2 video memory", SysMon.gib(SysMon.vramUsed), SysMon.gib(SysMon.vramTotal)) : ""
                     }
 
                     Bar {
@@ -511,8 +511,8 @@ Scope {
                     // --- busiest processes -------------------------------------------------
                     Heading {
                         visible: SysMon.processes.length > 0
-                        text: "Busiest"
-                        aside: "% of one core"
+                        text: I18n.tr("Busiest")
+                        aside: I18n.tr("% of one core")
                     }
 
                     Column {
@@ -589,7 +589,7 @@ Scope {
                         width: parent.width
                         horizontalAlignment: Text.AlignHCenter
                         visible: SysMon.uptime > 0
-                        text: "Load " + SysMon.loadAvg.map(l => l.toFixed(2)).join("  ") + "    ·    Up " + root.duration(SysMon.uptime)
+                        text: I18n.tr("Load %1    ·    Up %2", SysMon.loadAvg.map(l => l.toFixed(2)).join("  "), root.duration(SysMon.uptime))
                         color: Theme.textDim
                         font.family: Theme.font
                         font.pixelSize: 12

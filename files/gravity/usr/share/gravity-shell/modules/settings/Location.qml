@@ -20,16 +20,16 @@ Column {
         results = [];
         if (q === "" || lookup.running)
             return;
-        lookup.command = ["curl", "-sf", "--max-time", "10", "-G", "https://geocoding-api.open-meteo.com/v1/search", "--data-urlencode", "name=" + q, "-d", "count=6", "-d", "language=en", "-d", "format=json"];
+        lookup.command = ["curl", "-sf", "--max-time", "10", "-G", "https://geocoding-api.open-meteo.com/v1/search", "--data-urlencode", "name=" + q, "-d", "count=6", "-d", "language=" + I18n.code, "-d", "format=json"];
         lookup.running = true;
     }
 
     Field {
         id: field
 
-        label: "Location"
-        description: Config.locationName !== "" ? "Now " + Config.locationName + ". Search for another place to change it." : "Search for your city, then pick it."
-        placeholder: lookup.running ? "Searching…" : "City, then Enter"
+        label: I18n.tr("Location")
+        description: Config.locationName !== "" ? I18n.tr("Now %1. Search for another place to change it.", Config.locationName) : I18n.tr("Search for your city, then pick it.")
+        placeholder: lookup.running ? I18n.tr("Searching…") : I18n.tr("City, then Enter")
         error: root.error
         onAccepted: t => root.search(t)
     }
@@ -60,7 +60,7 @@ Column {
         }
         onExited: code => {
             if (code !== 0) {
-                root.error = "Could not reach the place search; are you online?";
+                root.error = I18n.tr("Could not reach the place search; are you online?");
                 return;
             }
             let places = [];
@@ -74,7 +74,7 @@ Column {
                         longitude: p.longitude
                     }));
             if (root.results.length === 0)
-                root.error = "No place by that name.";
+                root.error = I18n.tr("No place by that name.");
         }
     }
 }

@@ -117,28 +117,51 @@ Scope {
     readonly property string stateText: {
         switch (dev?.state) {
         case UPowerDeviceState.Charging:
-            return dev.timeToFull > 0 ? "Charging, full in " + duration(dev.timeToFull) : "Charging";
+            return dev.timeToFull > 0 ? I18n.tr("Charging, full in %1", duration(dev.timeToFull)) : I18n.tr("Charging");
         case UPowerDeviceState.FullyCharged:
-            return "Fully charged";
+            return I18n.tr("Fully charged");
         case UPowerDeviceState.PendingCharge:
-            return "Plugged in, not charging";
+            return I18n.tr("Plugged in, not charging");
         case UPowerDeviceState.Discharging:
-            return dev.timeToEmpty > 0 ? duration(dev.timeToEmpty) + " left" : "On battery";
+            return dev.timeToEmpty > 0 ? I18n.tr("%1 left", duration(dev.timeToEmpty)) : I18n.tr("On battery");
         default:
             return "";
         }
     }
 
     readonly property var profiles: [
-        { value: PowerProfile.PowerSaver, label: "Saver", icon: "\u{f032a}" },
-        { value: PowerProfile.Balanced, label: "Balanced", icon: "\u{f05d1}" },
-        { value: PowerProfile.Performance, label: "Performance", icon: "\u{f04c5}" }
+        { value: PowerProfile.PowerSaver, label: I18n.tr("Saver"), icon: "\u{f032a}" },
+        { value: PowerProfile.Balanced, label: I18n.tr("Balanced"), icon: "\u{f05d1}" },
+        { value: PowerProfile.Performance, label: I18n.tr("Performance"), icon: "\u{f04c5}" }
     ].filter(p => p.value !== PowerProfile.Performance || PowerProfiles.hasPerformanceProfile)
 
     function duration(seconds: real): string {
         const m = Math.round(seconds / 60);
         const h = Math.floor(m / 60);
-        return h > 0 ? `${h} h ${m % 60} min` : `${m} min`;
+        return h > 0 ? I18n.tr("%1 h %2 min", h, m % 60) : I18n.tr("%1 min", m);
+    }
+
+    // The charging mode marked in charge_types, e.g. "Fast" -> "Fast charging".
+    function chargeMode(type: string): string {
+        switch (type) {
+        case "":
+            return "";
+        case "Fast":
+            return I18n.tr("Fast charging");
+        case "Standard":
+            return I18n.tr("Standard charging");
+        case "Adaptive":
+            return I18n.tr("Adaptive charging");
+        case "Long_Life":
+            return I18n.tr("Long life charging");
+        case "Trickle":
+            return I18n.tr("Trickle charging");
+        case "Custom":
+            return I18n.tr("Custom charging");
+        case "Bypass":
+            return I18n.tr("Bypass charging");
+        }
+        return I18n.tr("%1 charging", type.replace("_", " "));
     }
 
     function levelColor(): color {
@@ -371,7 +394,7 @@ Scope {
 
                                 Text {
                                     anchors.verticalCenter: parent.verticalCenter
-                                    text: "Plugged in"
+                                    text: I18n.tr("Plugged in")
                                     color: Theme.textDim
                                     font.family: Theme.font
                                     font.pixelSize: 12
@@ -453,27 +476,27 @@ Scope {
 
                         Tile {
                             icon: root.charging ? "\u{f140b}" : "\u{f06a5}"
-                            label: root.charging ? "Charging" : "Using"
+                            label: root.charging ? I18n.tr("Charging") : I18n.tr("Using")
                             value: root.rate > 0 ? root.rate.toFixed(1) + " W" : "–"
-                            detail: root.rate <= 0 ? "Idle" : root.charging ? "Into the battery" : "From the battery"
+                            detail: root.rate <= 0 ? I18n.tr("Idle") : root.charging ? I18n.tr("Into the battery") : I18n.tr("From the battery")
                             level: root.rate / 65
                             accent: root.charging ? Theme.gold : Theme.glow
                         }
 
                         Tile {
                             icon: "\u{f0079}"
-                            label: "Energy"
+                            label: I18n.tr("Energy")
                             value: (root.dev?.energy ?? 0).toFixed(1) + " Wh"
-                            detail: "of " + (root.dev?.energyCapacity ?? 0).toFixed(1) + " Wh"
+                            detail: I18n.tr("of %1 Wh", (root.dev?.energyCapacity ?? 0).toFixed(1))
                             level: root.level
                             accent: root.levelColor()
                         }
 
                         Tile {
                             icon: "\u{f02d1}"
-                            label: "Health"
+                            label: I18n.tr("Health")
                             value: root.health >= 0 ? Math.round(root.health * 100) + "%" : "–"
-                            detail: root.sys.cycle_count > 0 ? root.sys.cycle_count + " cycles" : "Of its new capacity"
+                            detail: root.sys.cycle_count > 0 ? I18n.trn("%n cycle", "%n cycles", root.sys.cycle_count) : I18n.tr("Of its new capacity")
                             level: root.health
                             accent: root.health >= 0 && root.health < 0.7 ? Theme.amber : Theme.glow
                         }
@@ -598,12 +621,12 @@ Scope {
 
                             Legend {
                                 colour: Theme.glow
-                                label: "Charge"
+                                label: I18n.tr("Charge")
                             }
 
                             Legend {
                                 colour: Qt.alpha(Theme.gold, 0.5)
-                                label: "Charging"
+                                label: I18n.tr("Charging")
                             }
                         }
 
@@ -644,7 +667,7 @@ Scope {
                                         id: chipText
 
                                         anchors.centerIn: parent
-                                        text: chip.modelData + " h"
+                                        text: I18n.tr("%1 h", chip.modelData)
                                         color: chip.selected ? Theme.goldInk : Theme.tonalInk
                                         font.family: Theme.font
                                         font.pixelSize: 11
@@ -676,7 +699,7 @@ Scope {
                                 x: 12 + (graph.width) * index / root.ticks - (index === 0 ? 0 : index === root.ticks ? width : width / 2)
                                 anchors.bottom: parent.bottom
                                 anchors.bottomMargin: 8
-                                text: ago === 0 ? "now" : "-" + ago + " h"
+                                text: ago === 0 ? I18n.tr("now") : "-" + I18n.tr("%1 h", ago)
                                 color: Theme.textDim
                                 font.family: Theme.font
                                 font.pixelSize: 10
@@ -687,8 +710,8 @@ Scope {
 
                     // --- power mode --------------------------------------------------------
                     Heading {
-                        text: "Power mode"
-                        aside: PowerProfiles.degradationReason !== PerformanceDegradationReason.None ? "Performance held back" : ""
+                        text: I18n.tr("Power mode")
+                        aside: PowerProfiles.degradationReason !== PerformanceDegradationReason.None ? I18n.tr("Performance held back") : ""
                     }
 
                     Row {
@@ -765,7 +788,7 @@ Scope {
                         horizontalAlignment: Text.AlignHCenter
                         // e.g. "ATL L24N4PC0 · Li-poly · Fast charging"; the marked one of
                         // charge_types is the mode in use.
-                        text: [[root.sys.manufacturer, root.sys.model_name].filter(s => s).join(" "), root.sys.technology, (String(root.sys.charge_types ?? "").match(/\[([^\]]+)\]/)?.[1]?.replace("_", " ") ?? "") + (root.sys.charge_types ? " charging" : "")].filter(s => s).join("    ·    ")
+                        text: [[root.sys.manufacturer, root.sys.model_name].filter(s => s).join(" "), root.sys.technology, root.chargeMode(String(root.sys.charge_types ?? "").match(/\[([^\]]+)\]/)?.[1] ?? "")].filter(s => s).join("    ·    ")
                         visible: text !== ""
                         color: Theme.textDim
                         font.family: Theme.font

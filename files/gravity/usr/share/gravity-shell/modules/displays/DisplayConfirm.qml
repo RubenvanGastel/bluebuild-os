@@ -63,7 +63,7 @@ Variants {
 
                 Text {
                     anchors.verticalCenter: parent.verticalCenter
-                    text: `Keep these display settings? Going back in ${Displays.countdown} s`
+                    text: I18n.tr("Keep these display settings? Going back in %1 s", Displays.countdown)
                     color: Theme.text
                     font.family: Theme.font
                     font.pixelSize: 14
@@ -73,7 +73,7 @@ Variants {
                 PillButton {
                     anchors.verticalCenter: parent.verticalCenter
                     icon: "\u{f054c}"
-                    label: "Revert"
+                    label: I18n.tr("Revert")
                     onClicked: Displays.revert()
                 }
 
@@ -81,7 +81,7 @@ Variants {
                     anchors.verticalCenter: parent.verticalCenter
                     accent: true
                     icon: "\u{f012c}"
-                    label: "Keep"
+                    label: I18n.tr("Keep")
                     onClicked: Displays.keep()
                 }
             }

@@ -10,31 +10,31 @@ Column {
     spacing: 22
 
     Section {
-        title: "Visualiser"
+        title: I18n.tr("Visualiser")
 
         Toggle {
-            label: "In the bar"
-            description: "Beside the clock while a media player is open; opens the media panel."
+            label: I18n.tr("In the bar")
+            description: I18n.tr("Beside the clock while a media player is open; opens the media panel.")
             checked: Config.barMedia
             onToggled: on => Config.set("barMedia", on)
         }
     }
 
     Choice {
-        label: "Style"
-        description: "For the visualisers in the bar and the media panel."
+        label: I18n.tr("Style")
+        description: I18n.tr("For the visualisers in the bar and the media panel.")
         options: [
-            { value: "bars", label: "Bars", icon: "\u{f0128}" },
-            { value: "wave", label: "Wave", icon: "\u{f095b}" },
-            { value: "dots", label: "Dots", icon: "\u{f15fc}" }
+            { value: "bars", label: I18n.tr("Bars"), icon: "\u{f0128}" },
+            { value: "wave", label: I18n.tr("Wave"), icon: "\u{f095b}" },
+            { value: "dots", label: I18n.tr("Dots"), icon: "\u{f15fc}" }
         ]
         value: Config.visualizerStyle
         onChosen: v => Config.set("visualizerStyle", v)
     }
 
     Choice {
-        label: "Visualiser frame rate"
-        description: "Frames a second for the visualisers in the bar and the media panel. Higher is smoother and uses a little more CPU."
+        label: I18n.tr("Visualiser frame rate")
+        description: I18n.tr("Frames a second for the visualisers in the bar and the media panel. Higher is smoother and uses a little more CPU.")
         options: [
             { value: 30, label: "30" },
             { value: 60, label: "60" },
