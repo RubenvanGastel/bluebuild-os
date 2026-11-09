@@ -1,0 +1,26 @@
+#!/usr/bin/bash
+# Gives ~/.config/ghostty/config.ghostty the image's version (from /etc/skel), which
+# includes /etc/ghostty/config: the cursor shaders and, on Gravity, the shell's colours.
+# /etc/skel only reaches accounts made after it was in the image, and Ghostty writes its
+# own template (comments only) when it finds no config, so this also replaces a file
+# with no settings in it. A file with any setting of your own is left alone.
+# Runs once per account: it leaves ~/.local/state/ghostty-user-config.done behind, which
+# the service checks (delete it to run again at the next login).
+set -euo pipefail
+
+state="${XDG_STATE_HOME:-$HOME/.local/state}"
+mkdir -p "$state"
+trap '[ $? -eq 0 ] && touch "$state/ghostty-user-config.done"' EXIT # only once it worked
+
+skel=/etc/skel/.config/ghostty/config.ghostty
+dir="${XDG_CONFIG_HOME:-$HOME/.config}/ghostty"
+file="$dir/config.ghostty"
+
+[ -f "$skel" ] || exit 0
+if [ -e "$file" ] && grep -qv '^[[:space:]]*\(#.*\)\?$' "$file"; then
+    exit 0
+fi
+mkdir -p "$dir"
+cp -f "$skel" "$file.tmp"
+mv -f "$file.tmp" "$file"
+pkill -USR2 -x -u "$(id -u)" ghostty || true

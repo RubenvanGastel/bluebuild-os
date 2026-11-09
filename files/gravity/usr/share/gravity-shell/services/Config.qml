@@ -65,7 +65,8 @@ Singleton {
     property alias barStatus: adapter.barStatus
     // Whether apps take the shell's colours: GTK/GNOME apps (gtk.css and the nearest GNOME
     // accent), Qt and KDE apps (qt6ct's palette and KDE's colours), Ghostty, Vesktop (a
-    // Vencord theme) and Zen (userChrome.css). Off returns each to its own colours.
+    // Vencord theme) and Zen (userChrome.css). Off returns each to its own colours. Only
+    // Ghostty is on by default; the others are opt-in in the settings.
     property alias themeGtk: adapter.themeGtk
     property alias themeQt: adapter.themeQt
     property alias themeGhostty: adapter.themeGhostty
@@ -170,11 +171,11 @@ Singleton {
             barTray: true,
             barBattery: true,
             barStatus: true,
-            themeGtk: true,
-            themeQt: true,
+            themeGtk: false,
+            themeQt: false,
             themeGhostty: true,
-            themeVesktop: true,
-            themeZen: true,
+            themeVesktop: false,
+            themeZen: false,
             blur: false,
             blurWindows: false,
             blurStrength: 0.4,

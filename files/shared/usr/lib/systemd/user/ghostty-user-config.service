@@ -1,0 +1,13 @@
+[Unit]
+Description=Give ~/.config/ghostty the image's config if it has no settings of its own
+# See /usr/libexec/ghostty-user-config. Runs once per account, at the first login with
+# this image; it only writes when the file is missing or holds nothing but comments
+# (Ghostty's own template).
+ConditionPathExists=!%S/ghostty-user-config.done
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/ghostty-user-config
+
+[Install]
+WantedBy=default.target

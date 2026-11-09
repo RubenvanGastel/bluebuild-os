@@ -39,6 +39,11 @@ modules:
       - source: shared
         destination: / # copies files/shared/* into the image root
 
+  - type: systemd
+    user:
+      enabled:
+        - ghostty-user-config.service # once per account: image's Ghostty config if yours has no settings
+
   # Miku Plymouth boot animation (from files/scripts/)
   - type: script
     scripts:

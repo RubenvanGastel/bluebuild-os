@@ -53,7 +53,7 @@ Resources replaces the System Monitor, htop and nvtop that come with the base im
 ### Defaults
 
 - The Compose key is **Right Alt**. For example, press Right Alt, then `'` and `e` to type é. On gravity and niri it is set once on first boot in the system keyboard settings (`localectl`), so the layout you picked in the installer stays.
-- **Ghostty** uses the [cursor warp and ripple shaders](https://github.com/sahaj-b/ghostty-cursor-shaders). New users get a `~/.config/ghostty/config.ghostty` that includes `/etc/ghostty/config`; existing users can copy it from `/etc/skel/.config/ghostty/config.ghostty`.
+- **Ghostty** uses the [cursor warp and ripple shaders](https://github.com/sahaj-b/ghostty-cursor-shaders). Your `~/.config/ghostty/config.ghostty` includes `/etc/ghostty/config`: new users get it from `/etc/skel`, and a user service puts it in place once, at the first login with the image, when the file is missing or holds only comments (the template Ghostty writes itself). A config with settings of your own is left alone; add `config-file = /etc/ghostty/config` to it to keep the defaults.
 - **zsh** is everyone's login shell, set up like fish: suggestions from your history (Right arrow accepts), syntax highlighting, a Tab completion menu, history shared between terminals and a prompt with the folder and git branch. Every new user gets it. The defaults are in `/etc/zshrc.d`, and your own `~/.zshrc` overrides them.
 - `ls`, `ll`, `la` and `lt` run **eza** with icons, using Nerd Font symbols.
 - Each user can change any of these. The defaults live in [`files/gschema-overrides/`](files/gschema-overrides/).
