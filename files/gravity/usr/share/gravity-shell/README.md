@@ -39,7 +39,7 @@ rest, and bold [Google Sans Flex](https://fonts.google.com/specimen/Google+Sans+
   processes.
 - **Battery panel**: click the battery pill (laptops). The bar grows into a panel with the
   level, the power going in or out, energy left, battery health and charge cycles, the
-  charge over the last 12 hours (from UPower's history), the power mode and the battery's
+  charge over the last 3, 6 or 12 hours (from UPower's history), the power mode and the battery's
   make and charging mode. Also `gravity-shell ipc call battery toggle`.
 - **Media panel**: while a media player is around, a pill beside the clock shows a few bars
   of the music's spectrum (from cava). Click it (or `gravity-shell ipc call media toggle`)

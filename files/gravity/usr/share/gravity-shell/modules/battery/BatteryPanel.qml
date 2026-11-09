@@ -8,8 +8,8 @@ import qs.services
 
 // Battery panel, opened from the battery pill in the bar. Like the system monitor it is the
 // bar growing into the screen beside its pill: the level large with a thick bar, the power
-// going in or out, the energy left, the battery's health, the charge over the last 12 hours
-// (UPower's own history, so it reaches back before login), the power mode and what the
+// going in or out, the energy left, the battery's health, the charge over the last 3, 6 or
+// 12 hours (UPower's own history, so it reaches back before login), the power mode and what the
 // battery is. Esc or a click outside closes.
 Scope {
     id: root
@@ -25,6 +25,7 @@ Scope {
         shown = true;
         history.running = true;
         info.running = true;
+        drawIn.restart();
     }
 
     // The combined battery (level, state, rate) and the laptop's own battery (health,
@@ -45,7 +46,73 @@ Scope {
 
     // Charge history: [{ t (unix seconds), v (0..1), charging }], oldest first.
     property var points: []
-    readonly property real span: 12 * 3600
+    // How far back the graph goes, picked with the chips above it; kept while the shell runs.
+    property int hours: 12
+    readonly property var ranges: [3, 6, 12]
+    readonly property real span: hours * 3600
+    // The span the graph draws: glides to the new one, so a new range zooms the line in or
+    // out around "now" instead of jumping.
+    property real shownSpan: span
+    Behavior on shownSpan {
+        NumberAnimation {
+            duration: Theme.slow
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: Theme.emphasized
+        }
+    }
+    // The line drawing itself in from the left each time the panel opens.
+    property real drawn: 0
+    // The hour labels fade out, change and fade back in while the line zooms.
+    property int labelHours: hours
+    property real labelFade: 1
+    // Whole hours along the bottom: 12 in steps of 3, 6 in steps of 2, 3 in steps of 1.
+    readonly property int ticks: labelHours % 4 === 0 ? 4 : 3
+
+    onHoursChanged: labelSwap.restart()
+
+    SequentialAnimation {
+        id: labelSwap
+
+        NumberAnimation {
+            target: root
+            property: "labelFade"
+            to: 0
+            duration: 120
+            easing.type: Easing.InQuad
+        }
+        ScriptAction {
+            script: root.labelHours = root.hours
+        }
+        NumberAnimation {
+            target: root
+            property: "labelFade"
+            to: 1
+            duration: 260
+            easing.type: Easing.OutCubic
+        }
+    }
+
+    SequentialAnimation {
+        id: drawIn
+
+        PropertyAction {
+            target: root
+            property: "drawn"
+            value: 0
+        }
+        // Until the panel has grown open.
+        PauseAnimation {
+            duration: 260
+        }
+        NumberAnimation {
+            target: root
+            property: "drawn"
+            to: 1
+            duration: 700
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: Theme.emphasized
+        }
+    }
 
     readonly property string stateText: {
         switch (dev?.state) {
@@ -412,7 +479,7 @@ Scope {
                         }
                     }
 
-                    // --- the last 12 hours -----------------------------------------------
+                    // --- the last 3, 6 or 12 hours -----------------------------------------
                     Rectangle {
                         visible: root.points.length > 0
                         width: parent.width
@@ -437,6 +504,12 @@ Scope {
                                 function onLevelChanged(): void {
                                     graph.requestPaint();
                                 }
+                                function onShownSpanChanged(): void {
+                                    graph.requestPaint();
+                                }
+                                function onDrawnChanged(): void {
+                                    graph.requestPaint();
+                                }
                             }
                             Connections {
                                 target: Theme
@@ -450,8 +523,9 @@ Scope {
                                 const ctx = getContext("2d");
                                 ctx.reset();
                                 const now = Date.now() / 1000;
-                                const t0 = now - root.span;
-                                const x = t => Math.max(0, (t - t0) / root.span * width);
+                                const span = root.shownSpan;
+                                const t0 = now - span;
+                                const x = t => Math.max(0, (t - t0) / span * width);
                                 const y = v => height - Math.max(0, Math.min(1, v)) * (height - 2) - 1;
 
                                 // Faint lines at 0, 50% and 100%.
@@ -475,6 +549,12 @@ Scope {
                                 pts.push({ t: now, v: root.level, charging: root.charging });
                                 if (pts.length < 2)
                                     return;
+
+                                // Drawing in from the left: only what is drawn so far shows.
+                                ctx.save();
+                                ctx.beginPath();
+                                ctx.rect(-4, -4, width * root.drawn + 4, height + 8);
+                                ctx.clip();
 
                                 // Charging stretches shaded behind.
                                 ctx.fillStyle = Theme.gold;
@@ -500,8 +580,10 @@ Scope {
                                 ctx.fillStyle = Theme.glow;
                                 ctx.fill();
                                 ctx.globalAlpha = 1;
+                                ctx.restore();
 
-                                // Now.
+                                // Now, popping in as the line reaches it.
+                                ctx.globalAlpha = Math.max(0, (root.drawn - 0.85) / 0.15);
                                 ctx.beginPath();
                                 ctx.arc(width - 1, y(root.level), 4, 0, 2 * Math.PI);
                                 ctx.fillStyle = root.charging ? Theme.gold : Theme.glow;
@@ -525,29 +607,76 @@ Scope {
                             }
                         }
 
-                        Text {
+                        // How far back: 3, 6 or 12 hours.
+                        Row {
                             anchors.right: parent.right
-                            anchors.rightMargin: 14
-                            y: 11
-                            text: "Last 12 hours"
-                            color: Theme.textDim
-                            font.family: Theme.font
-                            font.pixelSize: 11
-                            font.weight: Font.Bold
+                            anchors.rightMargin: 8
+                            y: 6
+                            spacing: 4
+
+                            Repeater {
+                                model: root.ranges
+
+                                Rectangle {
+                                    id: chip
+
+                                    required property int modelData
+                                    readonly property bool selected: root.hours === modelData
+
+                                    width: chipText.implicitWidth + 16
+                                    height: 22
+                                    radius: selected ? 8 : height / 2
+                                    color: selected ? Theme.gold : chipMouse.containsMouse ? Theme.hover(Theme.tonal, 1.25) : Theme.tonal
+
+                                    Behavior on radius {
+                                        NumberAnimation {
+                                            duration: Theme.normal
+                                            easing.type: Easing.OutBack
+                                        }
+                                    }
+                                    Behavior on color {
+                                        ColorAnimation {
+                                            duration: Theme.fast
+                                        }
+                                    }
+
+                                    Text {
+                                        id: chipText
+
+                                        anchors.centerIn: parent
+                                        text: chip.modelData + " h"
+                                        color: chip.selected ? Theme.goldInk : Theme.tonalInk
+                                        font.family: Theme.font
+                                        font.pixelSize: 11
+                                        font.weight: Font.Bold
+                                    }
+
+                                    MouseArea {
+                                        id: chipMouse
+
+                                        anchors.fill: parent
+                                        hoverEnabled: true
+                                        cursorShape: Qt.PointingHandCursor
+                                        onClicked: root.hours = chip.modelData
+                                    }
+                                }
+                            }
                         }
 
                         // Hours along the bottom.
                         Repeater {
-                            model: [12, 9, 6, 3, 0]
+                            model: root.ticks + 1
 
                             Text {
-                                required property int modelData
                                 required property int index
+                                readonly property int ago: root.labelHours * (root.ticks - index) / root.ticks
 
-                                x: 12 + (graph.width) * index / 4 - (index === 0 ? 0 : index === 4 ? width : width / 2)
+                                opacity: root.labelFade
+
+                                x: 12 + (graph.width) * index / root.ticks - (index === 0 ? 0 : index === root.ticks ? width : width / 2)
                                 anchors.bottom: parent.bottom
                                 anchors.bottomMargin: 8
-                                text: modelData === 0 ? "now" : "-" + modelData + " h"
+                                text: ago === 0 ? "now" : "-" + ago + " h"
                                 color: Theme.textDim
                                 font.family: Theme.font
                                 font.pixelSize: 10
