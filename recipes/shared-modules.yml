@@ -43,6 +43,7 @@ modules:
     user:
       enabled:
         - ghostty-user-config.service # once per account: image's Ghostty config if yours has no settings
+        - podman.socket # Podman API for Pods (started on demand)
 
   # Miku Plymouth boot animation (from files/scripts/)
   - type: script
