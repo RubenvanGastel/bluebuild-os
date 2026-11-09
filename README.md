@@ -52,7 +52,7 @@ Resources replaces the System Monitor, htop and nvtop that come with the base im
 
 ### Defaults
 
-- On GNOME, the Compose key is **Right Alt**. For example, press Right Alt, then `'` and `e` to type é.
+- The Compose key is **Right Alt**. For example, press Right Alt, then `'` and `e` to type é. On gravity and niri it is set once on first boot in the system keyboard settings (`localectl`), so the layout you picked in the installer stays.
 - **Ghostty** uses the [cursor warp and ripple shaders](https://github.com/sahaj-b/ghostty-cursor-shaders). New users get a `~/.config/ghostty/config.ghostty` that includes `/etc/ghostty/config`; existing users can copy it from `/etc/skel/.config/ghostty/config.ghostty`.
 - **zsh** is everyone's login shell, set up like fish: suggestions from your history (Right arrow accepts), syntax highlighting, a Tab completion menu, history shared between terminals and a prompt with the folder and git branch. Every new user gets it. The defaults are in `/etc/zshrc.d`, and your own `~/.zshrc` overrides them.
 - `ls`, `ll`, `la` and `lt` run **eza** with icons, using Nerd Font symbols.

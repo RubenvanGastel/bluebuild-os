@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# Compose on Right Alt, as on the GNOME images. niri ignores locale1 completely once its
+# config sets any xkb setting, so this goes into locale1's X11 keyboard settings, keeping
+# the layout chosen in the installer. Runs once: options you set later are left alone.
+set -euo pipefail
+
+prop() {
+    busctl get-property org.freedesktop.locale1 /org/freedesktop/locale1 \
+        org.freedesktop.locale1 "$1" | sed 's/^s "\(.*\)"$/\1/'
+}
+
+if [[ -z "$(prop X11Options)" ]]; then
+    layout="$(prop X11Layout)"
+    # No-convert (last false): leave the console keymap as it is
+    busctl call org.freedesktop.locale1 /org/freedesktop/locale1 org.freedesktop.locale1 \
+        SetX11Keyboard ssssbb "${layout:-us}" "$(prop X11Model)" "$(prop X11Variant)" \
+        compose:ralt false false
+fi
+
+mkdir -p /var/lib/niri-compose-key
+touch /var/lib/niri-compose-key/done

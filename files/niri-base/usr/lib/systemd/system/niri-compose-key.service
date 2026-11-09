@@ -1,0 +1,12 @@
+[Unit]
+Description=Put Compose on Right Alt in the system keyboard settings (once)
+# niri reads these from locale1 at login, so this runs before the login screen
+ConditionPathExists=!/var/lib/niri-compose-key/done
+Before=greetd.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/niri-compose-key
+
+[Install]
+WantedBy=multi-user.target

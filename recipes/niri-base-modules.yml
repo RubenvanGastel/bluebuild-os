@@ -61,6 +61,7 @@ modules:
     system:
       enabled:
         - greetd.service
+        - niri-compose-key.service # first boot: Compose on Right Alt (locale1)
 
   - type: script
     scripts:
