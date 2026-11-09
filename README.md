@@ -39,7 +39,7 @@ The gravity and niri images have no GNOME. Each recipe is put together from modu
 | --- | --- | --- |
 | Browser & chat | | Zen Browser, Vesktop |
 | Gaming | | Steam |
-| System | | Resources, Flatseal, Gear Lever, DistroShelf, Bazaar, Refine (GNOME) |
+| System | | Resources, Flatseal, Gear Lever, DistroShelf, Pods, Bazaar, Refine (GNOME) |
 | Terminal | Ghostty, zsh, eza, fastfetch | |
 
 Dev tools are installed per user, so they update themselves without an image rebuild:

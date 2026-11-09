@@ -68,6 +68,7 @@ modules:
           - net.nokyan.Resources # GNOME Circle system monitor (replaces System Monitor, htop, nvtop)
           - it.mijorus.gearlever # manage AppImages (adds them to the app grid, updates them)
           - com.ranfdev.DistroShelf # GUI for distrobox containers (distrobox ships in the base image)
+          - com.github.marhkb.Pods # GUI for Podman containers, images and volumes
           - io.github.kolunmi.Bazaar # Flathub app store (replaces GNOME Software)
           - com.usebottles.bottles # run Windows apps via Wine prefixes
           # Basic apps (the base images ship no apps as flatpaks)
