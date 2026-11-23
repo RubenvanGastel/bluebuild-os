@@ -15,6 +15,7 @@ modules:
   # For older GPUs (GTX 9xx / 10xx) use: nvidia-driver: nvidia
   - type: akmods
     nvidia-driver: nvidia-open
+    install: [] # required by the schema; no extra kernel modules needed
 
   - from-file: niri-base-modules.yml
   - from-file: dux-modules.yml

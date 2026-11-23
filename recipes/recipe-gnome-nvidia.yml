@@ -15,6 +15,7 @@ modules:
   # For older GPUs (GTX 9xx / 10xx) use: nvidia-driver: nvidia
   - type: akmods
     nvidia-driver: nvidia-open
+    install: [] # required by the schema; no extra kernel modules needed
 
   - from-file: gnome-modules.yml
   - from-file: shared-modules.yml # keep last: ends with signing and the initramfs
