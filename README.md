@@ -7,11 +7,11 @@ My personal Fedora Atomic desktops: GNOME, niri with my Gravity shell, or niri w
 | Image | For | Base |
 | --- | --- | --- |
 | `ghcr.io/rubenvangastel/gnome` | GNOME, Intel / AMD graphics | `silverblue-main` |
-| `ghcr.io/rubenvangastel/gnome-nvidia` | GNOME, NVIDIA graphics | `silverblue-nvidia` |
+| `ghcr.io/rubenvangastel/gnome-nvidia` | GNOME, NVIDIA graphics | `silverblue-main` + NVIDIA open driver |
 | `ghcr.io/rubenvangastel/gravity` | niri + Gravity shell, Intel / AMD graphics | `base-main` |
-| `ghcr.io/rubenvangastel/gravity-nvidia` | niri + Gravity shell, NVIDIA graphics | `base-nvidia` |
+| `ghcr.io/rubenvangastel/gravity-nvidia` | niri + Gravity shell, NVIDIA graphics | `base-main` + NVIDIA open driver |
 | `ghcr.io/rubenvangastel/niri` | niri + Dux Shell, Intel / AMD graphics | `base-main` |
-| `ghcr.io/rubenvangastel/niri-nvidia` | niri + Dux Shell, NVIDIA graphics | `base-nvidia` |
+| `ghcr.io/rubenvangastel/niri-nvidia` | niri + Dux Shell, NVIDIA graphics | `base-main` + NVIDIA open driver |
 
 The gravity and niri images have no GNOME. Each recipe is put together from module lists in [`recipes/`](recipes/):
 

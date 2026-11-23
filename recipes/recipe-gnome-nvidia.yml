@@ -4,12 +4,18 @@
 name: gnome-nvidia
 description: My GNOME image (NVIDIA graphics)
 
-# Universal Blue image with NVIDIA drivers preinstalled and signed for Secure Boot.
-# Uses the open kernel modules (RTX 20xx / GTX 16xx and newer).
-# For older GPUs (GTX 10xx and earlier) use: ghcr.io/ublue-os/silverblue-nvidia-lts
-base-image: ghcr.io/ublue-os/silverblue-nvidia
+# Universal Blue's Silverblue image. ublue stopped publishing its -nvidia images
+# (Nov 2026, ublue-os/main#3075), so the driver is added below with the akmods module.
+base-image: ghcr.io/ublue-os/silverblue-main
 image-version: latest
 
 modules:
+  # NVIDIA driver (open kernel modules, RTX 20xx / GTX 16xx and newer), signed for Secure Boot.
+  # Pulls ghcr.io/ublue-os/akmods-nvidia-open:main-<fedora> and sets the NVIDIA kernel args.
+  # For older GPUs (GTX 9xx / 10xx) use: nvidia-driver: nvidia
+  - type: akmods
+    nvidia-driver: nvidia-open
+    install: [] # required by the schema; no extra kernel modules needed
+
   - from-file: gnome-modules.yml
   - from-file: shared-modules.yml # keep last: ends with signing and the initramfs
