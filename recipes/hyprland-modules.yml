@@ -27,13 +27,11 @@ modules:
         - caelestia-shell
         - caelestia-cli
         - qt6-qtimageformats # lets Quickshell show .webp wallpapers (Caelestia's own is one)
-        - papirus-icon-theme # Caelestia switches GTK and Qt apps to Papirus icons
         - cliphist # clipboard history (Mod+V)
         - wl-clipboard
         - grim # screenshots (Print)
         - slurp
         - libnotify # notify-send
-        - wtype # types the launcher's wallpaper prefix (Mod+Y)
         # Login screen: greetd with Dux Greeter (next step; config in /etc/greetd/config.toml)
         - greetd
         # Desktop basics, as on the niri images (PipeWire, bluez and NetworkManager are

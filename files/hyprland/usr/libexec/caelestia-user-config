@@ -2,7 +2,8 @@
 # Run by Hyprland on the hyprland images before it starts the Caelestia shell.
 #  - An account without Caelestia settings gets the image's (from /etc/skel): shell.json
 #    with Ghostty and Nautilus as its apps, and the screen locking after 10 idle minutes
-#    and before suspend, as on the gravity images; cli.json without the Discord theme
+#    and before suspend, as on the gravity images; cli.json with Adwaita icons (Caelestia
+#    would switch GTK and Qt apps to Papirus) and without the Discord theme
 #    (Vesktop is a Flatpak and doesn't read it). Caelestia has no system-wide settings,
 #    and /etc/skel only reaches accounts made after it was in the image.
 #  - Without a wallpaper yet, the desktop gets Caelestia's own, with colours from it.
