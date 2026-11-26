@@ -2,7 +2,7 @@
 
 [![bluebuild](https://github.com/RubenvanGastel/bluebuild-os/actions/workflows/build.yml/badge.svg)](https://github.com/RubenvanGastel/bluebuild-os/actions/workflows/build.yml)
 
-My personal Fedora Atomic desktops: GNOME, niri with my Gravity shell, or niri with Dux Shell, built with [BlueBuild](https://blue-build.org) on top of [Universal Blue](https://universal-blue.org). The images are rebuilt every day at 06:00 UTC.
+My personal Fedora Atomic desktops: GNOME, niri with my Gravity shell, niri with Dux Shell, or Hyprland with the Caelestia shell, built with [BlueBuild](https://blue-build.org) on top of [Universal Blue](https://universal-blue.org). The images are rebuilt every day at 06:00 UTC.
 
 | Image | For | Base |
 | --- | --- | --- |
@@ -12,8 +12,10 @@ My personal Fedora Atomic desktops: GNOME, niri with my Gravity shell, or niri w
 | `ghcr.io/rubenvangastel/gravity-nvidia` | niri + Gravity shell, NVIDIA graphics | `base-main` + NVIDIA open driver |
 | `ghcr.io/rubenvangastel/niri` | niri + Dux Shell, Intel / AMD graphics | `base-main` |
 | `ghcr.io/rubenvangastel/niri-nvidia` | niri + Dux Shell, NVIDIA graphics | `base-main` + NVIDIA open driver |
+| `ghcr.io/rubenvangastel/hyprland` | Hyprland + Caelestia shell, Intel / AMD graphics | `base-main` |
+| `ghcr.io/rubenvangastel/hyprland-nvidia` | Hyprland + Caelestia shell, NVIDIA graphics | `base-main` + NVIDIA open driver |
 
-The gravity and niri images have no GNOME. Each recipe is put together from module lists in [`recipes/`](recipes/):
+The gravity, niri and hyprland images have no GNOME. Each recipe is put together from module lists in [`recipes/`](recipes/):
 
 | Module list | Used by |
 | --- | --- |
@@ -22,6 +24,7 @@ The gravity and niri images have no GNOME. Each recipe is put together from modu
 | [`niri-base-modules.yml`](recipes/niri-base-modules.yml) | gravity and niri images: niri, the greetd login screen, desktop basics |
 | [`gravity-modules.yml`](recipes/gravity-modules.yml) | gravity, gravity-nvidia |
 | [`dux-modules.yml`](recipes/dux-modules.yml) | niri, niri-nvidia |
+| [`hyprland-modules.yml`](recipes/hyprland-modules.yml) | hyprland, hyprland-nvidia: Hyprland, Caelestia, the greetd login screen, desktop basics |
 
 ## What's inside
 
@@ -30,7 +33,8 @@ The gravity and niri images have no GNOME. Each recipe is put together from modu
 - **GNOME** with the [MoreWaita](https://github.com/somepaulo/MoreWaita) icon theme and the [Hot Edge](https://extensions.gnome.org/extension/4222/hot-edge/), [AppIndicator](https://extensions.gnome.org/extension/615/appindicator-support/) and [Alphabetical App Grid](https://extensions.gnome.org/extension/4269/alphabetical-app-grid/) extensions turned on.
 - **Gravity shell** (gravity images): [niri](https://github.com/niri-wm/niri), a scrollable-tiling Wayland compositor, with my own [Quickshell](https://quickshell.org) desktop inspired by Gravity Rush: an animated wallpaper, a bar, notifications and a lock screen ([details](files/gravity/usr/share/gravity-shell/README.md)). `fuzzel` is the app launcher. Coming from the niri image? Run `ujust gravity-niri-config` to move the Dux `~/.config/niri` aside (keeping a backup) so niri uses the Gravity config in `/etc/niri`.
 - **Dux Shell** (niri images), formerly [DankMaterialShell](https://duxlabs.dev): niri with the Dux Shell bar, launcher (Mod+Space), notifications, lock screen and settings (Mod+Comma). On your first login `/etc/niri` is copied to `~/.config/niri`, because Dux Shell keeps its colours and keybinds in `~/.config/niri/dms/`. Run `ujust dux-greeter-sync` once to give the login screen your theme and wallpaper. Already have your own `~/.config/niri`, e.g. from the gravity image? `ujust dux-niri-config` swaps it for the Dux one (keeping a backup).
-- The gravity and niri images log in with **Dux Greeter** (greetd).
+- **Caelestia shell** (hyprland images): [Hyprland](https://hypr.land) with the [Caelestia](https://github.com/caelestia-dots/shell) bar, launcher (Mod+Space), dashboard, notifications, lock screen and settings (Mod+Comma). Hyprland is set up to work like niri on the gravity images: windows open in columns on a strip that scrolls sideways (Hyprland's scrolling layout), and the keybinds do the same things, Mod+F1 lists them. A few niri actions have no Hyprland counterpart and are close stand-ins: Mod+Tab fits every column on screen instead of opening an overview, and Mod+W makes a tab group. The config is [`/etc/xdg/hypr/hyprland.lua`](files/hyprland/etc/xdg/hypr/hyprland.lua); `ujust hyprland-user-config` makes `~/.config/hypr/hyprland.lua`, which loads it and then your own settings. The focus ring takes its colour from Caelestia's wallpaper colours.
+- The gravity, niri and hyprland images log in with **Dux Greeter** (greetd).
 - A **Miku Plymouth** boot animation.
 
 ### Apps
@@ -52,7 +56,7 @@ Resources replaces the System Monitor, htop and nvtop that come with the base im
 
 ### Defaults
 
-- The Compose key is **Right Alt**. For example, press Right Alt, then `'` and `e` to type é. On gravity and niri it is set once on first boot in the system keyboard settings (`localectl`), so the layout you picked in the installer stays.
+- The Compose key is **Right Alt**. For example, press Right Alt, then `'` and `e` to type é. On gravity and niri it is set once on first boot in the system keyboard settings (`localectl`), so the layout you picked in the installer stays. Hyprland reads the layout from those settings too, and uses Compose on Right Alt unless you set XKB options there.
 - **Ghostty** uses the [cursor warp and ripple shaders](https://github.com/sahaj-b/ghostty-cursor-shaders). Your `~/.config/ghostty/config.ghostty` includes `/etc/ghostty/config`: new users get it from `/etc/skel`, and a user service puts it in place once, at the first login with the image, when the file is missing or holds only comments (the template Ghostty writes itself). A config with settings of your own is left alone; add `config-file = /etc/ghostty/config` to it to keep the defaults.
 - **zsh** is everyone's login shell, set up like fish: suggestions from your history (Right arrow accepts), syntax highlighting, a Tab completion menu, history shared between terminals and a prompt with the folder and git branch. Every new user gets it. The defaults are in `/etc/zshrc.d`, and your own `~/.zshrc` overrides them.
 - `ls`, `ll`, `la` and `lt` run **eza** with icons, using Nerd Font symbols.
@@ -71,7 +75,7 @@ Here the Flatpaks are downloaded on first boot, which takes a few minutes. If th
 Start from any Fedora Atomic install, for example Fedora Silverblue, and rebase twice:
 
 ```bash
-IMAGE=gnome             # or gnome-nvidia, gravity, gravity-nvidia, niri, niri-nvidia
+IMAGE=gnome             # or gnome-nvidia, gravity, gravity-nvidia, niri, niri-nvidia, hyprland, hyprland-nvidia
 
 # 1. Unsigned first, to get the signing policy
 rpm-ostree rebase ostree-unverified-registry:ghcr.io/rubenvangastel/$IMAGE:latest
@@ -95,11 +99,12 @@ recipes/
   *-modules.yml         module lists the recipes are put together from (see above)
 files/
   gschema-overrides/    default GNOME settings
-  scripts/              build scripts (Plymouth theme, zsh, greetd, Dux and Gravity setup)
+  scripts/              build scripts (Plymouth theme, zsh, greetd, Dux, Gravity and Hyprland setup)
   shared/               copied into every image root (/)
   niri-base/            copied into the gravity and niri images (greetd config)
   gravity/              copied into the gravity images (Gravity shell, its niri config, ujust recipes)
   dux/                  copied into the niri images (Dux Shell niri config, ujust recipes)
+  hyprland/             copied into the hyprland images (Hyprland config, greetd config, Caelestia defaults, ujust recipes)
 iso/                    live installer image for the build-iso workflow (Flatpaks on the ISO)
 ```
 
@@ -115,6 +120,6 @@ iso/                    live installer image for the build-iso workflow (Flatpak
    ```
 3. Add the contents of `cosign.key` as a repository secret named `SIGNING_SECRET` (Settings → Secrets and variables → Actions). **Never commit `cosign.key`.**
 4. Commit `cosign.pub`, push, and wait for the Actions build to finish.
-5. In GitHub → Packages, make all six packages **public**.
+5. In GitHub → Packages, make all eight packages **public**.
 
 </details>

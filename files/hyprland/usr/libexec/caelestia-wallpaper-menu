@@ -1,0 +1,10 @@
+#!/usr/bin/bash
+# Mod+Y on the hyprland images: Caelestia's launcher in wallpaper mode. Caelestia has no
+# command for that, so this opens the launcher and types its ">wallpaper " prefix.
+set -euo pipefail
+
+if [ "$(caelestia shell drawers isOpen launcher 2>/dev/null)" != "1" ]; then
+    caelestia shell drawers toggle launcher
+    sleep 0.2
+fi
+wtype ">wallpaper "

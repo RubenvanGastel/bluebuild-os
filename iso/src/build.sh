@@ -46,9 +46,12 @@ DRACUT_NO_XATTR=1 dracut -v --force --zstd --reproducible --no-hostonly \
     --add "dmsquash-live dmsquash-live-autooverlay" \
     "/usr/lib/modules/${kernel}/initramfs.img" "${kernel}"
 
-# livesys creates "liveuser" and logs it in: GNOME through GDM, niri through greetd
+# livesys creates "liveuser" and logs it in: GNOME through GDM, niri and Hyprland through greetd
 if [[ -f /usr/share/wayland-sessions/gnome.desktop ]]; then
     session=gnome
+elif [[ -f /usr/share/wayland-sessions/hyprland.desktop ]]; then
+    session=hyprland
+    install -m 0644 "$SRC/livesys-hyprland" /usr/libexec/livesys/sessions.d/livesys-hyprland
 else
     session=niri
     install -m 0644 "$SRC/livesys-niri" /usr/libexec/livesys/sessions.d/livesys-niri

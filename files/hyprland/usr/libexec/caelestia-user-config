@@ -1,0 +1,26 @@
+#!/usr/bin/bash
+# Run by Hyprland on the hyprland images before it starts the Caelestia shell.
+#  - An account without Caelestia settings gets the image's (from /etc/skel): shell.json
+#    with Ghostty and Nautilus as its apps, and the screen locking after 10 idle minutes
+#    and before suspend, as on the gravity images; cli.json without the Discord theme
+#    (Vesktop is a Flatpak and doesn't read it). Caelestia has no system-wide settings,
+#    and /etc/skel only reaches accounts made after it was in the image.
+#  - Without a wallpaper yet, the desktop gets Caelestia's own, with colours from it.
+set -euo pipefail
+
+skel=/etc/skel/.config/caelestia
+dir="${XDG_CONFIG_HOME:-$HOME/.config}/caelestia"
+state="${XDG_STATE_HOME:-$HOME/.local/state}/caelestia"
+
+for file in shell.json cli.json; do
+    if [ -f "$skel/$file" ] && [ ! -e "$dir/$file" ]; then
+        mkdir -p "$dir"
+        cp "$skel/$file" "$dir/$file.tmp"
+        mv "$dir/$file.tmp" "$dir/$file"
+    fi
+done
+
+wallpaper=/etc/xdg/quickshell/caelestia/assets/wallpaper.webp
+if [ ! -s "$state/wallpaper/path.txt" ] && [ -f "$wallpaper" ]; then
+    caelestia wallpaper -f "$wallpaper" >/dev/null 2>&1 || true
+fi
