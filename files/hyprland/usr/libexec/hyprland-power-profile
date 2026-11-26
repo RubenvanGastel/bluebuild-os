@@ -1,0 +1,32 @@
+#!/usr/bin/bash
+# Mod+P on the hyprland images: next power mode (power saver, balanced, performance), as in
+# the Gravity shell. tuned-ppd provides the power-profiles-daemon D-Bus API.
+set -euo pipefail
+
+dest=net.hadess.PowerProfiles
+path=/net/hadess/PowerProfiles
+
+get() {
+    busctl --system get-property "$dest" "$path" "$dest" "$1"
+}
+
+current="$(get ActiveProfile | sed 's/^s "\(.*\)"$/\1/')"
+case "$current" in
+    power-saver) next=balanced ;;
+    balanced)
+        if get Profiles | grep -q '"performance"'; then
+            next=performance
+        else
+            next=power-saver
+        fi
+        ;;
+    *) next=power-saver ;;
+esac
+
+busctl --system set-property "$dest" "$path" "$dest" ActiveProfile s "$next"
+case "$next" in
+    power-saver) label="Power saver" ;;
+    balanced) label="Balanced" ;;
+    performance) label="Performance" ;;
+esac
+notify-send -a "Power mode" -i power-profile-"$next"-symbolic -t 2000 "Power mode" "$label"

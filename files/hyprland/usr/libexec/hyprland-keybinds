@@ -1,0 +1,8 @@
+#!/usr/bin/bash
+# Mod+F1 on the hyprland images: the keybind list, written by /etc/xdg/hypr/hyprland.lua
+# every time Hyprland loads its config. Type to search; Esc closes it.
+set -euo pipefail
+
+list="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/hypr-keybinds.txt"
+[ -f "$list" ] || exit 0
+fuzzel --dmenu --prompt "Keybinds: " --width 70 --lines 20 <"$list" >/dev/null || true

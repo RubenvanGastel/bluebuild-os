@@ -1,0 +1,21 @@
+# yaml-language-server: $schema=https://schema.blue-build.org/recipe-v1.json
+# Hyprland + the Caelestia shell, no GNOME, for laptops WITH NVIDIA graphics
+# Published to ghcr.io/rubenvangastel/hyprland-nvidia
+name: hyprland-nvidia
+description: My Hyprland + Caelestia shell image (NVIDIA graphics)
+
+# Universal Blue's image without a desktop environment. ublue stopped publishing its -nvidia images
+# (Nov 2026, ublue-os/main#3075), so the driver is added below with the akmods module.
+base-image: ghcr.io/ublue-os/base-main
+image-version: latest
+
+modules:
+  # NVIDIA driver (open kernel modules, RTX 20xx / GTX 16xx and newer), signed for Secure Boot.
+  # Pulls ghcr.io/ublue-os/akmods-nvidia-open:main-<fedora> and sets the NVIDIA kernel args.
+  # For older GPUs (GTX 9xx / 10xx) use: nvidia-driver: nvidia
+  - type: akmods
+    nvidia-driver: nvidia-open
+    install: [] # required by the schema; no extra kernel modules needed
+
+  - from-file: hyprland-modules.yml
+  - from-file: shared-modules.yml # keep last: ends with signing and the initramfs

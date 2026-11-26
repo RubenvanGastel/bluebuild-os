@@ -1,0 +1,98 @@
+# yaml-language-server: $schema=https://schema.blue-build.org/module-list-v1.json
+# Hyprland with the Caelestia shell, no GNOME: used by both hyprland images, which build
+# on Universal Blue's base images (no desktop environment). Hyprland is set up to work like
+# niri on the gravity and niri images (/etc/xdg/hypr/hyprland.lua). The desktop basics are
+# the same as in niri-base-modules.yml.
+modules:
+  - type: dnf
+    repos:
+      copr:
+        # Hyprland 0.57 (Lua config, built-in scrolling layout). Fedora has no Hyprland;
+        # this is the COPR the Hyprland wiki gives for Fedora.
+        - lionheartp/Hyprland
+        # Quickshell, which Caelestia runs on: the COPR the Quickshell website gives for Fedora
+        - errornointernet/quickshell
+        # Caelestia shell and CLI. Enabling it also adds the COPRs it builds against:
+        # errornointernet/quickshell (again), celestelove/app2unit, celestelove/libcava and
+        # brycensranch/gpu-screen-recorder-git.
+        - celestelove/caelestia
+    install:
+      packages:
+        - hyprland
+        - xdg-desktop-portal-hyprland # screencasting and screenshots for apps
+        - hyprpolkitagent # password prompts for admin actions
+        - hyprland-guiutils # hyprland-dialog, for the Ctrl+Alt+Delete "Quit Hyprland?" prompt
+        # Caelestia: bar, launcher, notifications, lock screen, settings (command: caelestia)
+        - quickshell-git # Caelestia needs the -git build, not the quickshell release
+        - caelestia-shell
+        - caelestia-cli
+        - qt6-qtimageformats # lets Quickshell show .webp wallpapers (Caelestia's own is one)
+        - papirus-icon-theme # Caelestia switches GTK and Qt apps to Papirus icons
+        - cliphist # clipboard history (Mod+V)
+        - wl-clipboard
+        - grim # screenshots (Print)
+        - slurp
+        - libnotify # notify-send
+        - wtype # types the launcher's wallpaper prefix (Mod+Y)
+        # Login screen: greetd with Dux Greeter (next step; config in /etc/greetd/config.toml)
+        - greetd
+        # Desktop basics, as on the niri images (PipeWire, bluez and NetworkManager are
+        # already in the base image)
+        - xdg-desktop-portal-gtk # file dialogs
+        - nautilus # file manager (Mod+E)
+        # Nautilus backends Silverblue ships: network shares (smb://, nfs://), phones
+        # (Android over MTP, iPhone) and cameras
+        - gvfs-smb
+        - wsdd # lets Nautilus find Windows 10/11 PCs under Network (WS-Discovery)
+        - gvfs-nfs
+        - gvfs-mtp
+        - gvfs-afc
+        - gvfs-gphoto2
+        - nautilus-python # Ghostty's "Open in Ghostty" in Nautilus' right-click menu
+        - file-roller # archive manager: double-click a .zip/.7z/.tar to open it
+        - gnome-disk-utility # Disks: format USB sticks, SMART, disk images
+        - bolt # authorizes Thunderbolt/USB4 docks and devices (boltctl)
+        - gnome-keyring
+        - gnome-keyring-pam # greetd unlocks the keyring at login (see setup-greetd.sh)
+        - adw-gtk3-theme # GTK 3 apps in the libadwaita look; Caelestia picks adw-gtk3-dark
+        - tuned-ppd # power modes (power-saver, balanced, performance) for Mod+P and the shell
+        - xdg-user-dirs # Afbeeldingen, Documenten, ... in a new home folder
+      # Hyprland recommends these, but Ghostty is the terminal, Caelestia has its own
+      # launcher, and the session starts without uwsm (one "Hyprland" on the login screen)
+      exclude:
+        - kitty
+        - wofi
+        - hyprland-uwsm
+        - uwsm
+
+  # Dux Greeter (dms-greeter), the login screen of the gravity and niri images. A step of its
+  # own: its COPR has a newer quickshell-git than errornointernet's, which dnf would take
+  # instead. Installed after Quickshell, dms-greeter uses the one that's already there.
+  - type: dnf
+    repos:
+      copr:
+        - avengemedia/danklinux
+    install:
+      packages:
+        - dms-greeter
+
+  # Hyprland config (/etc/xdg/hypr), the greetd config, Caelestia's settings for new
+  # accounts (/etc/skel), helper scripts and ujust hyprland-user-config. After dnf, so our
+  # files win over files that packages ship.
+  - type: files
+    files:
+      - source: hyprland
+        destination: / # copies files/hyprland/* into the image root
+
+  - type: systemd
+    system:
+      enabled:
+        - greetd.service
+    user:
+      enabled:
+        - hyprpolkitagent.service # with the Hyprland session (graphical-session.target)
+
+  - type: script
+    scripts:
+      - setup-greetd.sh
+      - setup-hyprland.sh

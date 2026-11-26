@@ -1,0 +1,19 @@
+{
+    "general": {
+        "apps": {
+            "terminal": ["ghostty"],
+            "playback": ["flatpak", "run", "io.github.diegopvlk.Cine"],
+            "explorer": ["nautilus"]
+        },
+        "idle": {
+            "lockBeforeSleep": true,
+            "inhibitWhenAudio": true,
+            "timeouts": [
+                {
+                    "timeout": 600,
+                    "idleAction": "lock"
+                }
+            ]
+        }
+    }
+}

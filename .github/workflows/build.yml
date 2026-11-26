@@ -32,6 +32,8 @@ jobs:
           - recipe-gravity-nvidia.yml # niri + Gravity shell, NVIDIA
           - recipe-niri.yml           # niri + Dux Shell, Intel/AMD
           - recipe-niri-nvidia.yml    # niri + Dux Shell, NVIDIA
+          - recipe-hyprland.yml        # Hyprland + Caelestia shell, Intel/AMD
+          - recipe-hyprland-nvidia.yml # Hyprland + Caelestia shell, NVIDIA
     steps:
       - name: Build Custom Image
         uses: blue-build/github-action@v1

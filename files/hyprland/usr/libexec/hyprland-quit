@@ -1,0 +1,9 @@
+#!/usr/bin/bash
+# Ctrl+Alt+Delete on the hyprland images: like niri's quit, asks first.
+set -euo pipefail
+
+choice="$(hyprland-dialog --title "Quit Hyprland" --apptitle "Quit Hyprland?" \
+    --text "All programs will be closed and you'll be logged out." --buttons "Cancel;Quit")" || exit 0
+if [ "$choice" = "Quit" ]; then
+    hyprctl dispatch 'hl.dsp.exit()'
+fi
